@@ -1,0 +1,30 @@
+{
+  "name": "nativescript-sqlite",
+  "version": "0.0.1",
+  "description": "A sqlite NativeScript module for Android and (soon) iOS",
+  "main": "sqlite.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nathanaela/nativescript-sqlite.git"
+  },
+  "keywords": [
+    "NativeScript"
+  ],
+  "author": {
+    "name": "Nathanael Anderson",
+    "email": "nathanael.anderson@gmail.com"
+  },
+  "license": {
+    "type": "MIT",
+    "url": "https://github.com/nathanaela/nativescript-sqlite/blob/master/LICENSE"
+  },
+  "bugs": {
+    "url": "https://github.com/nathanaela/nativescript-sqlite/issues"
+  },
+  "homepage": "https://github.com/nathanaela/nativescript-sqlite",
+  "readme": "# NativeScript sqlite\n\nA NativeScript module providing sqlite actions for Android and iOS.\n\n## Installation\n\nRun `npm install nativescript-sqlite --save` from your project's inner `app` directory:\n\n```\n.\n├── app\n│   ├── app <------------------------------ run npm install from here\n│   │   ├── app.css\n│   │   ├── app.js\n│   │   ├── bootstrap.js\n│   │   ├── main-page.js\n│   │   ├── main-page.xml\n│   │   ├── node_modules\n│   │   │   └── nativescript-sqlite <-- The install will place the module's code here\n│   │   │       └── ...\n│   │   └── package.json <----------------- The install will register “nativescript-sqlite” as a dependency here\n│   └── tns_modules\n│       └── ...\n└── platforms\n    ├── android\n    └── ios\n```\n\nAs is, using npm within NativeScript is still experimental, so it's possible that you'll run into some issues. A more complete solution is in the works, and you can check out [this issue](https://github.com/NativeScript/nativescript-cli/issues/362) for an update on its progress and to offer feedback.\n\nIf npm doesn't end up working for you, you can just copy and paste this repo's sqlite-common.js, sqlite.android.js, and sqlite.ios.js files into your app and reference them directly.\n\n### Android\n\nTo dial the sqlite without user interaction on Android your app must request permission to dial. To do so, add the following line to your project's AndroidManifest.xml:\n\n```xml\n<uses-permission android:name=\"android.permission.CALL_sqlite\" />\n```\n\n## Usage\n\nTo use the sqlite module you must first `require()` it from your project's `node_modules` directory:\n\n```js\nvar sqlite = require( \"./node_modules/nativescript-sqlite/sqlite\" );\n```\n\nAfter you have a reference to the module you can then call the availabl methods.\n\n### Methods\n#### dial: initiate a sqlite call\n##### Parameters\n* telNum: sqlite number to dial.\n* prompt: Boolean to enable OS specific confirmation before dialing.\n\nFor example, the code below dials the number without showing the device specific confirmation prompt:\n\n```js\n// my-page.js\nvar sqlite = require( \"/path/to/node_modules/nativescript-sqlite\" );\nsqlite.dial(\"212-555-1234\");\n```\n#### sms: open the OS specific SMS app\n##### Parameters\n* smsNum: SMS number to use.\n* messageText: String to send.\n\nFor example, the code below opens the sms app for the provided number:\n\n```js\n// my-page.js\nvar sqlite = require( \"/path/to/node_modules/nativescript-sqlite\" );\n```\n",
+  "readmeFilename": "README.md",
+  "_id": "nativescript-sqlite@0.0.1",
+  "_from": "nativescript-sqlite@",
+  "_resolved": "https://registry.npmjs.org/nativescript-sqlite/-/nativescript-sqlite-0.0.1.tgz"
+}
