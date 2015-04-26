@@ -39,13 +39,15 @@ var Sqlite = require( "./node_modules/nativescript-sqlite/sqlite" );
 ```
 
 After you have a reference to the module you can then call the available methods.
+The database defaults to returning result sets in arrays; i.e. [[field1, field2, ...], [field1, field2], [field1, field2] ...] you can change this to returning them in objects if you desire.
+
 
 ### Callbacks
 * All callbacks have the standard (Error, result) prototype
 
-### CONSTANTS
+### Constants
 * Sqlite.RESULTSASARRAY - Returns results as Arrays (ex: select name, phone --- results  [[name,phone]]) 
-* Sqlite.RESULTSASOBJECT - Returns results as Objecs (ex: select name, phone --- results [{name: name, phone: phone}]
+* Sqlite.RESULTSASOBJECT - Returns results as Objects (ex: select name, phone --- results [{name: name, phone: phone}]
  
 ### Methods
 #### new Sqlite(dbname, callback)
@@ -58,13 +60,14 @@ After you have a reference to the module you can then call the available methods
 ```js
 // my-page.js
 var Sqlite = require( "/path/to/node_modules/nativescript-sqlite" );
-var db_promise = new Sqlite("MyTable", function(err, open_db) {
-    // This should ALWAYS be true, open_db object returned is open
+var db_promise = new Sqlite("MyTable", function(err, db) {
+    // This should ALWAYS be true, db object is open in the "Callback"
     console.log("Are we open yet (Inside Callback)? ", db.isOpen() ? "Yes" : "No");
 });
 
 db_promise.then(function(db) {
-      console.log("Are we open yet (outside)? ", db.isOpen() ? "Yes" : "No");
+    // This should ALWAYS be true, db object is open in the "then"
+      console.log("Are we open yet (Inside Promise)? ", db.isOpen() ? "Yes" : "No");
       db.close();
    }, function(err) {
      console.error("We failed to open database", err);
@@ -74,7 +77,7 @@ db_promise.then(function(db) {
 #### Sqlite.isSqlite
 ##### Parameters
 * obj
-* Returns True or false if the obj passed to this function is a 
+* Returns True or False if the obj passed to this function is a 
 
 
 ```js
@@ -109,17 +112,27 @@ new Sqlite("test.db", function(err, db) {
 #### DB.resultType
 ##### Parameters
 * Pass in Sqlite.RESULTASOBJECT or Sqlite.RESULTSASARRAY to change the result sets configuration
+This will set the database to return the results in which ever choice you make.  (Default is RESULTSASARRAY)
 
 #### DB.close
-Closes the database
+* Closes the database
+NOTE: Any DB calls after this will throw errors. 
 
 #### DB.execSQL
 ##### Parameters
 * SQL statment to run, can use ? for Parameters
 * Params (Optional) - an array of Parameters
 * Callback will either return null or the last id inserted or the record count of update/delete
-This routine you can use for "update", "insert", "delete" and any other sqlite command where you are not expecting a value back.
+This routine you can use for "update", "insert", "delete" and any other sqlite command where you are not expecting a result set back.
 If this is a Insert it will return the last row id of the new inserted record.  If it is a update/insert it will return the number of rows affected. 
+
+```js
+// new SQLite(....
+db.execSQL("insert into Hello (word) values (?)", ["Hi"], function(err, id) {
+  console.log("The new record id is:", id);
+});
+```
+
 
 #### DB.get
 ##### Parameters
@@ -127,12 +140,27 @@ If this is a Insert it will return the last row id of the new inserted record.  
 * Params (Optional)
 * Callback will have the first row of the result set.
 
+```js
+// new SQLite(...
+db.get('select * from Hello', function(err, row) {
+  console.log("Row of data was: ", row);  // Prints [["Field1", "Field2",...]]
+});
+```
+
 
 #### DB.all
 ##### Parameters
 * SQL SELECT statement, can use ? for parameters
 * Params (Optional)
 * Callback will have the all the rows of the result set.
+
+```js
+// new SQLite(...
+db.all('select * from Hello', function(err, resultSet) {
+  console.log("Result set is:", resultSet); // Prints [["Row_1 Field_1" "Row_1 Field_2",...], ["Row 2"...], ...]
+});
+```
+
 
 #### DB.each
 ##### Parameters
