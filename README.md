@@ -62,12 +62,12 @@ The database defaults to returning result sets in arrays; i.e. [[field1, field2,
 var Sqlite = require( "/path/to/node_modules/nativescript-sqlite" );
 var db_promise = new Sqlite("MyTable", function(err, db) {
     // This should ALWAYS be true, db object is open in the "Callback"
-    console.log("Are we open yet (Inside Callback)? ", db.isOpen() ? "Yes" : "No");
+    console.log("Are we open yet (Inside Callback)? ", db.isOpen() ? "Yes" : "No"); // Yes
 });
 
 db_promise.then(function(db) {
     // This should ALWAYS be true, db object is open in the "then"
-      console.log("Are we open yet (Inside Promise)? ", db.isOpen() ? "Yes" : "No");
+      console.log("Are we open yet (Inside Promise)? ", db.isOpen() ? "Yes" : "No"); // Yes
       db.close();
    }, function(err) {
      console.error("We failed to open database", err);
@@ -83,7 +83,7 @@ db_promise.then(function(db) {
 ```js
 // my-page.js
 new Sqlite("test.db", function(err, db) {
-  console.log("Is a Sqlite Database:", Sqlite.isSqlite(db) ? "Yes" : "No);
+  console.log("Is a Sqlite Database:", Sqlite.isSqlite(db) ? "Yes" : "No);  // Should print "Yes"
 });
 ```
 
@@ -99,13 +99,13 @@ new Sqlite("test.db", function(err, db) {
   db.version(function(err, ver) {
     if (ver === 0) {
       db.execSQL("Create table....");
+      db.version(1); // Sets the version to 1
     }
   });
 };
 ```
 
 #### DB.isOpen
-##### Parameters
 * Is the current database open true/false
 
 
@@ -120,7 +120,7 @@ NOTE: Any DB calls after this will throw errors.
 
 #### DB.execSQL
 ##### Parameters
-* SQL statment to run, can use ? for Parameters
+* SQL statement to run, can use ? for Parameters
 * Params (Optional) - an array of Parameters
 * Callback will either return null or the last id inserted or the record count of update/delete
 This routine you can use for "update", "insert", "delete" and any other sqlite command where you are not expecting a result set back.
