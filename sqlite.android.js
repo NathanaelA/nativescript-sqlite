@@ -2,7 +2,7 @@
  * (c) 2015, Master Technology
  * Licensed under the MIT license
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.0.1
+ * Version 0.0.2
  ************************************************************************/
 
 "use strict";
