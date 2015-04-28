@@ -56,13 +56,18 @@ The database defaults to returning result sets in arrays; i.e. [[field1, field2,
 * (optional) callback (error, db): db is the fully OPEN database object that allows interacting with the db.
 * RETURNS: promise of the DB object
  
+ You do not have to use BOTH the promise and callback; you can use whichever you are most comfortable with -- however, as with this example, you CAN use both if you want.
 
 ```js
 // my-page.js
 var Sqlite = require( "/path/to/node_modules/nativescript-sqlite" );
 var db_promise = new Sqlite("MyTable", function(err, db) {
-    // This should ALWAYS be true, db object is open in the "Callback"
-    console.log("Are we open yet (Inside Callback)? ", db.isOpen() ? "Yes" : "No"); // Yes
+    if (err) { 
+      console.error("We failed to open database", err);
+    } else 
+      // This should ALWAYS be true, db object is open in the "Callback" if no errors occurred
+      console.log("Are we open yet (Inside Callback)? ", db.isOpen() ? "Yes" : "No"); // Yes
+    }
 });
 
 db_promise.then(function(db) {
@@ -142,7 +147,7 @@ db.execSQL("insert into Hello (word) values (?)", ["Hi"], function(err, id) {
 
 ```js
 // new SQLite(...
-db.get('select * from Hello', function(err, row) {
+db.get('select * from Hello where id=?', [1], function(err, row) {
   console.log("Row of data was: ", row);  // Prints [["Field1", "Field2",...]]
 });
 ```
@@ -156,7 +161,7 @@ db.get('select * from Hello', function(err, row) {
 
 ```js
 // new SQLite(...
-db.all('select * from Hello', function(err, resultSet) {
+db.all('select * from Hello where id > ? and id < ?', [1,100], function(err, resultSet) {
   console.log("Result set is:", resultSet); // Prints [["Row_1 Field_1" "Row_1 Field_2",...], ["Row 2"...], ...]
 });
 ```
@@ -170,3 +175,13 @@ db.all('select * from Hello', function(err, resultSet) {
 * Finished_Callback (Optional) will be called when it is complete with the number of rows handled.
 
 
+```js
+// new SQLite(...
+db.each('select * from Hello where id >= ? and id <= ?', [1, 100], 
+function (err, row) {
+  console.log("Row results it:", row); // Prints ["Row x Field_1", "Row x Field 2"...] for each row passed to it
+},
+function (err, count) {
+  console.log("Rows displayed:", count); // Prints 100  (Assuming their are a 100 rows found)
+});
+```
