@@ -1,15 +1,14 @@
 # NativeScript sqlite
 
-A NativeScript module providing sqlite actions for Android and (soon) iOS.
+A NativeScript module providing sqlite actions for Android and (hopefully soon) iOS.
 
 ## Installation
 
-Run `npm install nativescript-sqlite --save` from your project's inner `app` directory:
+Run `npm install nativescript-sqlite --save` from inside your project's `app` directory:
 
 ```
 .
-├── app
-│   ├── app <------------------------------ run npm install from here
+├── app <------------------------------ run npm install from inside here
 │   │   ├── app.css
 │   │   ├── app.js
 │   │   ├── bootstrap.js

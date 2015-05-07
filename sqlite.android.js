@@ -2,7 +2,7 @@
  * (c) 2015, Master Technology
  * Licensed under the MIT license
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.0.2
+ * Version 0.0.4
  ************************************************************************/
 
 "use strict";
@@ -196,8 +196,8 @@ Database.prototype.version = function(valueOrCallback) {
         this.get('PRAGMA user_version', function (err, data) {
             valueOrCallback(err, data && data[0]);
         }, Database.RESULTSASARRAY);
-    } else if (!isNaN(valueOrCallback)) {
-        this.execSQL('PRAGMA user_version=?', [valueOrCallback]);
+    } else if (!isNaN(valueOrCallback+0)) {
+        this.execSQL('PRAGMA user_version='+(valueOrCallback+0).toString());
     }
 };
 
