@@ -9,17 +9,19 @@ Run `npm install nativescript-sqlite --save` from inside your project's `app` di
 ```
 .
 ├── app <------------------------------ run npm install from inside here
-│   │   ├── app.css
-│   │   ├── app.js
-│   │   ├── bootstrap.js
-│   │   ├── main-page.js
-│   │   ├── main-page.xml
-│   │   ├── node_modules
-│   │   │   └── nativescript-sqlite <-- The install will place the module's code here
-│   │   │       └── ...
-│   │   └── package.json <----------------- The install will register “nativescript-sqlite” as a dependency here
+│   ├── app.css
+│   ├── app.js
+│   ├── bootstrap.js
+│   ├── main-page.js
+│   ├── main-page.xml
+│   ├── node_modules
+│   │   └── nativescript-sqlite <-- The install will place the module's code here
+│   │       └── ...
+│   ├── package.json <----------------- The install will register “nativescript-sqlite” as a dependency here
+│   ├── App_Resources  
 │   └── tns_modules
 │       └── ...
+├── lib
 └── platforms
     ├── android
     └── ios
@@ -81,8 +83,7 @@ db_promise.then(function(db) {
 #### Sqlite.isSqlite
 ##### Parameters
 * obj
-* Returns True or False if the obj passed to this function is a 
-
+* Returns True or False if the obj passed to this function is a sqlite database
 
 ```js
 // my-page.js

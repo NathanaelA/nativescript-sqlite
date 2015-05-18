@@ -282,7 +282,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
 
     try {
         if (params) {
-            this._db.execSQL(sql, params);
+            this._db.execSQL(sql, this._toStringArray(params));
         } else {
             this._db.execSQL(sql);
         }
@@ -339,7 +339,7 @@ Database.prototype.get = function(sql, params, callback, mode) {
     try {
         if (params) {
             //noinspection JSUnresolvedFunction
-            cursor = this._db.rawQuery(sql, params);
+            cursor = this._db.rawQuery(sql, this._toStringArray(params));
         } else {
             //noinspection JSUnresolvedFunction
             cursor = this._db.rawQuery(sql, null);
@@ -406,7 +406,7 @@ Database.prototype.all = function(sql, params, callback) {
     try {
         if (params) {
             //noinspection JSUnresolvedFunction
-            cursor = this._db.rawQuery(sql, params);
+            cursor = this._db.rawQuery(sql, this._toStringArray(params));
         } else {
             //noinspection JSUnresolvedFunction
             cursor = this._db.rawQuery(sql, null);
@@ -471,7 +471,7 @@ Database.prototype.each = function(sql, params, callback, complete) {
     try {
         if (params) {
             //noinspection JSUnresolvedFunction
-            cursor = this._db.rawQuery(sql, params);
+            cursor = this._db.rawQuery(sql, this._toStringArray(params));
         } else {
             //noinspection JSUnresolvedFunction
             cursor = this._db.rawQuery(sql, null);
@@ -507,6 +507,25 @@ Database.prototype.each = function(sql, params, callback, complete) {
         complete(null, count);
     }
     return this;
+};
+
+/***
+ * Converts a Mixed Array to a String Array
+ * @param params
+ * @returns {Array}
+ * @private
+ */
+Database.prototype._toStringArray = function(params) {
+    var stringParams = [];
+    if (Object.prototype.toString.apply(params) === '[object Array]') {
+        var count = params.length;
+        for (var i=0; i<count; ++i) {
+            stringParams.push(params[i].toString());
+        }
+    } else {
+        stringParams.push(params.toString());
+    }
+    return stringParams;
 };
 
 
