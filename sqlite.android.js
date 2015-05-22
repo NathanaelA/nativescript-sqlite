@@ -520,7 +520,11 @@ Database.prototype._toStringArray = function(params) {
     if (Object.prototype.toString.apply(params) === '[object Array]') {
         var count = params.length;
         for (var i=0; i<count; ++i) {
-            stringParams.push(params[i].toString());
+            if (params[i] == null) {
+                stringParams.push(null);
+            } else {
+                stringParams.push(params[i].toString());
+            }
         }
     } else {
         stringParams.push(params.toString());
