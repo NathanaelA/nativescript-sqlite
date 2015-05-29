@@ -1,6 +1,6 @@
 # NativeScript sqlite
 
-A NativeScript module providing sqlite actions for Android and (hopefully soon) iOS.
+A NativeScript module providing sqlite actions for Android and iOS.
 
 ## Installation
 
@@ -11,7 +11,6 @@ Run `npm install nativescript-sqlite --save` from inside your project's `app` di
 ├── app <------------------------------ run npm install from inside here
 │   ├── app.css
 │   ├── app.js
-│   ├── bootstrap.js
 │   ├── main-page.js
 │   ├── main-page.xml
 │   ├── node_modules
@@ -30,6 +29,15 @@ Run `npm install nativescript-sqlite --save` from inside your project's `app` di
 As is, using npm within NativeScript is still experimental, so it's possible that you'll run into some issues. A more complete solution is in the works, and you can check out [this issue](https://github.com/NativeScript/nativescript-cli/issues/362) for an update on its progress and to offer feedback.
 
 If npm doesn't end up working for you, you can just copy and paste this repo's sqlite.android.js, and sqlite.ios.js files into your app and reference them directly.
+
+## Extra Installation on IOS
+* You will need to COPY or MOVE the module.modulemap from the /app/node_modules/nativescript-sqlite to the /platforms/ios/ folder
+* You will need to Double-Click on the \<projname>.xcodeproj file in the /platforms/ios/ folder.
+* Scroll to the bottom of the Targets \<ProjName > -> General window until you find the "Linked Frameworks and Libraries" section
+* Click the **+** button, then type "sql" in the filter and double click on the "libsqlite3.dylib" to add it to your project.
+* Save your project and exit XCode.
+
+This should be only a one time thing.  Hopefully NativeScript in the future will have the plugins support added which will make this simpler.
 
 ## Usage
 

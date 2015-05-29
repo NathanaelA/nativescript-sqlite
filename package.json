@@ -1,7 +1,7 @@
 {
   "name": "nativescript-sqlite",
-  "version": "0.0.6",
-  "description": "A sqlite NativeScript module for Android and (soon) iOS",
+  "version": "0.0.7",
+  "description": "A sqlite NativeScript module for Android and iOS",
   "main": "sqlite.js",
   "repository": {
     "type": "git",
