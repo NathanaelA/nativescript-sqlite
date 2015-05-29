@@ -3,7 +3,7 @@
  * Licensed under the MIT license or contact me for a support / commercial license
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.0.1 - IOS                                Nathan@master-technology.com
+ * Version 0.0.2 - IOS                                Nathan@master-technology.com
  *********************************************************************************/
 
 "use strict";
@@ -39,31 +39,32 @@ function Database(dbname, callback) {
     this._resultType = Database.RESULTSASARRAY;
 
     // Check to see if it has a path, or if it is a relative dbname
-    //noinspection JSUnresolvedFunction
-    var path;
-    if (dbname.indexOf('/') === -1) {
-        path = fs.knownFolders.documents().path;
-		dbname = path + '/' + dbname;
-    } else {
-        path = dbname.substr(0, dbname.lastIndexOf('/')+1);
-    }
+    // DBNAME = "" - is a Temporary Database
+    // DBNAME = ":memory:" - is a Memory only database
+    if (dbname !== "" && dbname !== ":memory:") {
+        var path;
+        if (dbname.indexOf('/') === -1) {
+            path = fs.knownFolders.documents().path;
+            dbname = path + '/' + dbname;
+        } else {
+            path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
+        }
 
-    // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
-    // So we create it if it is missing
+        // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
+        // So we create it if it is missing
 
-    try {
-        if (!fs.File.exists(path)) {
-            var fileManager = NSFileManager.defaultManager();
-            if (!fileManager.createDirectoryAtPathWithIntermediateDirectoriesAttributesError(path, true, null, null))
-            {
-                console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
+        try {
+            if (!fs.File.exists(path)) {
+                var fileManager = NSFileManager.defaultManager();
+                if (!fileManager.createDirectoryAtPathWithIntermediateDirectoriesAttributesError(path, true, null, null)) {
+                    console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
+                }
             }
         }
+        catch (err) {
+            console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
+        }
     }
-    catch (err) {
-        console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
-    }
-
     var self = this;
     //noinspection JSUnresolvedFunction
     return new Promise(function (resolve, reject) {
@@ -72,6 +73,7 @@ function Database(dbname, callback) {
             self._db = new interop.Reference();
             // SQLITE_OPEN_FULLMUTEX = 65536, SQLITE_OPEN_CREATE = 4, SQLITE_OPEN_READWRITE = 2
 			error = sqlite3_open_v2(dbname, self._db, 4 | 2 | 65536, null);
+            self._db = self._db.value;
         } catch (err) {
             callback && callback(err, null);
             reject(err);
@@ -146,7 +148,7 @@ Database.prototype.close = function(callback) {
         }
     }
 
-    sqlite3_close(this._db.value);
+    sqlite3_close(this._db);
     this._db = null;
     this._isOpen = false;
     if (callback) {
@@ -190,7 +192,8 @@ Database.prototype.execSQL = function(sql, params, callback) {
     var res;
     try {
 		var statement = new interop.Reference();
-        res = sqlite3_prepare_v2(this._db.value, sql, -1, statement, null);
+        res = sqlite3_prepare_v2(this._db, sql, -1, statement, null);
+        statement = statement.value;
 		if (res) {
 			callback("SQLITE.ExecSQL Failed Prepare: "+res);
             return this;
@@ -201,8 +204,8 @@ Database.prototype.execSQL = function(sql, params, callback) {
                 return this;
             }
 		}
-		var result = sqlite3_step(statement.value);
-        sqlite3_finalize(statement.value);
+		var result = sqlite3_step(statement);
+        sqlite3_finalize(statement);
         if (result && result !== 100 && result !== 101 ) {
             callback("SQLITE.ExecSQL Failed "+res);
             return this;
@@ -260,7 +263,8 @@ Database.prototype.get = function(sql, params, callback, mode) {
     var cursor;
     try {
         var statement = new interop.Reference();
-        var res = sqlite3_prepare_v2(this._db.value, sql, -1, statement, null);
+        var res = sqlite3_prepare_v2(this._db, sql, -1, statement, null);
+        statement = statement.value;
         if (res) {
             callback("SQLITE.GET Failed Prepare: "+res);
             return this;
@@ -271,11 +275,11 @@ Database.prototype.get = function(sql, params, callback, mode) {
                 return this;
             }
         }
-        var result = sqlite3_step(statement.value);
+        var result = sqlite3_step(statement);
         if (result === 100) {
             cursor = this._getResults(statement, mode);
         }
-        sqlite3_finalize(statement.value);
+        sqlite3_finalize(statement);
         if (result && result !== 100 && result !== 101) {
             callback("SQLITE.GET - Step Error" + result);
             return this;
@@ -320,7 +324,8 @@ Database.prototype.all = function(sql, params, callback) {
     var rows = [], res;
     try {
         var statement = new interop.Reference();
-        res = sqlite3_prepare_v2(this._db.value, sql, -1, statement, null);
+        res = sqlite3_prepare_v2(this._db, sql, -1, statement, null);
+        statement = statement.value;
         if (res) {
         	callback("SQLITE.ALL - Prepare Error " + res);
             return this;
@@ -332,19 +337,19 @@ Database.prototype.all = function(sql, params, callback) {
            }
 	    }
         do {
-            var result = sqlite3_step(statement.value);
+            var result = sqlite3_step(statement);
             if (result === 100) {
                 var cursor = this._getResults(statement);
                 if (cursor) {
                     rows.push(cursor)
                 }
             } else if (result && result !== 101) {
-                sqlite3_finalize(statement.value);
+                sqlite3_finalize(statement);
                 callback("SQLITE.ALL - Database Error" + result);
                 return this;
             }
         } while (result === 100);
-        sqlite3_finalize(statement.value);
+        sqlite3_finalize(statement);
     } catch (err) {
         callback(err, null);
         return this;
@@ -387,7 +392,8 @@ Database.prototype.each = function(sql, params, callback, complete) {
     try {
 
         var statement = new interop.Reference();
-        res = sqlite3_prepare_v2(this._db.value, sql, -1, statement, null);
+        res = sqlite3_prepare_v2(this._db, sql, -1, statement, null);
+        statement = statement.value;
 		if (res) {
             errorCB("SQLITE.EACH Error in Prepare" + res);
             return this;
@@ -399,7 +405,7 @@ Database.prototype.each = function(sql, params, callback, complete) {
             }
         }
         do {
-            var result = sqlite3_step(statement.value);
+            var result = sqlite3_step(statement);
             if (result === 100) {
                 var cursor = this._getResults(statement);
                 if (cursor) {
@@ -407,12 +413,12 @@ Database.prototype.each = function(sql, params, callback, complete) {
                     callback(null, cursor);
                 }
             } else if (result && result !== 101) {
-                sqlite3_finalize(statement.value);
+                sqlite3_finalize(statement);
                 errorCB("SQLITE.EACH - Database Error "+ result);
                 return this;
             }
         } while (result === 100);
-        sqlite3_finalize(statement.value);
+        sqlite3_finalize(statement);
     } catch (err) {
         errorCB(err, null);
         return this;
@@ -438,14 +444,14 @@ Database.prototype.each = function(sql, params, callback, complete) {
 		 */
 Database.prototype._bind = function(statement, params) {
     var param;
-    if (Object.prototype.toString.apply(params) === '[object Array]') {
+    if (Array.isArray(params)) {
         var count = params.length, res;
         for (var i=0; i<count; ++i) {
             if (params[i] == null) {
-                res = sqlite3_bind_null(statement.value, i+1);
+                res = sqlite3_bind_null(statement, i+1);
             } else {
                 param = params[i].toString();
-                res = sqlite3_bind_text(statement.value, i+1, param, -1, null );
+                res = sqlite3_bind_text(statement, i+1, param, -1, null );
             }
 			if (res) {
                 console.error("SQLITE.Binding Error ", res);
@@ -454,10 +460,10 @@ Database.prototype._bind = function(statement, params) {
         }
     } else {
         if (params == null) {
-            res = sqlite3_bind_null(statement.value, 1);
+            res = sqlite3_bind_null(statement, 1);
         } else {
             param = params.toString();
-            res = sqlite3_bind_text(statement.value, 1, param, -1, null );
+            res = sqlite3_bind_text(statement, 1, param, -1, null );
 	    }
 		if (res) {
             console.error("SQLITE.Binding Error ", res);
@@ -468,28 +474,27 @@ Database.prototype._bind = function(statement, params) {
 };
 
 Database.prototype._getResult = function(statement, column) {
-    var resultType = sqlite3_column_type(statement.value, column);
+    var resultType = sqlite3_column_type(statement, column);
     switch (resultType) {
         case 1: // Int
-            return sqlite3_column_int(statement.value, column).toString();
+            return sqlite3_column_int(statement, column).toString();
         case 2: // Float
-            return sqlite3_column_double(statement.value, column).toString();
+            return sqlite3_column_double(statement, column).toString();
         case 3: // Text
-            var res = sqlite3_column_text(statement.value, column).value;
-            return res;
+            return NSString.stringWithUTF8String(sqlite3_column_text(statement, column));
         case 4: // Blob
             return null; // TODO: We don't currently support Blobs
         case 5: // Null
             return null;
         default:
-            return sqlite3_column_text(statement.value, column).value.toString();
+            return NSString.stringWithUTF8String(sqlite3_column_text(statement, column));
     }
 };
 
 Database.prototype._getResults = function(statement, mode) {
     mode = mode || this._resultType;
 
-    var cnt = sqlite3_column_count(statement.value), i, data;
+    var cnt = sqlite3_column_count(statement), i, data;
     if (cnt === 0) return null;
     if (mode === Database.RESULTSASARRAY) {
         data = [];
@@ -504,7 +509,7 @@ Database.prototype._getResults = function(statement, mode) {
         } else {
             colName = [];
             for (i=0;i<cnt;i++) {
-                var cn = sqlite3_column_name(statement.value, i).value;
+                var cn = sqlite3_column_name(statement, i).value;
                 if (!cn || colName.contains(cn)) {
                     cn = "column"+i;
                 }

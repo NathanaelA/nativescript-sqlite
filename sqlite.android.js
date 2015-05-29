@@ -3,7 +3,7 @@
  * Licensed under the MIT license or contact me for a support / commercial license
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.0.5 - Android                            Nathan@master-technology.com
+ * Version 0.0.6 - Android                            Nathan@master-technology.com
  *********************************************************************************/
 
 "use strict";
@@ -135,40 +135,47 @@ function Database(dbname, callback) {
 
     // Check to see if it has a path, or if it is a relative dbname
     //noinspection JSUnresolvedFunction
-    var pkgName = appModule.android.context.getPackageName();
-    var path = '/data/data/'+pkgName+'/databases/';
-    if (dbname.indexOf('/') === -1) {
-        dbname = path + dbname;
-    } else {
-        path = dbname.substr(0, dbname.lastIndexOf('/')+1);
-    }
+    // dbname = "" - Temporary Database
+    // dbname = ":memory:" = memory database
+    if (dbname !== ""  && dbname !== ":memory:") {
+        var pkgName = appModule.android.context.getPackageName();
+        var path = '/data/data/' + pkgName + '/databases/';
+        if (dbname.indexOf('/') === -1) {
+            dbname = path + dbname;
+        } else {
+            path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
+        }
 
 
-    // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
-    // So we create it if it is missing
+        // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
+        // So we create it if it is missing
 
-    try {
-        //noinspection JSUnresolvedVariable
-        var javaFile = new java.io.File(path);
-        if (!javaFile.exists()) {
-            //noinspection JSUnresolvedFunction
-            javaFile.mkdirs();
-            //noinspection JSUnresolvedFunction
-            javaFile.setReadable(true);
-            //noinspection JSUnresolvedFunction
-            javaFile.setWritable(true);
+        try {
+            //noinspection JSUnresolvedVariable
+            var javaFile = new java.io.File(path);
+            if (!javaFile.exists()) {
+                //noinspection JSUnresolvedFunction
+                javaFile.mkdirs();
+                //noinspection JSUnresolvedFunction
+                javaFile.setReadable(true);
+                //noinspection JSUnresolvedFunction
+                javaFile.setWritable(true);
+            }
+        }
+        catch (err) {
+            console.info("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
         }
     }
-    catch (err) {
-        console.info("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
-    }
-
     var self = this;
     //noinspection JSUnresolvedFunction
     return new Promise(function (resolve, reject) {
         try {
             //noinspection JSUnresolvedVariable, JSUnresolvedFunction
-            self._db = android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(dbname, null);
+            if (dbname === ":memory:") {
+                self._db = android.database.sqlite.SQLiteDatabase.create(null);
+            } else {
+                self._db = android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(dbname, null);
+            }
         } catch (err) {
             console.error("SQLITE.CONSTRUCTOR -  Open DB Error", err);
             callback && callback(err, null);

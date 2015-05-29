@@ -2,6 +2,10 @@
 
 A NativeScript module providing sqlite actions for Android and iOS.
 
+## License
+
+This is released under the MIT License, meaning you are free to include this in any type of program -- However for entities that need a support and/or a commercial license please contact me (nathan@master-technology.com).
+
 ## Installation
 
 Run `npm install nativescript-sqlite --save` from inside your project's `app` directory:
@@ -61,7 +65,7 @@ The database defaults to returning result sets in arrays; i.e. [[field1, field2,
 ### Methods
 #### new Sqlite(dbname, callback)
 ##### Parameters
-* dbname: your database name.  
+* dbname: your database name.   This can be ":memory:" for a memory Database. This can be "" for a Temporary Database.
 * (optional) callback (error, db): db is the fully OPEN database object that allows interacting with the db.
 * RETURNS: promise of the DB object
  
