@@ -1,42 +1,43 @@
-/*********************************************************************************
+/************************************************************************************
  * (c) 2015, Master Technology
- * Licensed under the MIT license or contact me for a support / commercial license
+ * Licensed under the MIT license or contact me for a support, changes, enhancements,
+ * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.0.2 - IOS                                Nathan@master-technology.com
- *********************************************************************************/
+ * Version 0.0.3 - IOS                                Nathan@master-technology.com
+ ***********************************************************************************/
 
 "use strict";
-var appModule = require('application');
 var fs = require('file-system');
 
-/**
- * Used to throw a error if a callback wasn't supplied
- * @param err
- * @constructor
- */
-function CallbackThrowError(err) {
-    if (err) {
-        throw new Error(err);
-    }
-}
+/* jshint undef: true, camelcase: false */
+/* global Promise, NSFileManager, NSBundle, NSString, interop, sqlite3_open_v2, sqlite3_close, sqlite3_prepare_v2, sqlite3_step,
+ sqlite3_finalize, sqlite3_bind_null, sqlite3_bind_text, sqlite3_column_type, sqlite3_column_int,
+ sqlite3_column_double, sqlite3_column_text,  sqlite3_column_count, sqlite3_column_name */
 
 
 //noinspection JSValidateJSDoc
 /***
  * Database Constructor
  * @param dbname - Database Name
+ * @param options - options
  * @param callback - Callback when Done
  * @returns {Promise} object
  * @constructor
  */
-function Database(dbname, callback) {
-    if (!this instanceof Database) {
+function Database(dbname, options, callback) {
+    if (!this instanceof Database) { // jshint ignore:line
         //noinspection JSValidateTypes
-        return new Database(dbname, callback);
+        return new Database(dbname, options, callback);
     }
     this._isOpen = false;
     this._resultType = Database.RESULTSASARRAY;
+    if (typeof options === 'function') {
+        callback = options;
+        options = {};
+    } else {
+        options = options || {};
+    }
 
     // Check to see if it has a path, or if it is a relative dbname
     // DBNAME = "" - is a Temporary Database
@@ -57,7 +58,7 @@ function Database(dbname, callback) {
             if (!fs.File.exists(path)) {
                 var fileManager = NSFileManager.defaultManager();
                 if (!fileManager.createDirectoryAtPathWithIntermediateDirectoriesAttributesError(path, true, null, null)) {
-                    console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
+                    console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error");
                 }
             }
         }
@@ -68,25 +69,29 @@ function Database(dbname, callback) {
     var self = this;
     //noinspection JSUnresolvedFunction
     return new Promise(function (resolve, reject) {
-		var error;
+        var error;
         try {
             self._db = new interop.Reference();
-            // SQLITE_OPEN_FULLMUTEX = 65536, SQLITE_OPEN_CREATE = 4, SQLITE_OPEN_READWRITE = 2
-			error = sqlite3_open_v2(dbname, self._db, 4 | 2 | 65536, null);
+            // SQLITE_OPEN_FULLMUTEX = 65536, SQLITE_OPEN_CREATE = 4, SQLITE_OPEN_READWRITE = 2 --- 4 | 2 | 65536 = 65542
+            if (options && options.readOnly) {
+                error = sqlite3_open_v2(dbname, self._db, 65536, null);
+            } else {
+                error = sqlite3_open_v2(dbname, self._db, 65542, null);
+            }
             self._db = self._db.value;
         } catch (err) {
-            callback && callback(err, null);
+            if (callback) { callback(err, null); }
             reject(err);
             return;
         }
         if (error) {
-            callback && callback(error, null);
+            if (callback) { callback(error, null); }
             reject(error);
             return;
         }
 
         self._isOpen = true;
-        callback && callback(null, self);
+        if (callback) { callback(null, self); }
         resolve(self);
     });
 }
@@ -100,18 +105,20 @@ Database.prototype._isSqlite = true;
 /***
  * This gets or sets the database version
  * @param valueOrCallback to set or callback(err, version)
+ * @returns Promise
  */
 Database.prototype.version = function(valueOrCallback) {
     if (typeof valueOrCallback === 'function') {
-        this.get('PRAGMA user_version', function (err, data) {
+        return this.get('PRAGMA user_version', function (err, data) {
             valueOrCallback(err, data && data[0]);
         }, Database.RESULTSASARRAY);
     } else if (!isNaN(valueOrCallback+0)) {
-        this.execSQL('PRAGMA user_version='+(valueOrCallback+0).toString());
+        return this.execSQL('PRAGMA user_version='+(valueOrCallback+0).toString());
+    } else {
+        return this.get('PRAGMA user_version', Database.RESULTSASARRAY);
     }
 };
 
-//noinspection JSUnusedGlobalSymbols
 /***
  * Is the database currently open
  * @returns {boolean} - true if the db is open
@@ -131,30 +138,35 @@ Database.prototype.resultType = function(value) {
     } else if (value === Database.RESULTSASOBJECT) {
         this._resultType = Database.RESULTSASOBJECT;
     }
-	return this._resultType;
+    return this._resultType;
 };
 
 /***
  * Closes this database, any queries after this will fail with an error
  * @param callback
+ * @returns Promise
  */
 Database.prototype.close = function(callback) {
-    if (!this._isOpen) {
-        if (callback) {
-            callback('SQLITE.CLOSE - Database is already closed');
-            return;
-        } else {
-            throw new Error('SQLITE.CLOSE - Database is already closed');
-        }
-    }
 
-    sqlite3_close(this._db);
-    this._db = null;
-    this._isOpen = false;
-    if (callback) {
-        callback(null, null);
-    }
-    return this;
+    var self = this;
+    return new Promise( function (resolve, reject) {
+        if (!self._isOpen) {
+            if (callback) {
+                callback('SQLITE.CLOSE - Database is already closed');
+            }
+            reject('SQLITE.CLOSE - Database is already closed');
+            return;
+
+        }
+
+        sqlite3_close(self._db);
+        self._db = null;
+        self._isOpen = false;
+        if (callback) {
+            callback(null, null);
+        }
+        resolve();
+    });
 };
 
 /***
@@ -162,7 +174,7 @@ Database.prototype.close = function(callback) {
  * @param sql - sql to use
  * @param params - optional array of parameters
  * @param callback - (err, result) - can be last_row_id for insert, and rows affected for update/delete
- * @returns {Database}
+ * @returns Promise
  */
 Database.prototype.execSQL = function(sql, params, callback) {
     if (typeof params === 'function') {
@@ -170,70 +182,93 @@ Database.prototype.execSQL = function(sql, params, callback) {
         params = undefined;
     }
 
-    if (typeof callback !== 'function') {
-        callback = CallbackThrowError;
-    }
+    var self = this;
+    return new Promise( function(resolve, reject) {
 
-    if (!this._isOpen) {
-        callback("SQLITE.EXECSQL - Database is not open", null);
-        return this;
-    }
-
-    // Need to see if we have to run any status queries afterwords
-    var flags = 0;
-    var test = sql.trim().substr(0,7).toLowerCase();
-    if (test === 'insert ') {
-        flags = 1;
-    } else if (test === 'update ' || test === 'delete ') {
-        flags = 2;
-    }
-
-
-    var res;
-    try {
-		var statement = new interop.Reference();
-        res = sqlite3_prepare_v2(this._db, sql, -1, statement, null);
-        statement = statement.value;
-		if (res) {
-			callback("SQLITE.ExecSQL Failed Prepare: "+res);
-            return this;
-		}
-	    if (params !== undefined) {
-            if (!this._bind(statement, params)) {
-                callback("SQLITE.ExecSQL Bind Error");
-                return this;
-            }
-		}
-		var result = sqlite3_step(statement);
-        sqlite3_finalize(statement);
-        if (result && result !== 100 && result !== 101 ) {
-            callback("SQLITE.ExecSQL Failed "+res);
-            return this;
+        var hasCallback = true;
+        if (typeof callback !== 'function') {
+            callback = reject;
+            hasCallback = false;
         }
-        
-    } catch (Err) {
-        callback(Err, null);
-        return this;
-    }
+
+        if (!self._isOpen) {
+            callback("SQLITE.EXECSQL - Database is not open");
+            return;
+        }
+
+        // Need to see if we have to run any status queries afterwords
+        var flags = 0;
+        var test = sql.trim().substr(0, 7).toLowerCase();
+        if (test === 'insert ') {
+            flags = 1;
+        } else if (test === 'update ' || test === 'delete ') {
+            flags = 2;
+        }
 
 
-    switch (flags) {
-        case 0:
-            callback(null, null);
-            break;
-        case 1:
-            this.get('select last_insert_rowid()', function(err, data) {
-                callback(err, data && data[0]);
-            }, Database.RESULTSASARRAY);
-            break;
-        case 2:
-            this.get('select changes()', function (err, data) {
-                callback(err, data && data[0]);
-            }, Database.RESULTSASARRAY);
-            break;
-    }
+        var res;
+        try {
+            var statement = new interop.Reference();
+            res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
+            statement = statement.value;
+            if (res) {
+                callback("SQLITE.ExecSQL Failed Prepare: " + res);
+                return;
+            }
+            if (params !== undefined) {
+                if (!self._bind(statement, params)) {
+                    callback("SQLITE.ExecSQL Bind Error");
+                    return;
+                }
+            }
+            var result = sqlite3_step(statement);
+            sqlite3_finalize(statement);
+            if (result && result !== 100 && result !== 101) {
+                callback("SQLITE.ExecSQL Failed " + res);
+                return;
+            }
 
-    return this;
+        } catch (Err) {
+            callback(Err, null);
+            return;
+        }
+
+
+        switch (flags) {
+            case 0:
+                resolve();
+                break;
+
+            case 1:
+                self.get('select last_insert_rowid()', function (err, data) {
+                    if (hasCallback) {
+                        callback(err, data && data[0]);
+                    }
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data && data[0]);
+                    }
+                }, Database.RESULTSASARRAY);
+                break;
+
+            case 2:
+                self.get('select changes()', function (err, data) {
+                    if (hasCallback) {
+                        callback(err, data && data[0]);
+                    }
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data && data[0]);
+                    }
+                }, Database.RESULTSASARRAY);
+                break;
+
+            default:
+                resolve();
+        }
+    });
 };
 
 /***
@@ -242,7 +277,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
  * @param params - optional
  * @param callback - callback (error, results)
  * @param mode - allows you to manually override the results set to be a array or object
- * @returns {Database}
+ * @returns Promise
  */
 Database.prototype.get = function(sql, params, callback, mode) {
     if (typeof params === 'function') {
@@ -251,52 +286,64 @@ Database.prototype.get = function(sql, params, callback, mode) {
         params = undefined;
     }
 
-    if (typeof callback !== 'function') {
-        callback = CallbackThrowError;
-    }
 
-    if (!this._isOpen) {
-        callback("SQLITE.GET - Database is not open", null);
-        return this;
-    }
+    var self = this;
+    return new Promise( function (resolve, reject) {
+        var hasCallback = true;
 
-    var cursor;
-    try {
-        var statement = new interop.Reference();
-        var res = sqlite3_prepare_v2(this._db, sql, -1, statement, null);
-        statement = statement.value;
-        if (res) {
-            callback("SQLITE.GET Failed Prepare: "+res);
-            return this;
+        if (typeof callback !== 'function') {
+            callback = reject;
+            hasCallback = false;
         }
-        if (params !== undefined) {
-            if (!this._bind(statement, params)) {
-                callback("SQLITE.GET Bind Error");
-                return this;
+
+        if (!self._isOpen) {
+            callback("SQLITE.GET - Database is not open");
+            return;
+        }
+
+        var cursor;
+        try {
+            var statement = new interop.Reference();
+            var res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
+            statement = statement.value;
+            if (res) {
+                callback("SQLITE.GET Failed Prepare: " + res);
+                return;
             }
+            if (params !== undefined) {
+                if (!self._bind(statement, params)) {
+                    callback("SQLITE.GET Bind Error");
+                    return;
+                }
+            }
+            var result = sqlite3_step(statement);
+            if (result === 100) {
+                cursor = self._getResults(statement, mode);
+            }
+            sqlite3_finalize(statement);
+            if (result && result !== 100 && result !== 101) {
+                callback("SQLITE.GET - Step Error" + result);
+                return;
+            }
+        } catch (err) {
+            callback(err);
+            return;
         }
-        var result = sqlite3_step(statement);
-        if (result === 100) {
-            cursor = this._getResults(statement, mode);
-        }
-        sqlite3_finalize(statement);
-        if (result && result !== 100 && result !== 101) {
-            callback("SQLITE.GET - Step Error" + result);
-            return this;
-        }
-    } catch (err) {
-        callback(err, null);
-        return this;
-    }
 
-    // No Records
-    if (!cursor) {
-        callback(null, null);
-        return this;
-    }
+        // No Records
+        if (!cursor) {
+            if (hasCallback) {
+                callback(null, null);
+            }
+            resolve(null);
+            return;
+        }
 
-    callback(null, cursor);
-    return this;
+        if (hasCallback) {
+            callback(null, cursor);
+        }
+        resolve(cursor);
+    });
 };
 
 /***
@@ -304,7 +351,7 @@ Database.prototype.get = function(sql, params, callback, mode) {
  * @param sql - Sql to run
  * @param params - optional
  * @param callback - (err, results)
- * @returns {Database}
+ * @returns Promise
  */
 Database.prototype.all = function(sql, params, callback) {
     if (typeof params === 'function') {
@@ -312,57 +359,69 @@ Database.prototype.all = function(sql, params, callback) {
         params = undefined;
     }
 
-    if (typeof callback !== 'function') {
-        callback = CallbackThrowError;
-    }
+    var self = this;
+    return new Promise(function(resolve, reject) {
 
-    if (!this._isOpen) {
-        callback("SQLITE.ALL - Database is not open", null);
-        return this;
-    }
-
-    var rows = [], res;
-    try {
-        var statement = new interop.Reference();
-        res = sqlite3_prepare_v2(this._db, sql, -1, statement, null);
-        statement = statement.value;
-        if (res) {
-        	callback("SQLITE.ALL - Prepare Error " + res);
-            return this;
+        var hasCallback = true;
+        if (typeof callback !== 'function') {
+            callback = reject;
+            hasCallback = false;
         }
-		if (params !== undefined) {
-           if (!this._bind(statement, params)) {
-               callback("SQLITE.ALL Bind Error");
-               return this;
-           }
-	    }
-        do {
-            var result = sqlite3_step(statement);
-            if (result === 100) {
-                var cursor = this._getResults(statement);
-                if (cursor) {
-                    rows.push(cursor)
-                }
-            } else if (result && result !== 101) {
-                sqlite3_finalize(statement);
-                callback("SQLITE.ALL - Database Error" + result);
-                return this;
+
+        if (!self._isOpen) {
+            callback("SQLITE.ALL - Database is not open");
+            return;
+        }
+
+        var rows = [], res;
+        try {
+            var statement = new interop.Reference();
+            res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
+            statement = statement.value;
+            if (res) {
+                callback("SQLITE.ALL - Prepare Error " + res);
+                return;
             }
-        } while (result === 100);
-        sqlite3_finalize(statement);
-    } catch (err) {
-        callback(err, null);
-        return this;
-    }
+            if (params !== undefined) {
+                if (!self._bind(statement, params)) {
+                    callback("SQLITE.ALL Bind Error");
+                    return;
+                }
+            }
+            var result;
+            do {
+                result = sqlite3_step(statement);
+                if (result === 100) {
+                    var cursor = self._getResults(statement);
+                    if (cursor) {
+                        rows.push(cursor);
+                    }
+                } else if (result && result !== 101) {
+                    sqlite3_finalize(statement);
+                    callback("SQLITE.ALL - Database Error" + result);
+                    return;
+                }
+            } while (result === 100);
+            sqlite3_finalize(statement);
+        } catch (err) {
+            callback(err, null);
+            return;
+        }
 
-    // No Records
-    if (rows.length === 0) {
-        callback(null, null);
-        return this;
-    }
+        // No Records
+        if (rows.length === 0) {
+            if (hasCallback) {
+                callback(null, []);
+            }
+            resolve([]);
+            return;
+        }
 
-    callback(null, rows);
-    return this;
+        if (hasCallback) {
+            callback(null, rows);
+        }
+        resolve(rows);
+    });
 };
 
 /***
@@ -371,7 +430,7 @@ Database.prototype.all = function(sql, params, callback) {
  * @param params - optional
  * @param callback - callback (err, rowsResult)
  * @param complete - callback (err, recordCount)
- * @returns {Database}
+ * @returns {Promise}
  */
 Database.prototype.each = function(sql, params, callback, complete) {
     if (typeof params === 'function') {
@@ -385,55 +444,58 @@ Database.prototype.each = function(sql, params, callback, complete) {
         throw new Error("SQLITE.EACH - requires a callback");
     }
 
-    // Set the error Callback
-    var errorCB = complete || callback;
+    var self = this;
+    return new Promise (function(resolve, reject) {
 
-    var count=0, res;
-    try {
+        // Set the error Callback
+        var errorCB = complete || callback;
 
-        var statement = new interop.Reference();
-        res = sqlite3_prepare_v2(this._db, sql, -1, statement, null);
-        statement = statement.value;
-		if (res) {
-            errorCB("SQLITE.EACH Error in Prepare" + res);
-            return this;
-		}
-        if (params !== undefined) {
-            if (!this._bind(statement, params)) {
-                errorCB("SQLITE.EACH Bind Error");
-                return this;
+        var count = 0, res;
+        try {
+
+            var statement = new interop.Reference();
+            res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
+            statement = statement.value;
+            if (res) {
+                errorCB("SQLITE.EACH Error in Prepare" + res);
+                reject("SQLITE.EACH Error in Prepare" + res);
+                return;
             }
-        }
-        do {
-            var result = sqlite3_step(statement);
-            if (result === 100) {
-                var cursor = this._getResults(statement);
-                if (cursor) {
-                    count++;
-                    callback(null, cursor);
+            if (params !== undefined) {
+                if (!self._bind(statement, params)) {
+                    errorCB("SQLITE.EACH Bind Error");
+                    reject("SQLITE.EACH Bind Error");
+                    return;
                 }
-            } else if (result && result !== 101) {
-                sqlite3_finalize(statement);
-                errorCB("SQLITE.EACH - Database Error "+ result);
-                return this;
             }
-        } while (result === 100);
-        sqlite3_finalize(statement);
-    } catch (err) {
-        errorCB(err, null);
-        return this;
-    }
+            var result;
+            do {
+                result = sqlite3_step(statement);
+                if (result === 100) {
+                    var cursor = self._getResults(statement);
+                    if (cursor) {
+                        count++;
+                        callback(null, cursor);
+                    }
+                } else if (result && result !== 101) {
+                    sqlite3_finalize(statement);
+                    errorCB("SQLITE.EACH - Database Error " + result);
+                    reject("SQLITE.EACH - Database Error " + result);
+                    return;
+                }
+            } while (result === 100);
+            sqlite3_finalize(statement);
+        } catch (err) {
+            errorCB(err, null);
+            reject(err);
+            return;
+        }
 
-    // No Records
-    if (count === 0) {
-        errorCB(null, null);
-        return this;
-    }
-
-    if (complete) {
-        complete(null, count);
-    }
-    return this;
+        if (complete) {
+            complete(null, count);
+        }
+        resolve(count);
+    });
 };
 
 /**
@@ -441,31 +503,31 @@ Database.prototype.each = function(sql, params, callback, complete) {
  * @param statement
  * @param params
  * @private
-		 */
+ */
 Database.prototype._bind = function(statement, params) {
-    var param;
+    var param, res;
     if (Array.isArray(params)) {
-        var count = params.length, res;
+        var count = params.length;
         for (var i=0; i<count; ++i) {
-            if (params[i] == null) {
+            if (params[i] == null) { // jshint ignore:line
                 res = sqlite3_bind_null(statement, i+1);
             } else {
                 param = params[i].toString();
                 res = sqlite3_bind_text(statement, i+1, param, -1, null );
             }
-			if (res) {
+            if (res) {
                 console.error("SQLITE.Binding Error ", res);
                 return false;
             }
         }
     } else {
-        if (params == null) {
+        if (params == null) { // jshint ignore:line
             res = sqlite3_bind_null(statement, 1);
         } else {
             param = params.toString();
             res = sqlite3_bind_text(statement, 1, param, -1, null );
-	    }
-		if (res) {
+        }
+        if (res) {
             console.error("SQLITE.Binding Error ", res);
             return false;
         }
@@ -495,7 +557,7 @@ Database.prototype._getResults = function(statement, mode) {
     mode = mode || this._resultType;
 
     var cnt = sqlite3_column_count(statement), i, data;
-    if (cnt === 0) return null;
+    if (cnt === 0) { return null; }
     if (mode === Database.RESULTSASARRAY) {
         data = [];
         for (i=0;i<cnt;i++) {
@@ -533,6 +595,64 @@ Database.prototype._getResults = function(statement, mode) {
  */
 Database.isSqlite = function(obj) {
     return obj && obj._isSqlite;
+};
+
+Database.exists = function(name) {
+    if (name.indexOf('/') === -1) {
+        name = fs.knownFolders.documents().path + '/' + name;
+    }
+
+    var fileManager = NSFileManager.defaultManager();
+    return fileManager.fileExistsAtPath(name);
+};
+
+Database.deleteDatabase = function(name) {
+    var fileManager = NSFileManager.defaultManager();
+
+    var path;
+    if (name.indexOf('/') === -1) {
+        path = fs.knownFolders.documents().path + '/';
+    } else {
+        path = name.substr(0, name.lastIndexOf('/') + 1);
+        name = name.substr(path.length);
+    }
+
+    if (!fileManager.fileExistsAtPath(path + name)) { return; }
+
+    // Need to remove the trailing .sqlite
+    var idx = name.lastIndexOf('.');
+    if (idx) {
+        name = name.substr(0,idx);
+    }
+
+    var files = fileManager.contentsOfDirectoryAtPathError(path, null);
+    if (!files) {
+        return;
+    }
+
+    for (var i = 0; i < files.count; i++) {
+        var fileName = files.objectAtIndex(i);
+        if (fileName.indexOf(name) !== -1) {
+            fileManager.removeItemAtPathError(path + fileName, null);
+        }
+    }
+};
+
+Database.copyDatabase = function(name) {
+    var fileManager = NSFileManager.defaultManager();
+
+    var path;
+    if (name.indexOf('/') === -1) {
+        path = fs.knownFolders.documents().path + '/';
+    } else {
+        path = name.substr(0, name.lastIndexOf('/') + 1);
+        name = name.substr(path.length);
+    }
+
+
+    var source = fs.knownFolders.currentApp().path + '/' + name;
+    var destination = path + name;
+    fileManager.copyItemAtPathToPathError(source, destination, null);
 };
 
 // Literal Defines

@@ -1,17 +1,20 @@
-/*********************************************************************************
+/**************************************************************************************
  * (c) 2015, Master Technology
- * Licensed under the MIT license or contact me for a support / commercial license
+ * Licensed under the MIT license or contact me for a support, changes, enhancements,
+ * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.0.6 - Android                            Nathan@master-technology.com
- *********************************************************************************/
+ * Version 0.0.7 - Android                            Nathan@master-technology.com
+ *************************************************************************************/
 
 "use strict";
 var appModule = require("application");
 
+/*jshint undef: true */
+/*global java, android, Promise */
+
 // Needed for Creating Database - Android Specific flag
 //var CREATEIFNEEDED = 0x10000000;
-
 
 /***
  * Parses a Row of data into a JS Array
@@ -20,11 +23,9 @@ var appModule = require("application");
  * @constructor
  */
 function DBGetRowArray(cursor) {
-    //noinspection JSUnresolvedFunction
     var count = cursor.getColumnCount();
     var results = [];
     for (var i=0;i<count;i++) {
-        //noinspection JSUnresolvedFunction
         var type = cursor.getType(i);
         switch (type) {
             case 0: // NULL
@@ -32,22 +33,18 @@ function DBGetRowArray(cursor) {
                 break;
 
             case 1: // Integer
-                //noinspection JSUnresolvedFunction
                 results.push(cursor.getInt(i));
                 break;
 
             case 2: // Float
-                //noinspection JSUnresolvedFunction
                 results.push(cursor.getFloat(i));
                 break;
 
             case 3: // String
-                //noinspection JSUnresolvedFunction
                 results.push(cursor.getString(i));
                 break;
 
             case 4: // Blob
-                //noinspection JSUnresolvedFunction
                 results.push(cursor.getBlob(i));
                 break;
 
@@ -65,13 +62,10 @@ function DBGetRowArray(cursor) {
  * @constructor
  */
 function DBGetRowObject(cursor) {
-    //noinspection JSUnresolvedFunction
     var count = cursor.getColumnCount();
     var results = {};
     for (var i=0;i<count;i++) {
-        //noinspection JSUnresolvedFunction
         var type = cursor.getType(i);
-        //noinspection JSUnresolvedFunction
         var name = cursor.getColumnName(i);
         switch (type) {
             case 0: // NULL
@@ -79,22 +73,18 @@ function DBGetRowObject(cursor) {
                 break;
 
             case 1: // Integer
-                //noinspection JSUnresolvedFunction
                 results[name] = cursor.getInt(i);
                 break;
 
             case 2: // Float
-                //noinspection JSUnresolvedFunction
                 results[name] = cursor.getFloat(i);
                 break;
 
             case 3: // String
-                //noinspection JSUnresolvedFunction
                 results[name] = cursor.getString(i);
                 break;
 
             case 4: // Blob
-                //noinspection JSUnresolvedFunction
                 results[name] = cursor.getBlob(i);
                 break;
 
@@ -106,59 +96,44 @@ function DBGetRowObject(cursor) {
 }
 var DBGetRowResults = DBGetRowArray;
 
-/**
- * Used to throw a error if a callback wasn't supplied
- * @param err
- * @constructor
- */
-function CallbackThrowError(err) {
-    if (err) {
-        throw new Error(err);
-    }
-}
-
-
-//noinspection JSValidateJSDoc
 /***
  * Database Constructor
  * @param dbname - Database Name
  * @param callback - Callback when Done
+ * @param options
  * @returns {Promise} object
  * @constructor
  */
-function Database(dbname, callback) {
-    if (!this instanceof Database) {
+function Database(dbname, options, callback) {
+    if (!this instanceof Database) { // jshint ignore:line
         //noinspection JSValidateTypes
-        return new Database(dbname, callback);
+        return new Database(dbname, options, callback);
     }
     this._isOpen = false;
 
+    if (typeof options === 'function') {
+        callback = options;
+        options = {};
+    } else {
+        options = options || {};
+    }
+
     // Check to see if it has a path, or if it is a relative dbname
-    //noinspection JSUnresolvedFunction
     // dbname = "" - Temporary Database
     // dbname = ":memory:" = memory database
     if (dbname !== ""  && dbname !== ":memory:") {
-        var pkgName = appModule.android.context.getPackageName();
-        var path = '/data/data/' + pkgName + '/databases/';
-        if (dbname.indexOf('/') === -1) {
-            dbname = path + dbname;
-        } else {
-            path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
-        }
-
+        //var pkgName = appModule.android.context.getPackageName();
+        dbname = appModule.android.context.getDatabasePath(dbname).getAbsolutePath();
+        var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
 
         // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
         // So we create it if it is missing
 
         try {
-            //noinspection JSUnresolvedVariable
             var javaFile = new java.io.File(path);
             if (!javaFile.exists()) {
-                //noinspection JSUnresolvedFunction
                 javaFile.mkdirs();
-                //noinspection JSUnresolvedFunction
                 javaFile.setReadable(true);
-                //noinspection JSUnresolvedFunction
                 javaFile.setWritable(true);
             }
         }
@@ -167,10 +142,9 @@ function Database(dbname, callback) {
         }
     }
     var self = this;
-    //noinspection JSUnresolvedFunction
+
     return new Promise(function (resolve, reject) {
         try {
-            //noinspection JSUnresolvedVariable, JSUnresolvedFunction
             if (dbname === ":memory:") {
                 self._db = android.database.sqlite.SQLiteDatabase.create(null);
             } else {
@@ -178,13 +152,13 @@ function Database(dbname, callback) {
             }
         } catch (err) {
             console.error("SQLITE.CONSTRUCTOR -  Open DB Error", err);
-            callback && callback(err, null);
+            if (callback) { callback(err, null); }
             reject(err);
             return;
         }
 
         self._isOpen = true;
-        callback && callback(null, self);
+        if (callback) { callback(null, self); }
         resolve(self);
     });
 }
@@ -198,18 +172,20 @@ Database.prototype._isSqlite = true;
 /***
  * This gets or sets the database version
  * @param valueOrCallback to set or callback(err, version)
+ * @returns Promise
  */
 Database.prototype.version = function(valueOrCallback) {
     if (typeof valueOrCallback === 'function') {
-        this.get('PRAGMA user_version', function (err, data) {
+        return this.get('PRAGMA user_version', function (err, data) {
             valueOrCallback(err, data && data[0]);
         }, Database.RESULTSASARRAY);
     } else if (!isNaN(valueOrCallback+0)) {
-        this.execSQL('PRAGMA user_version='+(valueOrCallback+0).toString());
+        return this.execSQL('PRAGMA user_version='+(valueOrCallback+0).toString());
+    } else {
+        return this.get('PRAGMA user_version', Database.RESULTSASARRAY);
     }
 };
 
-//noinspection JSUnusedGlobalSymbols
 /***
  * Is the database currently open
  * @returns {boolean} - true if the db is open
@@ -231,8 +207,8 @@ Database.prototype.resultType = function(value) {
         DBGetRowResults = DBGetRowObject;
     }
 
-    if (DBGetRowResults === DBGetRowArray) return (Database.RESULTSASARRAY);
-    else return (Database.RESULTSASOBJECT);
+    if (DBGetRowResults === DBGetRowArray) { return (Database.RESULTSASARRAY); }
+    else { return (Database.RESULTSASOBJECT); }
 };
 
 /***
@@ -240,21 +216,24 @@ Database.prototype.resultType = function(value) {
  * @param callback
  */
 Database.prototype.close = function(callback) {
-    if (!this._isOpen) {
-        if (callback) {
-            callback('SQLITE.CLOSE - Database is already closed');
-            return;
-        } else {
-            throw new Error('SQLITE.CLOSE - Database is already closed');
-        }
-    }
 
-    this._db.close();
-    this._isOpen = false;
-    if (callback) {
-        callback(null, null);
-    }
-    return this;
+    var self = this;
+    return new Promise(function(resolve, reject) {
+        if (!self._isOpen) {
+            if (callback) {
+                callback('SQLITE.CLOSE - Database is already closed');
+            }
+            reject('SQLITE.CLOSE - Database is already closed');
+            return;
+        }
+
+        self._db.close();
+        self._isOpen = false;
+        if (callback) {
+            callback(null, null);
+        }
+        resolve();
+    });
 };
 
 /***
@@ -262,7 +241,7 @@ Database.prototype.close = function(callback) {
  * @param sql - sql to use
  * @param params - optional array of parameters
  * @param callback - (err, result) - can be last_row_id for insert, and rows affected for update/delete
- * @returns {Database}
+ * @returns Promise
  */
 Database.prototype.execSQL = function(sql, params, callback) {
     if (typeof params === 'function') {
@@ -270,53 +249,75 @@ Database.prototype.execSQL = function(sql, params, callback) {
         params = undefined;
     }
 
-    if (typeof callback !== 'function') {
-        callback = CallbackThrowError;
-    }
-
-    if (!this._isOpen) {
-        callback("SQLITE.EXECSQL - Database is not open", null);
-        return this;
-    }
-    
-    // Need to see if we have to run any status queries afterwords
-    var flags = 0;
-    var test = sql.trim().substr(0,7).toLowerCase();
-    if (test === 'insert ') {
-        flags = 1;
-    } else if (test === 'update ' || test === 'delete ') {
-        flags = 2;
-    }
-
-    try {
-        if (params !== undefined) {
-            this._db.execSQL(sql, this._toStringArray(params));
-        } else {
-            this._db.execSQL(sql);
+    var self = this;
+    return new Promise(function(resolve, reject) {
+        var hasCallback = true;
+        if (typeof callback !== 'function') {
+            callback = reject;
+            hasCallback = false;
         }
-    } catch (Err) {
-        callback(Err, null);
-        return this;
-    }
 
+        if (!self._isOpen) {
+            callback("SQLITE.EXECSQL - Database is not open");
+            return;
+        }
 
-    switch (flags) {
-        case 0:
-            callback(null, null);
-            break;
-        case 1:
-            this.get('select last_insert_rowid()', function(err, data) {
-                callback(err, data && data[0]);
-            }, Database.RESULTSASARRAY);
-            break;
-        case 2:
-            this.get('select changes()', function (err, data) {
-                callback(err, data && data[0]);
-            }, Database.RESULTSASARRAY);
-            break;
-    }
+        // Need to see if we have to run any status queries afterwords
+        var flags = 0;
+        var test = sql.trim().substr(0, 7).toLowerCase();
+        if (test === 'insert ') {
+            flags = 1;
+        } else if (test === 'update ' || test === 'delete ') {
+            flags = 2;
+        }
 
-    return this;
+        try {
+            if (params !== undefined) {
+                self._db.execSQL(sql, self._toStringArray(params));
+            } else {
+                self._db.execSQL(sql);
+            }
+        } catch (Err) {
+            callback(Err, null);
+            return;
+        }
+
+        switch (flags) {
+            case 0:
+                if (hasCallback) {
+                    callback(null, null);
+                }
+                resolve(null);
+                break;
+            case 1:
+                self.get('select last_insert_rowid()', function (err, data) {
+                    if (hasCallback) {
+                        callback(err, data && data[0]);
+                    }
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data && data[0]);
+                    }
+                }, Database.RESULTSASARRAY);
+                break;
+            case 2:
+                self.get('select changes()', function (err, data) {
+                    if (hasCallback) {
+                        callback(err, data && data[0]);
+                    }
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data && data[0]);
+                    }
+                }, Database.RESULTSASARRAY);
+                break;
+            default:
+                resolve();
+        }
+
+    });
 };
 
 /***
@@ -325,7 +326,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
  * @param params - optional
  * @param callback - callback (error, results)
  * @param mode - allows you to manually override the results set to be a array or object
- * @returns {Database}
+ * @returns Promise
  */
 Database.prototype.get = function(sql, params, callback, mode) {
     if (typeof params === 'function') {
@@ -334,58 +335,65 @@ Database.prototype.get = function(sql, params, callback, mode) {
         params = undefined;
     }
 
-    if (typeof callback !== 'function') {
-        callback = CallbackThrowError;
-    }
-
-    if (!this._isOpen) {
-        callback("SQLITE.GET - Database is not open", null);
-        return this;
-    }
-
-    var cursor;
-    try {
-        if (params !== undefined) {
-            //noinspection JSUnresolvedFunction
-            cursor = this._db.rawQuery(sql, this._toStringArray(params));
-        } else {
-            //noinspection JSUnresolvedFunction
-            cursor = this._db.rawQuery(sql, null);
+    var self = this;
+    return new Promise(function(resolve, reject) {
+        var hasCallback = true;
+        if (typeof callback !== 'function') {
+            callback = reject;
+            hasCallback = false;
         }
-    } catch (err) {
-        callback(err, null);
-        return this;
-    }
 
-    // No Records
-    if (cursor.getCount() === 0) {
-        cursor.close();
-        callback(null, null);
-        return this;
-    }
-
-    var results;
-    try {
-        //noinspection JSUnresolvedFunction
-        cursor.moveToFirst();
-        if (mode) {
-           if (mode === Database.RESULTSASARRAY) {
-               results = DBGetRowArray(cursor);
-           } else if (mode === Database.RESULTSASOBJECT ) {
-               results = DBGetRowObject(cursor);
-           } else {
-               results = DBGetRowResults(cursor);
-           }
-        } else {
-            results = DBGetRowResults(cursor);
+        if (!self._isOpen) {
+            callback("SQLITE.GET - Database is not open", null);
+            return;
         }
-        cursor.close();
-    } catch (err) {
-        callback(err, null);
-        return this;
-    }
-    callback(null, results);
-    return this;
+
+        var cursor;
+        try {
+            if (params !== undefined) {
+                cursor = self._db.rawQuery(sql, self._toStringArray(params));
+            } else {
+                cursor = self._db.rawQuery(sql, null);
+            }
+        } catch (err) {
+            callback(err, null);
+            return;
+        }
+
+        // No Records
+        if (cursor.getCount() === 0) {
+            cursor.close();
+            if (hasCallback) {
+                callback(null, null);
+            }
+            resolve(null);
+            return;
+        }
+
+        var results;
+        try {
+            cursor.moveToFirst();
+            if (mode) {
+                if (mode === Database.RESULTSASARRAY) {
+                    results = DBGetRowArray(cursor); // jshint ignore:line
+                } else if (mode === Database.RESULTSASOBJECT) {
+                    results = DBGetRowObject(cursor); // jshint ignore:line
+                } else {
+                    results = DBGetRowResults(cursor); // jshint ignore:line
+                }
+            } else {
+                results = DBGetRowResults(cursor); // jshint ignore:line
+            }
+            cursor.close();
+        } catch (err) {
+            callback(err, null);
+            return;
+        }
+        if (hasCallback) {
+            callback(null, results);
+        }
+        resolve(results);
+    });
 };
 
 /***
@@ -393,7 +401,7 @@ Database.prototype.get = function(sql, params, callback, mode) {
  * @param sql - Sql to run
  * @param params - optional
  * @param callback - (err, results)
- * @returns {Database}
+ * @returns Promise
  */
 Database.prototype.all = function(sql, params, callback) {
     if (typeof params === 'function') {
@@ -401,55 +409,61 @@ Database.prototype.all = function(sql, params, callback) {
         params = undefined;
     }
 
-    if (typeof callback !== 'function') {
-        callback = CallbackThrowError;
-    }
-
-    if (!this._isOpen) {
-        callback("SQLITE.ALL - Database is not open", null);
-        return this;
-    }
-
-    var cursor, count;
-    try {
-        if (params !== undefined) {
-            //noinspection JSUnresolvedFunction
-            cursor = this._db.rawQuery(sql, this._toStringArray(params));
-        } else {
-            //noinspection JSUnresolvedFunction
-            cursor = this._db.rawQuery(sql, null);
+    var self = this;
+    return new Promise(function(resolve, reject) {
+        var hasCallback = true;
+        if (typeof callback !== 'function') {
+            callback = reject;
+            hasCallback = false;
         }
-        count = cursor.getCount();
-    } catch (err) {
-        callback(err, null);
-        return this;
-    }
 
-
-    // No Records
-    if (count === 0) {
-        cursor.close();
-        callback(null, null);
-        return this;
-    }
-    //noinspection JSUnresolvedFunction
-    cursor.moveToFirst();
-
-    var results=[];
-    try {
-        for (var i=0;i<count;i++) {
-            var data = DBGetRowResults(cursor);
-            results.push(data);
-            //noinspection JSUnresolvedFunction
-            cursor.moveToNext();
+        if (!self._isOpen) {
+            callback("SQLITE.ALL - Database is not open");
+            return;
         }
-        cursor.close();
-    } catch (err) {
-        callback(err, null);
-        return this;
-    }
-    callback(null, results);
-    return this;
+
+        var cursor, count;
+        try {
+            if (params !== undefined) {
+                cursor = self._db.rawQuery(sql, self._toStringArray(params));
+            } else {
+                cursor = self._db.rawQuery(sql, null);
+            }
+            count = cursor.getCount();
+        } catch (err) {
+            callback(err);
+            return;
+        }
+
+
+        // No Records
+        if (count === 0) {
+            cursor.close();
+            if (hasCallback) {
+                callback(null, []);
+            }
+            resolve([]);
+            return;
+        }
+        cursor.moveToFirst();
+
+        var results = [];
+        try {
+            for (var i = 0; i < count; i++) {
+                var data = DBGetRowResults(cursor); // jshint ignore:line
+                results.push(data);
+                cursor.moveToNext();
+            }
+            cursor.close();
+        } catch (err) {
+            callback(err);
+            return;
+        }
+        if (hasCallback) {
+            callback(null, results);
+        }
+        resolve(results);
+    });
 };
 
 /***
@@ -458,7 +472,7 @@ Database.prototype.all = function(sql, params, callback) {
  * @param params - optional
  * @param callback - callback (err, rowsResult)
  * @param complete - callback (err, recordCount)
- * @returns {Database}
+ * @returns Promise
  */
 Database.prototype.each = function(sql, params, callback, complete) {
     if (typeof params === 'function') {
@@ -472,49 +486,54 @@ Database.prototype.each = function(sql, params, callback, complete) {
         throw new Error("SQLITE.EACH - requires a callback");
     }
 
-    // Set the error Callback
-    var errorCB = complete || callback;
+    var self = this;
+    return new Promise(function (resolve, reject) {
 
-    var cursor, count;
-    try {
-        if (params !== undefined) {
-            //noinspection JSUnresolvedFunction
-            cursor = this._db.rawQuery(sql, this._toStringArray(params));
-        } else {
-            //noinspection JSUnresolvedFunction
-            cursor = this._db.rawQuery(sql, null);
+        // Set the error Callback
+        var errorCB = complete || callback;
+
+        var cursor, count;
+        try {
+            if (params !== undefined) {
+                cursor = self._db.rawQuery(sql, self._toStringArray(params));
+            } else {
+                cursor = self._db.rawQuery(sql, null);
+            }
+            count = cursor.getCount();
+        } catch (err) {
+            errorCB(err, null);
+            reject(err);
+            return;
         }
-        count = cursor.getCount();
-    } catch (err) {
-        errorCB(err, null);
-        return this;
-    }
 
-    // No Records
-    if (count === 0) {
-        errorCB(null, null);
-        cursor.close();
-        return this;
-    }
-    //noinspection JSUnresolvedFunction
-    cursor.moveToFirst();
-
-    try {
-        for (var i=0;i<count;i++) {
-            var data = DBGetRowResults(cursor);
-            callback(null, data);
-            //noinspection JSUnresolvedFunction
-            cursor.moveToNext();
+        // No Records
+        if (count === 0) {
+            cursor.close();
+            if (complete) {
+                complete(null, 0);
+            }
+            resolve(0);
+            return;
         }
-        cursor.close();
-    } catch (err) {
-        errorCB(err, null);
-        return this;
-    }
-    if (complete) {
-        complete(null, count);
-    }
-    return this;
+        cursor.moveToFirst();
+
+        try {
+            for (var i = 0; i < count; i++) {
+                var data = DBGetRowResults(cursor); // jshint ignore:line
+                callback(null, data);
+                cursor.moveToNext();
+            }
+            cursor.close();
+        } catch (err) {
+            errorCB(err, null);
+            reject(err);
+            return;
+        }
+        if (complete) {
+            complete(null, count);
+        }
+        resolve(count);
+    });
 };
 
 /***
@@ -528,14 +547,14 @@ Database.prototype._toStringArray = function(params) {
     if (Object.prototype.toString.apply(params) === '[object Array]') {
         var count = params.length;
         for (var i=0; i<count; ++i) {
-            if (params[i] == null) {
+            if (params[i] == null) { // jshint ignore:line
                 stringParams.push(null);
             } else {
                 stringParams.push(params[i].toString());
             }
         }
     } else {
-        if (params == null) {
+        if (params == null) { // jshint ignore:line
             stringParams.push(null);
         } else {
             stringParams.push(params.toString());
@@ -544,7 +563,6 @@ Database.prototype._toStringArray = function(params) {
     return stringParams;
 };
 
-
 /***
  * Is this a SQLite object
  * @param obj - possible sqlite object to check
@@ -552,6 +570,85 @@ Database.prototype._toStringArray = function(params) {
  */
 Database.isSqlite = function(obj) {
     return obj && obj._isSqlite;
+};
+
+/**
+ * Does this database exist on disk
+ * @param name
+ * @returns {*}
+ */
+Database.exists = function(name) {
+    var dbName = appModule.android.context.getDatabasePath(name).getAbsolutePath();
+    var dbFile = new java.io.File(dbName);
+    return dbFile.exists();
+};
+
+/**
+ * Delete the database file if it exists
+ * @param name
+ */
+Database.deleteDatabase = function(name) {
+    var dbName = appModule.android.context.getDatabasePath(name).getAbsolutePath();
+    var dbFile = new java.io.File(dbName);
+    if (dbFile.exists()) {
+        dbFile.delete();
+        dbFile = new java.io.File(dbName + '-journal');
+        if (dbFile.exists()) {
+            dbFile.delete();
+        }
+    }
+};
+
+/**
+ * Copy the database from the install location
+ * @param name
+ */
+Database.copyDatabase = function(name) {
+
+    //Open your local db as the input stream
+    var myInput = appModule.android.context.getAssets().open("app/"+name);
+
+    var dbname = appModule.android.context.getDatabasePath(name).getAbsolutePath();
+    var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
+
+    // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
+    // So we create it if it is missing
+
+    try {
+        var javaFile = new java.io.File(path);
+        if (!javaFile.exists()) {
+            javaFile.mkdirs();
+            javaFile.setReadable(true);
+            javaFile.setWritable(true);
+        }
+    }
+    catch (err) {
+        console.info("SQLITE - COPYDATABASE - Creating DB Folder Error", err);
+    }
+
+   //Open the empty db as the output stream
+    var myOutput = new java.io.FileOutputStream(dbname);
+
+
+    var success = true;
+    try {
+        //transfer bytes from the inputfile to the outputfile
+        var buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.class.getField("TYPE").get(null), 1024);
+        var length;
+        while ((length = myInput.read(buffer)) > 0) {
+            myOutput.write(buffer, 0, length);
+        }
+    }
+    catch (err) {
+        success = false;
+    }
+
+
+    //Close the streams
+    myOutput.flush();
+    myOutput.close();
+    myInput.close();
+    return success;
 };
 
 // Literal Defines
