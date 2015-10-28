@@ -1,0 +1,1 @@
+HEADER_SEARCH_PATHS = $(inherited) ${PROJECT_DIR}/../../node_modules/nativescript-sqlite/platforms/ios

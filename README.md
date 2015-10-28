@@ -6,33 +6,36 @@ A NativeScript module providing sqlite actions for Android and iOS.
 
 This is released under the MIT License, meaning you are free to include this in any type of program -- However for entities that need a support contract, changes, enhancements and/or a commercial license please contact me (nathan@master-technology.com).
 
+## Encrypted SQLite
+
+If you need encrypted sqlite, please contact nathan@master-technology.com for more information.
+
+## Example Application
+
+An example application can be cloned from https://github.com/NathanaelA/nativescript-sqlite-example
+To use you need to do:
+1. `npm install tns-core-modules`
+2. `tns platform add ios` or `tns platform add android`
+3. `tns plugin add nativescript-sqlite`
+Then run the app the normal way you would.
+
 
 ## Installation 
   
 First run `tns --version`
 
-### v1.1.3 or later
+### v1.2.0 or later (Android)
 
 Run `tns plugin add nativescript-sqlite` in your ROOT directory of your project.
 
-### v1.1.2 and earlier
+### v1.4.3 or later (iOs)
 
-Please upgrade to v1.1.3 or later  -- This makes life a lot easier as you can now use the plugin interface properly.
-v1.1.2 has plugin interface but in all my tests it is broken.   You can use NPM to upgrade to the latest version by doing a `npm install nativescript -g`.
- 
-## Extra Installation on IOS
+For the new seemless iOS install; you need to be running version 1.4.3 of the NativeScript command line.
+Run `tns plugin add nativescript-sqlite` in your ROOT directory of your project.
 
-* You will need to COPY or MOVE the module.modulemap from the /node_modules/nativescript-sqlite to the /platforms/ios/ folder
-* You will need to Double-Click on the \<projname>.xcodeproj file in the /platforms/ios/ folder.
-* Scroll to the bottom of the Targets \<ProjName > -> General window until you find the "Linked Frameworks and Libraries" section
-* Click the **+** button, then type "sql" in the filter and double click on the "libsqlite3.dylib" to add it to your project.
-* Save your project and exit XCode.
+### v1.4.2 or earlier 
 
-This should only be needed this first time and anytime you install new runtimes as the project file gets replaced.  Hopefully NativeScript in the future will have the plugins support added which will make this automatic.
-
-## Known Issues
-
-* On IOS the Sqlite.copyDatabase(dbName) crashes the application after copying the file.  This is a bug in the NativeScript-IOS runtimes: 0.9.0 - 1.1.2 -- This has been fixed in version 1.2.0.
+If you are running an earlier version of nativescript; then do a `npm install -g nativescript` to install the latest version of NativeScript.
 
 ## Usage
 
@@ -45,9 +48,9 @@ var Sqlite = require( "nativescript-sqlite" );
 After you have a reference to the module you can then call the available methods.
 The database defaults to returning result sets in arrays; i.e. [[field1, field2, ...], [field1, field2], [field1, field2] ...] you can change this to returning them in objects if you desire.
 
-## Shipping Database
+## Shipping a Database with the application
 
-If you are planning on shipping a database with the application; drop the file in your /Root/App folder.  The Sqlite.copyDatabase("database_name") will copy the database from that folder to the proper database folder on your platform. 
+If you are planning on shipping a database with the application; drop the file in your projects /app folder.  The Sqlite.copyDatabase("database_name") will copy the database from that folder to the proper database folder on your platform. 
 
 
 ### Callbacks
