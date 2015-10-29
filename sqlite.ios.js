@@ -4,7 +4,7 @@
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.0.4 - IOS                                Nathan@master-technology.com
+ * Version 0.0.5 - IOS                                Nathan@master-technology.com
  ***********************************************************************************/
 
 "use strict";
@@ -543,13 +543,13 @@ Database.prototype._getResult = function(statement, column) {
         case 2: // Float
             return sqlite3_column_double(statement, column).toString();
         case 3: // Text
-            return NSString.stringWithUTF8String(sqlite3_column_text(statement, column));
+            return NSString.stringWithUTF8String(sqlite3_column_text(statement, column)).toString();
         case 4: // Blob
             return null; // TODO: We don't currently support Blobs
         case 5: // Null
             return null;
         default:
-            return NSString.stringWithUTF8String(sqlite3_column_text(statement, column));
+            return NSString.stringWithUTF8String(sqlite3_column_text(statement, column)).toString();
     }
 };
 
