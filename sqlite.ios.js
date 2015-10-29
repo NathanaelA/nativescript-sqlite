@@ -4,7 +4,7 @@
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.0.3 - IOS                                Nathan@master-technology.com
+ * Version 0.0.4 - IOS                                Nathan@master-technology.com
  ***********************************************************************************/
 
 "use strict";
@@ -571,8 +571,8 @@ Database.prototype._getResults = function(statement, mode) {
         } else {
             colName = [];
             for (i=0;i<cnt;i++) {
-                var cn = sqlite3_column_name(statement, i).value;
-                if (!cn || colName.contains(cn)) {
+                var cn =  NSString.stringWithUTF8String(sqlite3_column_name(statement, i));
+                if (!cn || colName.indexOf(cn) >= 0) {
                     cn = "column"+i;
                 }
                 colName.push(cn);
@@ -648,7 +648,6 @@ Database.copyDatabase = function(name) {
         path = name.substr(0, name.lastIndexOf('/') + 1);
         name = name.substr(path.length);
     }
-
 
     var source = fs.knownFolders.currentApp().path + '/' + name;
     var destination = path + name;
