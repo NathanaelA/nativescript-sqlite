@@ -4,7 +4,7 @@
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.0.5 - IOS                                Nathan@master-technology.com
+ * Version 0.1.0 - iOS                                Nathan@master-technology.com
  ***********************************************************************************/
 
 "use strict";
@@ -32,6 +32,8 @@ function Database(dbname, options, callback) {
     }
     this._isOpen = false;
     this._resultType = Database.RESULTSASARRAY;
+    this._valuesType = Database.VALUESARENATIVE;
+
     if (typeof options === 'function') {
         callback = options;
         options = {};
@@ -56,6 +58,7 @@ function Database(dbname, options, callback) {
 
         try {
             if (!fs.File.exists(path)) {
+                //noinspection JSUnresolvedFunction
                 var fileManager = NSFileManager.defaultManager();
                 if (!fileManager.createDirectoryAtPathWithIntermediateDirectoriesAttributesError(path, true, null, null)) {
                     console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error");
@@ -140,6 +143,21 @@ Database.prototype.resultType = function(value) {
     }
     return this._resultType;
 };
+
+/***
+ * Gets/Sets whether you get Native or Strings for the row values
+ * @param value - Database.VALUESARENATIVE or Database.VALUESARESTRINGS
+ * @returns {number} - Database.VALUESARENATIVE or Database.VALUESARESTRINGS
+ */
+Database.prototype.valueType = function(value) {
+    if (value === Database.VALUESARENATIVE) {
+        this._valuesType = Database.VALUESARENATIVE;
+    } else if (value === Database.VALUESARESTRINGS) {
+        this._valuesType = Database.VALUESARESTRINGS;
+    }
+    return this._resultType;
+};
+
 
 /***
  * Closes this database, any queries after this will fail with an error
@@ -236,6 +254,9 @@ Database.prototype.execSQL = function(sql, params, callback) {
 
         switch (flags) {
             case 0:
+                if (hasCallback) {
+                  callback();
+                }
                 resolve();
                 break;
 
@@ -249,7 +270,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
                     } else {
                         resolve(data && data[0]);
                     }
-                }, Database.RESULTSASARRAY);
+                }, Database.RESULTSASARRAY | Database.VALUESARENATIVE);
                 break;
 
             case 2:
@@ -262,10 +283,13 @@ Database.prototype.execSQL = function(sql, params, callback) {
                     } else {
                         resolve(data && data[0]);
                     }
-                }, Database.RESULTSASARRAY);
+                }, Database.RESULTSASARRAY | Database.VALUESARENATIVE);
                 break;
 
             default:
+                if (hasCallback) {
+                  callback();
+                }
                 resolve();
         }
     });
@@ -535,33 +559,77 @@ Database.prototype._bind = function(statement, params) {
     return true;
 };
 
-Database.prototype._getResult = function(statement, column) {
+Database.prototype._getNativeResult = function(statement, column) {
     var resultType = sqlite3_column_type(statement, column);
     switch (resultType) {
         case 1: // Int
-            return sqlite3_column_int(statement, column).toString();
+            return sqlite3_column_int(statement, column);
         case 2: // Float
-            return sqlite3_column_double(statement, column).toString();
+            return sqlite3_column_double(statement, column);
         case 3: // Text
+            //noinspection JSUnresolvedFunction
             return NSString.stringWithUTF8String(sqlite3_column_text(statement, column)).toString();
         case 4: // Blob
-            return null; // TODO: We don't currently support Blobs
+            return null; // TODO: We don't currently support Blobs on iOS
         case 5: // Null
             return null;
         default:
+            //noinspection JSUnresolvedFunction
             return NSString.stringWithUTF8String(sqlite3_column_text(statement, column)).toString();
     }
 };
 
+Database.prototype._getStringResult = function(statement, column) {
+    var resultType = sqlite3_column_type(statement, column);
+    switch (resultType) {
+        case 1: // Int
+            //return sqlite3_column_int(statement, column).toString();
+            return NSString.stringWithUTF8String(sqlite3_column_text(statement, column)).toString();
+        case 2: // Float
+            //return sqlite3_column_double(statement, column).toString();
+            return NSString.stringWithUTF8String(sqlite3_column_text(statement, column)).toString();
+        case 3: // Text
+            //noinspection JSUnresolvedFunction
+            return NSString.stringWithUTF8String(sqlite3_column_text(statement, column)).toString();
+        case 4: // Blob
+            return null; // TODO: We don't currently support Blobs on iOS
+        case 5: // Null
+            return null;
+        default:
+            //noinspection JSUnresolvedFunction
+            return NSString.stringWithUTF8String(sqlite3_column_text(statement, column)).toString();
+    }
+};
+
+
 Database.prototype._getResults = function(statement, mode) {
-    mode = mode || this._resultType;
+    var resultType, valueType;
+    if (!mode) {
+        resultType = this._resultType;
+        valueType = this._valuesType;
+    } else {
+        resultType = (mode & (Database.RESULTSASARRAY | Database.RESULTSASOBJECT));
+        valueType = (mode & (Database.VALUESARENATIVE | Database.VALUESARESTRINGS));
+        if (resultType <= 0) {
+            resultType = this._resultType;
+        }
+        if (valueType <= 0) {
+            valueType = this._valuesType;
+        }
+    }
 
     var cnt = sqlite3_column_count(statement), i, data;
     if (cnt === 0) { return null; }
-    if (mode === Database.RESULTSASARRAY) {
+    if (resultType === Database.RESULTSASARRAY) {
         data = [];
-        for (i=0;i<cnt;i++) {
-            data.push(this._getResult(statement, i));
+        if (valueType === Database.VALUESARESTRINGS) {
+            for (i = 0; i < cnt; i++) {
+                data.push(this._getStringResult(statement, i));
+            }
+        } else {
+            for (i = 0; i < cnt; i++) {
+                data.push(this._getNativeResult(statement, i));
+            }
         }
         return data;
     } else {
@@ -571,7 +639,8 @@ Database.prototype._getResults = function(statement, mode) {
         } else {
             colName = [];
             for (i=0;i<cnt;i++) {
-                var cn =  NSString.stringWithUTF8String(sqlite3_column_name(statement, i));
+                //noinspection JSUnresolvedFunction
+                var cn =  NSString.stringWithUTF8String(sqlite3_column_name(statement, i)).toString();
                 if (!cn || colName.indexOf(cn) >= 0) {
                     cn = "column"+i;
                 }
@@ -581,8 +650,14 @@ Database.prototype._getResults = function(statement, mode) {
             this._lastStatement = statement;
         }
         data = {};
-        for (i=0;i<cnt;i++) {
-            data[colName[i]] = this._getResult(statement, i);
+        if (valueType === Database.VALUESARESTRINGS) {
+            for (i = 0; i < cnt; i++) {
+                data[colName[i]] = this._getStringResult(statement, i);
+            }
+        } else {
+            for (i = 0; i < cnt; i++) {
+                data[colName[i]] = this._getNativeResult(statement, i);
+            }
         }
         return data;
     }
@@ -602,11 +677,14 @@ Database.exists = function(name) {
         name = fs.knownFolders.documents().path + '/' + name;
     }
 
+    //noinspection JSUnresolvedFunction
     var fileManager = NSFileManager.defaultManager();
+
     return fileManager.fileExistsAtPath(name);
 };
 
 Database.deleteDatabase = function(name) {
+    //noinspection JSUnresolvedFunction
     var fileManager = NSFileManager.defaultManager();
 
     var path;
@@ -639,6 +717,7 @@ Database.deleteDatabase = function(name) {
 };
 
 Database.copyDatabase = function(name) {
+    //noinspection JSUnresolvedFunction
     var fileManager = NSFileManager.defaultManager();
 
     var path;
@@ -657,6 +736,8 @@ Database.copyDatabase = function(name) {
 // Literal Defines
 Database.RESULTSASARRAY  = 1;
 Database.RESULTSASOBJECT = 2;
+Database.VALUESARENATIVE = 4;
+Database.VALUESARESTRINGS = 8;
 
 module.exports = Database;
 

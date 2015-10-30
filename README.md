@@ -64,6 +64,8 @@ If you are planning on shipping a database with the application; drop the file i
 ### Constants
 * Sqlite.RESULTSASARRAY - Returns results as Arrays (ex: select name, phone --- results  [[name,phone]]) 
 * Sqlite.RESULTSASOBJECT - Returns results as Objects (ex: select name, phone --- results [{name: name, phone: phone}]
+* Sqlite.VALUESARENATIVE - Returns the values as the native values; i.e. Integer = Integer, Float = Number
+* Sqlite.VALUESARESTRINGS - Returns all the values as a string; so the Integer 1 would be returned as "1"
  
 ### Methods
 #### new Sqlite(dbname, options, callback)
@@ -161,6 +163,11 @@ new Sqlite("test.db", function(err, db) {
 ##### Parameters
 * Pass in Sqlite.RESULTASOBJECT or Sqlite.RESULTSASARRAY to change the result sets configuration
 This will set the database to return the results in which ever choice you make.  (Default is RESULTSASARRAY)
+
+#### DB.valueType
+##### Parameters
+* Pass in Sqlite.VALUESARENATIVE or Sqlite.VALUESARESTRING to change the result sets configuration
+This will set the database to return the results to which ever choice you make.  (Default is VALUESARENATIVE)
 
 
 #### DB.close

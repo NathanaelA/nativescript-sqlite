@@ -4,11 +4,12 @@
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.0.7 - Android                            Nathan@master-technology.com
+ * Version 0.1.0 - Android                            Nathan@master-technology.com
  *************************************************************************************/
 
 "use strict";
 var appModule = require("application");
+
 
 /*jshint undef: true */
 /*global java, android, Promise */
@@ -17,12 +18,13 @@ var appModule = require("application");
 //var CREATEIFNEEDED = 0x10000000;
 
 /***
- * Parses a Row of data into a JS Array
- * @param cursor
+ * Parses a Row of data into a JS Array (as Native)
+ * @param cursor {Object}
  * @returns {Array}
  * @constructor
  */
-function DBGetRowArray(cursor) {
+function DBGetRowArrayNative(cursor) {
+    //noinspection JSUnresolvedFunction
     var count = cursor.getColumnCount();
     var results = [];
     for (var i=0;i<count;i++) {
@@ -33,10 +35,12 @@ function DBGetRowArray(cursor) {
                 break;
 
             case 1: // Integer
+                //noinspection JSUnresolvedFunction
                 results.push(cursor.getInt(i));
                 break;
 
             case 2: // Float
+                //noinspection JSUnresolvedFunction
                 results.push(cursor.getFloat(i));
                 break;
 
@@ -56,16 +60,60 @@ function DBGetRowArray(cursor) {
 }
 
 /***
- * Parses a Row of data into a JS Object
+ * Parses a Row of data into a JS Array (as String)
+ * @param cursor
+ * @returns {Array}
+ * @constructor
+ */
+function DBGetRowArrayString(cursor) {
+    //noinspection JSUnresolvedFunction
+    var count = cursor.getColumnCount();
+    var results = [];
+    for (var i=0;i<count;i++) {
+        var type = cursor.getType(i);
+        switch (type) {
+            case 0: // NULL
+                results.push(null);
+                break;
+
+            case 1: // Integer
+                //noinspection JSUnresolvedFunction
+                results.push(cursor.getString(i));
+                break;
+
+            case 2: // Float
+                //noinspection JSUnresolvedFunction
+                results.push(cursor.getString(i));
+                break;
+
+            case 3: // String
+                results.push(cursor.getString(i));
+                break;
+
+            case 4: // Blob
+                results.push(cursor.getBlob(i));
+                break;
+
+            default:
+                throw new Error('SQLITE - Unknown Field Type ' + type);
+        }
+    }
+    return results;
+}
+
+/***
+ * Parses a Row of data into a JS Object (as Native)
  * @param cursor
  * @returns {{}}
  * @constructor
  */
-function DBGetRowObject(cursor) {
+function DBGetRowObjectNative(cursor) {
+    //noinspection JSUnresolvedFunction
     var count = cursor.getColumnCount();
     var results = {};
     for (var i=0;i<count;i++) {
         var type = cursor.getType(i);
+        //noinspection JSUnresolvedFunction
         var name = cursor.getColumnName(i);
         switch (type) {
             case 0: // NULL
@@ -73,10 +121,12 @@ function DBGetRowObject(cursor) {
                 break;
 
             case 1: // Integer
+                //noinspection JSUnresolvedFunction
                 results[name] = cursor.getInt(i);
                 break;
 
             case 2: // Float
+                //noinspection JSUnresolvedFunction
                 results[name] = cursor.getFloat(i);
                 break;
 
@@ -94,7 +144,69 @@ function DBGetRowObject(cursor) {
     }
     return results;
 }
-var DBGetRowResults = DBGetRowArray;
+
+/***
+ * Parses a Row of data into a JS Object (as String)
+ * @param cursor
+ * @returns {{}}
+ * @constructor
+ */
+function DBGetRowObjectString(cursor) {
+    //noinspection JSUnresolvedFunction
+    var count = cursor.getColumnCount();
+    var results = {};
+    for (var i=0;i<count;i++) {
+        var type = cursor.getType(i);
+        //noinspection JSUnresolvedFunction
+        var name = cursor.getColumnName(i);
+        switch (type) {
+            case 0: // NULL
+                results[name] = null;
+                break;
+
+            case 1: // Integer
+                //noinspection JSUnresolvedFunction
+                results[name] = cursor.getString(i);
+                break;
+
+            case 2: // Float
+                //noinspection JSUnresolvedFunction
+                results[name] = cursor.getString(i);
+                break;
+
+            case 3: // String
+                results[name] = cursor.getString(i);
+                break;
+
+            case 4: // Blob
+                results[name] = cursor.getBlob(i);
+                break;
+
+            default:
+                throw new Error('SQLITE - Unknown Field Type '+ type);
+        }
+    }
+    return results;
+}
+
+// Default Resultset engine
+var DBGetRowResults = DBGetRowArrayNative;
+
+function setResultValueTypeEngine(resultType, valueType) {
+    if (resultType === Database.RESULTSASOBJECT) {
+        if (valueType === Database.VALUESARENATIVE) {
+            DBGetRowResults = DBGetRowObjectNative;
+        } else {
+            DBGetRowResults = DBGetRowObjectString;
+        }
+    } else { // RESULTSASARRAY
+        if (valueType === Database.VALUESARENATIVE) {
+            DBGetRowResults = DBGetRowArrayNative;
+        } else {
+            DBGetRowResults = DBGetRowArrayString;
+        }
+    }
+}
 
 /***
  * Database Constructor
@@ -110,11 +222,16 @@ function Database(dbname, options, callback) {
         return new Database(dbname, options, callback);
     }
     this._isOpen = false;
+    this._resultType = Database.RESULTSASARRAY;
+    this._valuesType = Database.VALUESARENATIVE;
+
 
     if (typeof options === 'function') {
         callback = options;
+        //noinspection JSUnusedAssignment
         options = {};
     } else {
+        //noinspection JSUnusedAssignment
         options = options || {};
     }
 
@@ -123,6 +240,7 @@ function Database(dbname, options, callback) {
     // dbname = ":memory:" = memory database
     if (dbname !== ""  && dbname !== ":memory:") {
         //var pkgName = appModule.android.context.getPackageName();
+        //noinspection JSUnresolvedFunction
         dbname = appModule.android.context.getDatabasePath(dbname).getAbsolutePath();
         var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
 
@@ -132,8 +250,11 @@ function Database(dbname, options, callback) {
         try {
             var javaFile = new java.io.File(path);
             if (!javaFile.exists()) {
+                //noinspection JSUnresolvedFunction
                 javaFile.mkdirs();
+                //noinspection JSUnresolvedFunction
                 javaFile.setReadable(true);
+                //noinspection JSUnresolvedFunction
                 javaFile.setWritable(true);
             }
         }
@@ -146,8 +267,10 @@ function Database(dbname, options, callback) {
     return new Promise(function (resolve, reject) {
         try {
             if (dbname === ":memory:") {
+                //noinspection JSUnresolvedVariable
                 self._db = android.database.sqlite.SQLiteDatabase.create(null);
             } else {
+                //noinspection JSUnresolvedVariable,JSUnresolvedFunction
                 self._db = android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(dbname, null);
             }
         } catch (err) {
@@ -201,15 +324,34 @@ Database.prototype.isOpen = function() {
  */
 Database.prototype.resultType = function(value) {
     if (value === Database.RESULTSASARRAY) {
-        DBGetRowResults = DBGetRowArray;
-    } else if (value === Database.RESULTSASOBJECT) {
-        //noinspection JSValidateTypes
-        DBGetRowResults = DBGetRowObject;
-    }
+        this._resultType = Database.RESULTSASARRAY;
+        setResultValueTypeEngine(this._resultType, this._valuesType);
 
-    if (DBGetRowResults === DBGetRowArray) { return (Database.RESULTSASARRAY); }
-    else { return (Database.RESULTSASOBJECT); }
+    } else if (value === Database.RESULTSASOBJECT) {
+        this._resultType = Database.RESULTSASOBJECT;
+        setResultValueTypeEngine(this._resultType, this._valuesType);
+    }
+    return this._resultType;
 };
+
+/***
+ * Gets/Sets whether you get Native or Strings for the row values
+ * @param value - Database.VALUESARENATIVE or Database.VALUESARESTRINGS
+ * @returns {number} - Database.VALUESARENATIVE or Database.VALUESARESTRINGS
+ */
+Database.prototype.valueType = function(value) {
+    if (value === Database.VALUESARENATIVE) {
+        this._valuesType = Database.VALUESARENATIVE;
+        setResultValueTypeEngine(this._resultType, this._valuesType);
+
+    } else if (value === Database.VALUESARESTRINGS) {
+        this._valuesType = Database.VALUESARESTRINGS;
+        setResultValueTypeEngine(this._resultType, this._valuesType);
+    }
+    return this._resultType;
+};
+
+
 
 /***
  * Closes this database, any queries after this will fail with an error
@@ -299,7 +441,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
                     } else {
                         resolve(data && data[0]);
                     }
-                }, Database.RESULTSASARRAY);
+                }, Database.RESULTSASARRAY | Database.VALUESARENATIVE);
                 break;
             case 2:
                 self.get('select changes()', function (err, data) {
@@ -311,7 +453,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
                     } else {
                         resolve(data && data[0]);
                     }
-                }, Database.RESULTSASARRAY);
+                }, Database.RESULTSASARRAY | Database.VALUESARENATIVE);
                 break;
             default:
                 resolve();
@@ -351,8 +493,10 @@ Database.prototype.get = function(sql, params, callback, mode) {
         var cursor;
         try {
             if (params !== undefined) {
+                //noinspection JSUnresolvedFunction
                 cursor = self._db.rawQuery(sql, self._toStringArray(params));
             } else {
+                //noinspection JSUnresolvedFunction
                 cursor = self._db.rawQuery(sql, null);
             }
         } catch (err) {
@@ -371,19 +515,11 @@ Database.prototype.get = function(sql, params, callback, mode) {
         }
 
         var results;
+        var resultEngine = self._getResultEngine(mode);
         try {
+            //noinspection JSUnresolvedFunction
             cursor.moveToFirst();
-            if (mode) {
-                if (mode === Database.RESULTSASARRAY) {
-                    results = DBGetRowArray(cursor); // jshint ignore:line
-                } else if (mode === Database.RESULTSASOBJECT) {
-                    results = DBGetRowObject(cursor); // jshint ignore:line
-                } else {
-                    results = DBGetRowResults(cursor); // jshint ignore:line
-                }
-            } else {
-                results = DBGetRowResults(cursor); // jshint ignore:line
-            }
+            results = resultEngine(cursor);
             cursor.close();
         } catch (err) {
             callback(err, null);
@@ -394,6 +530,34 @@ Database.prototype.get = function(sql, params, callback, mode) {
         }
         resolve(results);
     });
+};
+
+Database.prototype._getResultEngine = function(mode) {
+    if (mode == null || mode === 0) return DBGetRowResults;
+
+    var resultType = (mode & Database.RESULTSASARRAY|Database.RESULTSASOBJECT);
+    if (resultType === 0) {
+        resultType = this._resultType;
+    }
+    var valueType = (mode & Database.VALUESARENATIVE|Database.VALUESARESTRINGS);
+    if (valueType === 0) {
+        valueType = this._valuesType;
+    }
+
+    if (resultType === Database.RESULTSASOBJECT) {
+        if (valueType === Database.VALUESARESTRINGS) {
+            return DBGetRowObjectString;
+        } else {
+            return DBGetRowObjectNative;
+        }
+    } else {
+        if (valueType === Database.VALUESARESTRINGS) {
+            return DBGetRowArrayString;
+        } else {
+            return DBGetRowArrayNative;
+        }
+    }
+
 };
 
 /***
@@ -425,8 +589,10 @@ Database.prototype.all = function(sql, params, callback) {
         var cursor, count;
         try {
             if (params !== undefined) {
+                //noinspection JSUnresolvedFunction
                 cursor = self._db.rawQuery(sql, self._toStringArray(params));
             } else {
+                //noinspection JSUnresolvedFunction
                 cursor = self._db.rawQuery(sql, null);
             }
             count = cursor.getCount();
@@ -445,6 +611,7 @@ Database.prototype.all = function(sql, params, callback) {
             resolve([]);
             return;
         }
+        //noinspection JSUnresolvedFunction
         cursor.moveToFirst();
 
         var results = [];
@@ -452,6 +619,7 @@ Database.prototype.all = function(sql, params, callback) {
             for (var i = 0; i < count; i++) {
                 var data = DBGetRowResults(cursor); // jshint ignore:line
                 results.push(data);
+                //noinspection JSUnresolvedFunction
                 cursor.moveToNext();
             }
             cursor.close();
@@ -495,8 +663,10 @@ Database.prototype.each = function(sql, params, callback, complete) {
         var cursor, count;
         try {
             if (params !== undefined) {
+                //noinspection JSUnresolvedFunction
                 cursor = self._db.rawQuery(sql, self._toStringArray(params));
             } else {
+                //noinspection JSUnresolvedFunction
                 cursor = self._db.rawQuery(sql, null);
             }
             count = cursor.getCount();
@@ -515,12 +685,14 @@ Database.prototype.each = function(sql, params, callback, complete) {
             resolve(0);
             return;
         }
+        //noinspection JSUnresolvedFunction
         cursor.moveToFirst();
 
         try {
             for (var i = 0; i < count; i++) {
                 var data = DBGetRowResults(cursor); // jshint ignore:line
                 callback(null, data);
+                //noinspection JSUnresolvedFunction
                 cursor.moveToNext();
             }
             cursor.close();
@@ -578,6 +750,7 @@ Database.isSqlite = function(obj) {
  * @returns {*}
  */
 Database.exists = function(name) {
+    //noinspection JSUnresolvedFunction
     var dbName = appModule.android.context.getDatabasePath(name).getAbsolutePath();
     var dbFile = new java.io.File(dbName);
     return dbFile.exists();
@@ -588,6 +761,7 @@ Database.exists = function(name) {
  * @param name
  */
 Database.deleteDatabase = function(name) {
+    //noinspection JSUnresolvedFunction
     var dbName = appModule.android.context.getDatabasePath(name).getAbsolutePath();
     var dbFile = new java.io.File(dbName);
     if (dbFile.exists()) {
@@ -606,8 +780,10 @@ Database.deleteDatabase = function(name) {
 Database.copyDatabase = function(name) {
 
     //Open your local db as the input stream
+    //noinspection JSUnresolvedFunction
     var myInput = appModule.android.context.getAssets().open("app/"+name);
 
+    //noinspection JSUnresolvedFunction
     var dbname = appModule.android.context.getDatabasePath(name).getAbsolutePath();
     var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
 
@@ -617,8 +793,11 @@ Database.copyDatabase = function(name) {
     try {
         var javaFile = new java.io.File(path);
         if (!javaFile.exists()) {
+            //noinspection JSUnresolvedFunction
             javaFile.mkdirs();
+            //noinspection JSUnresolvedFunction
             javaFile.setReadable(true);
+            //noinspection JSUnresolvedFunction
             javaFile.setWritable(true);
         }
     }
@@ -626,16 +805,18 @@ Database.copyDatabase = function(name) {
         console.info("SQLITE - COPYDATABASE - Creating DB Folder Error", err);
     }
 
-   //Open the empty db as the output stream
+    //Open the empty db as the output stream
     var myOutput = new java.io.FileOutputStream(dbname);
 
 
     var success = true;
     try {
         //transfer bytes from the inputfile to the outputfile
+        //noinspection JSUnresolvedFunction,JSUnresolvedVariable
         var buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.class.getField("TYPE").get(null), 1024);
         var length;
         while ((length = myInput.read(buffer)) > 0) {
+            //noinspection JSCheckFunctionSignatures
             myOutput.write(buffer, 0, length);
         }
     }
@@ -654,6 +835,8 @@ Database.copyDatabase = function(name) {
 // Literal Defines
 Database.RESULTSASARRAY  = 1;
 Database.RESULTSASOBJECT = 2;
+Database.VALUESARENATIVE = 4;
+Database.VALUESARESTRINGS = 8;
 
 module.exports = Database;
 
