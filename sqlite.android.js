@@ -1,10 +1,10 @@
 /**************************************************************************************
- * (c) 2015, Master Technology
+ * (c) 2015, 2016, Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.1.0 - Android                            Nathan@master-technology.com
+ * Version 0.1.2 - Android                            Nathan@master-technology.com
  *************************************************************************************/
 
 "use strict";
@@ -241,7 +241,7 @@ function Database(dbname, options, callback) {
     if (dbname !== ""  && dbname !== ":memory:") {
         //var pkgName = appModule.android.context.getPackageName();
         //noinspection JSUnresolvedFunction
-        dbname = this._getContext().getDatabasePath(dbname).getAbsolutePath();
+        dbname = _getContext().getDatabasePath(dbname).getAbsolutePath();
         var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
 
         // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
@@ -291,22 +291,6 @@ function Database(dbname, options, callback) {
  * @type {boolean}
  */
 Database.prototype._isSqlite = true;
-
-/**
- * gets the current application context
- * @returns {*}
- * @private
- */
-Database.prototype._getContext = function() {
-    if (appModule.android.context) {
-        return (appModule.android.context);
-    }
-    var ctx = java.lang.Class.forName("android.app.AppGlobals").getMethod("getInitialApplication", null).invoke(null, null);
-    if (ctx) return ctx;
-
-    ctx = java.lang.Class.forName("android.app.ActivityThread").getMethod("currentApplication", null).invoke(null, null);
-    return ctx;
-};
 
 /***
  * This gets or sets the database version
@@ -767,7 +751,7 @@ Database.isSqlite = function(obj) {
  */
 Database.exists = function(name) {
     //noinspection JSUnresolvedFunction
-    var dbName = this._getContext().getDatabasePath(name).getAbsolutePath();
+    var dbName = _getContext().getDatabasePath(name).getAbsolutePath();
     var dbFile = new java.io.File(dbName);
     return dbFile.exists();
 };
@@ -778,7 +762,7 @@ Database.exists = function(name) {
  */
 Database.deleteDatabase = function(name) {
     //noinspection JSUnresolvedFunction
-    var dbName = this._getContext().getDatabasePath(name).getAbsolutePath();
+    var dbName = _getContext().getDatabasePath(name).getAbsolutePath();
     var dbFile = new java.io.File(dbName);
     if (dbFile.exists()) {
         dbFile.delete();
@@ -797,10 +781,10 @@ Database.copyDatabase = function(name) {
 
     //Open your local db as the input stream
     //noinspection JSUnresolvedFunction
-    var myInput = this._getContext().getAssets().open("app/"+name);
+    var myInput = _getContext().getAssets().open("app/"+name);
 
     //noinspection JSUnresolvedFunction
-    var dbname = this._getContext().getDatabasePath(name).getAbsolutePath();
+    var dbname = _getContext().getDatabasePath(name).getAbsolutePath();
     var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
 
     // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
@@ -856,3 +840,18 @@ Database.VALUESARESTRINGS = 8;
 
 module.exports = Database;
 
+/**
+ * gets the current application context
+ * @returns {*}
+ * @private
+ */
+function _getContext() {
+    if (appModule.android.context) {
+        return (appModule.android.context);
+    }
+    var ctx = java.lang.Class.forName("android.app.AppGlobals").getMethod("getInitialApplication", null).invoke(null, null);
+    if (ctx) return ctx;
+
+    ctx = java.lang.Class.forName("android.app.ActivityThread").getMethod("currentApplication", null).invoke(null, null);
+    return ctx;
+}

@@ -1,5 +1,5 @@
 /************************************************************************************
- * (c) 2015, Master Technology
+ * (c) 2015, 2016 Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
