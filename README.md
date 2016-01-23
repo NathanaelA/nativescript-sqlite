@@ -161,7 +161,7 @@ new Sqlite("test.db", function(err, db) {
 
 #### DB.resultType
 ##### Parameters
-* Pass in Sqlite.RESULTASOBJECT or Sqlite.RESULTSASARRAY to change the result sets configuration
+* Pass in Sqlite.RESULTSASOBJECT or Sqlite.RESULTSASARRAY to change the result sets configuration
 This will set the database to return the results in which ever choice you make.  (Default is RESULTSASARRAY)
 
 #### DB.valueType
