@@ -1,12 +1,12 @@
 {
   "name": "nativescript-sqlite",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A sqlite NativeScript module for Android and iOS",
   "main": "sqlite.js",
   "nativescript": {
     "platforms": {
-      "android": "0.1.2",
-      "ios": "0.1.0"
+      "android": "1.4.0",
+      "ios": "1.4.0"
     }
   },
   "repository": {

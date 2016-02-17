@@ -4,7 +4,7 @@
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.1.2 - Android                            Nathan@master-technology.com
+ * Version 0.1.3 - Android                            Nathan@master-technology.com
  *************************************************************************************/
 
 "use strict";
@@ -782,6 +782,10 @@ Database.copyDatabase = function(name) {
     //Open your local db as the input stream
     //noinspection JSUnresolvedFunction
     var myInput = _getContext().getAssets().open("app/"+name);
+
+    if (name.indexOf('/')) {
+        name = name.substring(name.indexOf('/')+1);
+    }
 
     //noinspection JSUnresolvedFunction
     var dbname = _getContext().getDatabasePath(name).getAbsolutePath();

@@ -4,7 +4,7 @@
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.1.0 - iOS                                Nathan@master-technology.com
+ * Version 0.1.1 - iOS                                Nathan@master-technology.com
  ***********************************************************************************/
 
 "use strict";
@@ -15,6 +15,21 @@ var fs = require('file-system');
  sqlite3_finalize, sqlite3_bind_null, sqlite3_bind_text, sqlite3_column_type, sqlite3_column_int,
  sqlite3_column_double, sqlite3_column_text,  sqlite3_column_count, sqlite3_column_name */
 
+
+/***
+ * Creates a Cursor Tracking Statement for reading result sets
+ * @param statement
+ * @param resultType
+ * @param valuesType
+ * @constructor
+ */
+function CursorStatement(statement, resultType, valuesType) {
+    this.statement = statement;
+    this.resultType = resultType;
+    this.valuesType = valuesType;
+    this.built = false;
+    this.columns = [];
+}
 
 //noinspection JSValidateJSDoc
 /***
@@ -255,7 +270,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
         switch (flags) {
             case 0:
                 if (hasCallback) {
-                  callback();
+                    callback();
                 }
                 resolve();
                 break;
@@ -288,7 +303,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
 
             default:
                 if (hasCallback) {
-                  callback();
+                    callback();
                 }
                 resolve();
         }
@@ -329,6 +344,7 @@ Database.prototype.get = function(sql, params, callback, mode) {
         try {
             var statement = new interop.Reference();
             var res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
+            var cursorStatement = new CursorStatement(statement.value, self._resultType, self._valuesType);
             statement = statement.value;
             if (res) {
                 callback("SQLITE.GET Failed Prepare: " + res);
@@ -342,7 +358,7 @@ Database.prototype.get = function(sql, params, callback, mode) {
             }
             var result = sqlite3_step(statement);
             if (result === 100) {
-                cursor = self._getResults(statement, mode);
+                cursor = self._getResults(cursorStatement, mode);
             }
             sqlite3_finalize(statement);
             if (result && result !== 100 && result !== 101) {
@@ -401,6 +417,7 @@ Database.prototype.all = function(sql, params, callback) {
         try {
             var statement = new interop.Reference();
             res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
+            var cursorStatement = new CursorStatement(statement.value, self._resultType, self._valuesType);
             statement = statement.value;
             if (res) {
                 callback("SQLITE.ALL - Prepare Error " + res);
@@ -416,7 +433,7 @@ Database.prototype.all = function(sql, params, callback) {
             do {
                 result = sqlite3_step(statement);
                 if (result === 100) {
-                    var cursor = self._getResults(statement);
+                    var cursor = self._getResults(cursorStatement);
                     if (cursor) {
                         rows.push(cursor);
                     }
@@ -479,6 +496,7 @@ Database.prototype.each = function(sql, params, callback, complete) {
 
             var statement = new interop.Reference();
             res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
+            var cursorStatement = new CursorStatement(statement.value, self._resultType, self._valuesType);
             statement = statement.value;
             if (res) {
                 errorCB("SQLITE.EACH Error in Prepare" + res);
@@ -496,7 +514,7 @@ Database.prototype.each = function(sql, params, callback, complete) {
             do {
                 result = sqlite3_step(statement);
                 if (result === 100) {
-                    var cursor = self._getResults(statement);
+                    var cursor = self._getResults(cursorStatement);
                     if (cursor) {
                         count++;
                         callback(null, cursor);
@@ -601,24 +619,42 @@ Database.prototype._getStringResult = function(statement, column) {
     }
 };
 
-
-Database.prototype._getResults = function(statement, mode) {
+Database.prototype._getResults = function(cursorStatement, mode) {
     var resultType, valueType;
+    var statement = cursorStatement.statement;
+    var i;
+
     if (!mode) {
-        resultType = this._resultType;
-        valueType = this._valuesType;
+        resultType = cursorStatement.resultType;
+        valueType = cursorStatement.valuesType;
     } else {
         resultType = (mode & (Database.RESULTSASARRAY | Database.RESULTSASOBJECT));
         valueType = (mode & (Database.VALUESARENATIVE | Database.VALUESARESTRINGS));
         if (resultType <= 0) {
-            resultType = this._resultType;
+            resultType = cursorStatement.resultType;
         }
         if (valueType <= 0) {
-            valueType = this._valuesType;
+            valueType = cursorStatement.valuesType;
         }
     }
 
-    var cnt = sqlite3_column_count(statement), i, data;
+    // Track this statements information so we don't have to build it each time
+    if (!cursorStatement.built) {
+        cursorStatement.count = sqlite3_column_count(statement);
+        if (resultType === Database.RESULTSASOBJECT) {
+            for (i=0;i<cursorStatement.count;i++) {
+                //noinspection JSUnresolvedFunction
+                var cn =  NSString.stringWithUTF8String(sqlite3_column_name(statement, i)).toString();
+                if (!cn || cursorStatement.columns.indexOf(cn) >= 0) {
+                    cn = "column"+i;
+                }
+                cursorStatement.columns.push(cn);
+            }
+        }
+        cursorStatement.built=true;
+    }
+
+    var cnt = cursorStatement.count, data;
     if (cnt === 0) { return null; }
     if (resultType === Database.RESULTSASARRAY) {
         data = [];
@@ -633,22 +669,7 @@ Database.prototype._getResults = function(statement, mode) {
         }
         return data;
     } else {
-        var colName;
-        if (this._lastStatement === statement) {
-            colName = this._lastResultColumns;
-        } else {
-            colName = [];
-            for (i=0;i<cnt;i++) {
-                //noinspection JSUnresolvedFunction
-                var cn =  NSString.stringWithUTF8String(sqlite3_column_name(statement, i)).toString();
-                if (!cn || colName.indexOf(cn) >= 0) {
-                    cn = "column"+i;
-                }
-                colName.push(cn);
-            }
-            this._lastResultColumns = colName;
-            this._lastStatement = statement;
-        }
+        var colName = cursorStatement.columns;
         data = {};
         if (valueType === Database.VALUESARESTRINGS) {
             for (i = 0; i < cnt; i++) {
