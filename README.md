@@ -84,7 +84,7 @@ var Sqlite = require( "/path/to/node_modules/nativescript-sqlite" );
 var db_promise = new Sqlite("MyTable", function(err, db) {
     if (err) { 
       console.error("We failed to open database", err);
-    } else 
+    } else {
       // This should ALWAYS be true, db object is open in the "Callback" if no errors occurred
       console.log("Are we open yet (Inside Callback)? ", db.isOpen() ? "Yes" : "No"); // Yes
     }
