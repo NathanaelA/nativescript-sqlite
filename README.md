@@ -32,6 +32,7 @@ Run `tns plugin add nativescript-sqlite` in your ROOT directory of your project.
 
 For the new seemless iOS install; you need to be running version 1.4.3 of the NativeScript command line.
 Run `tns plugin add nativescript-sqlite` in your ROOT directory of your project.
+Some versions of NativeScript require **xcodeproj**. Type **xcodeproj** and see if you have it, if not type **sudo gem install xcodeproj** to install it.
 
 ### v1.4.2 or earlier 
 
