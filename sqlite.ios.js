@@ -4,7 +4,8 @@
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
- * Version 0.1.1 - iOS                                Nathan@master-technology.com
+ * Nathan@master-technology.com                           http://nativescript.tools
+ * Version 0.1.2 - iOS
  ***********************************************************************************/
 
 "use strict";
@@ -173,6 +174,14 @@ Database.prototype.valueType = function(value) {
     return this._resultType;
 };
 
+/**
+ * Dummy transaction function for public version
+ * @param callback
+ * @returns {Promise<T>}
+ */
+Database.prototype.begin = function(callback) {
+    throw new Error("Transactions are a Commercial version feature.");
+};
 
 /***
  * Closes this database, any queries after this will fail with an error
