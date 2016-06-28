@@ -1,2 +1,11 @@
 demo/
-changelog
+changelog.
+contributors.md
+sqlite.android.queue.js
+sqlite.d.ts
+tsconfig.json
+tslint.json
+.idea/
+.git/
+*.tgz
+*.tar
