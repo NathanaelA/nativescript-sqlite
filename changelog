@@ -1,3 +1,4 @@
 Changelog
 
 v1.08 - Fix for iOS Column names, Android allow copy from sub-directory
+v1.09 - Adding Transaction support
