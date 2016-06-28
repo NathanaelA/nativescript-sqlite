@@ -1,5 +1,4 @@
 [![npm](https://img.shields.io/npm/v/nativescript-sqlite.svg)](https://www.npmjs.com/package/nativescript-sqlite)
-[![npm](https://img.shields.io/npm/l/nativescript-sqlite.svg)](https://www.npmjs.com/package/nativescript-sqlite)
 [![npm](https://img.shields.io/npm/dt/nativescript-sqlite.svg?label=npm%20downloads)](https://www.npmjs.com/package/nativescript-sqlite)
 
 # NativeScript sqlite
@@ -9,19 +8,28 @@ A NativeScript module providing sqlite actions for Android and iOS.
 
 ## License
 
+There are two possible licenses this is released under;
+
+[![npm](https://img.shields.io/npm/l/nativescript-sqlite.svg?style=plastic)](https://www.npmjs.com/package/nativescript-sqlite)
+![license](https://img.shields.io/badge/license-Commercial-blue.svg?style=plastic)
+
+
+### NativeScript-Sqlite Free version
+
 This is released under the MIT License, meaning you are free to include this in any type of program -- However for entities that need a support contract, changes, enhancements and/or a commercial license please see [http://nativescript.tools](http://nativescript.tools/product/10)
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=plastic)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=HN8DDMWVGBNQL&lc=US&item_name=Nathanael%20Anderson&item_number=nativescript%2dsqlite&no_note=1&no_shipping=1&currency_code=USD&bn=PP%2dDonationsBF%3ax%3aNonHosted)
-[![Patreon](https://img.shields.io/badge/Pledge-Patreon-blue.svg?style=plastic)](https://www.patreon.com/NathanaelA)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=HN8DDMWVGBNQL&lc=US&item_name=Nathanael%20Anderson&item_number=nativescript%2dsqlite&no_note=1&no_shipping=1&currency_code=USD&bn=PP%2dDonationsBF%3ax%3aNonHosted)
+[![Patreon](https://img.shields.io/badge/Pledge-Patreon-brightgreen.svg?style=plastic)](https://www.patreon.com/NathanaelA)
 
 
-## Commercial Version
+### NativeScript-SQLite Commercial Version
+This is released under a commercial license, allowing you to use the commercial version of the plugin in a project.
 
 The [commercial version](http://nativescript.tools/product/10) comes with the following enhancements:
 - TypeScript definitions
+- Totally backwards compatable with the free version
 - Multilevel transaction support
 - (Coming soon) Multi-threading
-
 
 
 ## Encrypted SQLite
@@ -42,6 +50,8 @@ Then run the app the normal way you would.
 ## Installation
 
 Run `tns plugin add nativescript-sqlite` in your ROOT directory of your project.
+or
+Run `tns plugin add nativescript-sqlite-commercial.tgz` in your root directory of your project.
 
 
 ## Usage
@@ -288,16 +298,34 @@ promise.then(function (count) {
 });
 ```
 
-
-### Commercial Only
+### Commercial Only Features
 
 #### DB.begin()
 ##### Parameters
-
+* callback (Optional)
+* RETURNS promise
+This starts a new transactions, if you start a nested transaction, until you commit the first transaction nothing is written.
 
 #### DB.commit()
 ##### Parameters
+* callback (Optional)
+* RETURNS promise
+This commits a transaction, if this is a nested transaction; the changes are not written until the first/final transaction is committed.
 
+#### DB.commitAll()
+##### Parameters
+* callback (Optional)
+* RETURNS promise
+This commits the entire transaction group, everything is written and any opne transactions are committed.
 
 #### DB.rollback()
 ##### Parameters
+* callback (Optional)
+* RETURNS promise
+This rolls back a transaction, if this is a nested transaction; only the nested transaction is rolled back.
+
+#### DB.rollbackAll()
+##### Parameters
+* callback (Optional)
+* RETURNS promise
+This rolls back the entire transaction group; everything is cancelled.
