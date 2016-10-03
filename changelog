@@ -3,3 +3,4 @@ Changelog
 v1.0.8  - Fix for iOS Column names, Android allow copy from sub-directory
 v1.0.9  - Adding Transaction support
 v1.0.10 - Fixed docs
+v1.1.2  - Fixed ios xCode 8 issues

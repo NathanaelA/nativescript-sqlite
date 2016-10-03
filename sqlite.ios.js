@@ -5,7 +5,7 @@
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 0.1.2 - iOS
+ * Version 0.1.3 - iOS
  ***********************************************************************************/
 
 "use strict";
@@ -75,7 +75,7 @@ function Database(dbname, options, callback) {
         try {
             if (!fs.File.exists(path)) {
                 //noinspection JSUnresolvedFunction
-                var fileManager = NSFileManager.defaultManager();
+                var fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
                 if (!fileManager.createDirectoryAtPathWithIntermediateDirectoriesAttributesError(path, true, null, null)) {
                     console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error");
                 }
@@ -708,14 +708,14 @@ Database.exists = function(name) {
     }
 
     //noinspection JSUnresolvedFunction
-    var fileManager = NSFileManager.defaultManager();
+    var fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
 
     return fileManager.fileExistsAtPath(name);
 };
 
 Database.deleteDatabase = function(name) {
     //noinspection JSUnresolvedFunction
-    var fileManager = NSFileManager.defaultManager();
+    var fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
 
     var path;
     if (name.indexOf('/') === -1) {
@@ -748,7 +748,8 @@ Database.deleteDatabase = function(name) {
 
 Database.copyDatabase = function(name) {
     //noinspection JSUnresolvedFunction
-    var fileManager = NSFileManager.defaultManager();
+
+    var fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
 
     var path;
     if (name.indexOf('/') === -1) {
@@ -762,6 +763,17 @@ Database.copyDatabase = function(name) {
     var destination = path + name;
     fileManager.copyItemAtPathToPathError(source, destination, null);
 };
+
+
+function iosProperty(_this, property) {
+    if (typeof property === "function") {
+        // xCode < 8
+        return property.call(_this);
+    } else {
+        // xCode >= 8
+        return property;
+    }
+}
 
 // Literal Defines
 Database.RESULTSASARRAY  = 1;

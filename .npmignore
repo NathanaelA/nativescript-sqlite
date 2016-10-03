@@ -7,5 +7,6 @@ tsconfig.json
 tslint.json
 .idea/
 .git/
+graphics/
 *.tgz
 *.tar
