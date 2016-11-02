@@ -1,0 +1,19 @@
+﻿
+button {
+    font-size: 20;
+    horizontal-align: center;
+}
+
+.one {
+    background-color: #e2e2e2;
+}
+
+.two {
+    background-color: white;
+}
+
+.copyright {
+    background-color: black;
+    color: white;
+    font-size: 10;
+}

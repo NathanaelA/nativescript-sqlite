@@ -1,0 +1,16 @@
+{
+  "description": "NativeScript SQLite Example Application",
+  "license": "MIT",
+  "readme": "NativeScript SQLIte Example Application",
+  "repository": "https://github.com/NathanaelA/NativeScript-SQLite",
+  "nativescript": {
+    "id": "com.mastertechapps.nativescriptsqliteexample"
+  },
+  "dependencies": {
+    "nativescript-sqlite": "file:..",
+    "tns-core-modules": "latest"
+  },
+  "devDependencies": {
+   
+  }
+}
