@@ -329,3 +329,10 @@ This rolls back a transaction, if this is a nested transaction; only the nested 
 * callback (Optional)
 * RETURNS promise
 This rolls back the entire transaction group; everything is cancelled.
+
+## Tutorials
+
+Need a little more to get started?  Check out these tutorials for using SQLite in a NativeScript Android and iOS application.
+
+* [SQLite in a NativeScript Angular Application](https://www.thepolyglotdeveloper.com/2016/10/using-sqlite-in-a-nativescript-angular-2-mobile-app/)
+* [SQLite in a NativeScript Vanilla Application](https://www.thepolyglotdeveloper.com/2016/04/use-sqlite-save-data-telerik-nativescript-app/)
