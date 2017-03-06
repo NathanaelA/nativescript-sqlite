@@ -1,20 +1,27 @@
 {
   "name": "nativescript-sqlite",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "A sqlite NativeScript module for Android and iOS",
   "main": "sqlite",
   "nativescript": {
     "platforms": {
       "android": "1.4.0",
       "ios": "1.4.0"
-    }
+    },
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/nathanaela/nativescript-sqlite.git"
   },
   "keywords": [
-    "NativeScript", "SQL", "SQLite", "Database", "DB", "iOS", "Android", "JavaScript"
+    "NativeScript",
+    "SQL",
+    "SQLite",
+    "Database",
+    "DB",
+    "iOS",
+    "Android",
+    "JavaScript"
   ],
   "author": {
     "name": "Nathanael Anderson",
