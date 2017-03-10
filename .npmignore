@@ -10,3 +10,4 @@ tslint.json
 graphics/
 *.tgz
 *.tar
+*.stackdump
