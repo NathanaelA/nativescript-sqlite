@@ -1,11 +1,11 @@
 /**************************************************************************************
- * (c) 2015, 2016, Master Technology
+ * (c) 2015-2017, Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 0.1.4 - Android
+ * Version 0.1.5 - Android
  *************************************************************************************/
 
 "use strict";
@@ -17,6 +17,7 @@ var appModule = require("application");
 
 // Needed for Creating Database - Android Specific flag
 //var CREATEIFNEEDED = 0x10000000;
+
 
 /***
  * Parses a Row of data into a JS Array (as Native)
@@ -267,12 +268,16 @@ function Database(dbname, options, callback) {
 
     return new Promise(function (resolve, reject) {
         try {
+        	var flags = null;
+        	if (typeof options.androidFlags !== 'undefined') {
+        		flags = options.androidFlags;
+			}
             if (dbname === ":memory:") {
                 //noinspection JSUnresolvedVariable
-                self._db = android.database.sqlite.SQLiteDatabase.create(null);
+                self._db = android.database.sqlite.SQLiteDatabase.create(flags);
             } else {
                 //noinspection JSUnresolvedVariable,JSUnresolvedFunction
-                self._db = android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(dbname, null);
+                self._db = android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(dbname, flags);
             }
         } catch (err) {
             console.error("SQLITE.CONSTRUCTOR -  Open DB Error", err);
