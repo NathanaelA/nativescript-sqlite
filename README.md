@@ -39,7 +39,7 @@ If you need encrypted sqlite, please contact nathan@master-technology.com for mo
 
 ## Example Application
 
-An example application can be cloned from https://github.com/NathanaelA/nativescript-sqlite-example
+An example application can be cloned from this repo, in the demo folder.
 To use you need to do:
 1. `npm install tns-core-modules`
 2. `tns platform add ios` or `tns platform add android`
