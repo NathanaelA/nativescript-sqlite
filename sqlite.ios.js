@@ -5,7 +5,7 @@
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 0.1.4 - iOS
+ * Version 0.1.6 - iOS
  ***********************************************************************************/
 
 "use strict";
@@ -624,7 +624,7 @@ Database.prototype._getStringResult = function(statement, column) {
             //noinspection JSUnresolvedFunction
             return NSString.stringWithUTF8String(sqlite3_column_text(statement, column)).toString();
         case 4: // Blob
-            return null; // TODO: We don't currently support Blobs on iOS
+            return NSData.dataWithBytesLength(sqlite3_column_blob(statement, column), sqlite3_column_bytes(statement, column));
         case 5: // Null
             return null;
         default:
