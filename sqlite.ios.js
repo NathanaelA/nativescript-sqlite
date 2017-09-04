@@ -139,7 +139,7 @@ Database.prototype.version = function(valueOrCallback) {
     } else if (!isNaN(valueOrCallback+0)) {
         return this.execSQL('PRAGMA user_version='+(valueOrCallback+0).toString());
     } else {
-        return this.get('PRAGMA user_version', Database.RESULTSASARRAY);
+        return this.get('PRAGMA user_version', undefined, undefined, Database.RESULTSASARRAY);
     }
 };
 

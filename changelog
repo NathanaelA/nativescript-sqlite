@@ -8,3 +8,5 @@ v1.1.3  - Updated iOS demo and fixes for Webpack
 v1.1.4  - Adding iosFlags & androidFlags ability to be passed in as the options.
 v1.1.6  - Added blog support in iOS version
 v1.1.7  - Missed one of the iOS blob support
+v1.1.8  - Commercial Only changes
+v1.1.9  - Fix for Promise and version() function
