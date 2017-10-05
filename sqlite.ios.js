@@ -5,7 +5,7 @@
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 0.1.6 - iOS
+ * Version 0.1.7 - iOS
  ***********************************************************************************/
 
 "use strict";
@@ -13,7 +13,7 @@ var fs = require('file-system');
 
 /* jshint undef: true, camelcase: false */
 /* global Promise, NSFileManager, NSBundle, NSString, interop, sqlite3_open_v2, sqlite3_close, sqlite3_prepare_v2, sqlite3_step,
- sqlite3_finalize, sqlite3_bind_null, sqlite3_bind_text, sqlite3_column_type, sqlite3_column_int,
+ sqlite3_finalize, sqlite3_bind_null, sqlite3_bind_text, sqlite3_column_type, sqlite3_column_int64,
  sqlite3_column_double, sqlite3_column_text,  sqlite3_column_count, sqlite3_column_name */
 
 
@@ -595,7 +595,7 @@ Database.prototype._getNativeResult = function(statement, column) {
     var resultType = sqlite3_column_type(statement, column);
     switch (resultType) {
         case 1: // Int
-            return sqlite3_column_int(statement, column);
+            return sqlite3_column_int64(statement, column);
         case 2: // Float
             return sqlite3_column_double(statement, column);
         case 3: // Text

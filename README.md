@@ -5,6 +5,14 @@
 
 A NativeScript module providing sqlite actions for Android and iOS.
 
+## Developed by
+<map name="mtns">
+<area shape="rect" alt="" coords="0,0,402,60" href="http://www.master.technology">
+<area shape="rect" alt="" coords="403,0,650,60" href="http://nstudio.io">
+</map>
+<img src='https://plugins.nativescript.rocks/i/mtns.png' usemap="#mtns">
+
+
 
 ## License
 
@@ -27,9 +35,10 @@ This is released under a commercial license, allowing you to use the commercial 
 
 The [commercial version](http://nativescript.tools/product/10) comes with the following enhancements:
 - TypeScript definitions
-- Totally backwards compatable with the free version
+- Totally backwards compatible with the free version
 - Multilevel transaction support
 - (Coming soon) Multi-threading
+- (Coming soon) Prepared statements
 
 
 ## Encrypted SQLite
@@ -336,3 +345,10 @@ Need a little more to get started?  Check out these tutorials for using SQLite i
 
 * [SQLite in a NativeScript Angular Application](https://www.thepolyglotdeveloper.com/2016/10/using-sqlite-in-a-nativescript-angular-2-mobile-app/)
 * [SQLite in a NativeScript Vanilla Application](https://www.thepolyglotdeveloper.com/2016/04/use-sqlite-save-data-telerik-nativescript-app/)
+
+
+### Sponsor
+
+<a target='_blank' rel='nofollow' href='https://app.codesponsor.io/link/HXrmpSuyowGyBLzwEVbqXdDa/NathanaelA/nativescript-sqlite'>
+  <img alt='Sponsor' width='888' height='68' src='https://app.codesponsor.io/embed/HXrmpSuyowGyBLzwEVbqXdDa/NathanaelA/nativescript-sqlite.svg' />
+</a>
