@@ -6,12 +6,7 @@
 A NativeScript module providing sqlite actions for Android and iOS.
 
 ## Developed by
-<map name="mtns">
-<area shape="rect" alt="" coords="0,0,402,60" href="http://www.master.technology">
-<area shape="rect" alt="" coords="403,0,650,60" href="http://nstudio.io">
-</map>
-<img src='https://plugins.nativescript.rocks/i/mtns.png' usemap="#mtns">
-
+[![MasterTech](https://plugins.nativescript.rocks/i/mtns.png)](https://plugins.nativescript.rocks/mastertech-nstudio)
 
 
 ## License
