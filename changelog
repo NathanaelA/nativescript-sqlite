@@ -11,3 +11,4 @@ v1.1.7  - Missed one of the iOS blob support
 v1.1.8  - Commercial Only changes
 v1.1.9  - Fix for Promise and version() function
 v1.1.10 - Fix for iOS int truncation
+v1.1.11 - Fix for Documentation and Package.json (no plugin changes)
