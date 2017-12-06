@@ -5,7 +5,7 @@
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 0.1.7 - iOS
+ * Version 2.0.0 - iOS
  ***********************************************************************************/
 
 "use strict";
@@ -15,6 +15,8 @@ var fs = require('file-system');
 /* global Promise, NSFileManager, NSBundle, NSString, interop, sqlite3_open_v2, sqlite3_close, sqlite3_prepare_v2, sqlite3_step,
  sqlite3_finalize, sqlite3_bind_null, sqlite3_bind_text, sqlite3_column_type, sqlite3_column_int64,
  sqlite3_column_double, sqlite3_column_text,  sqlite3_column_count, sqlite3_column_name */
+
+var _DatabasePluginInits = [];
 
 
 /***
@@ -115,8 +117,35 @@ function Database(dbname, options, callback) {
         }
 
         self._isOpen = true;
-        if (callback) { callback(null, self); }
-        resolve(self);
+
+        var doneCnt = _DatabasePluginInits.length, doneHandled = 0;
+        var done = function(err) {
+        	if (err) {
+        		doneHandled = doneCnt;  // We don't want any more triggers after this
+				if (callback) { callback(err, null); }
+				reject(err);
+        		return;
+			}
+			doneHandled++;
+        	if (doneHandled === doneCnt) {
+				if (callback) { callback(null, self); }
+				resolve(self);
+			}
+		};
+
+        if (doneCnt) {
+        	try {
+				for (var i = 0; i < doneCnt; i++) {
+					_DatabasePluginInits[i].call(self, options, done);
+				}
+			} catch (err) {
+        		done(err);
+			}
+		} else {
+			if (callback) { callback(null, self); }
+			resolve(self);
+		}
+
     });
 }
 
@@ -187,6 +216,16 @@ Database.prototype.valueType = function(value) {
 Database.prototype.begin = function(callback) {
     throw new Error("Transactions are a Commercial version feature.");
 };
+
+/**
+ * Dummy prepare function for public version
+ * @param sql
+ * @returns {*}
+ */
+Database.prototype.prepare = function(sql) {
+	throw new Error("Prepared statements are a Commercial version feature.");
+};
+
 
 /***
  * Closes this database, any queries after this will fail with an error
@@ -269,7 +308,6 @@ Database.prototype.execSQL = function(sql, params, callback) {
                 }
             }
             var result = sqlite3_step(statement);
-            sqlite3_finalize(statement);
             if (result && result !== 100 && result !== 101) {
                 callback("SQLITE.ExecSQL Failed " + res);
                 return;
@@ -769,6 +807,27 @@ Database.copyDatabase = function(name) {
     fileManager.copyItemAtPathToPathError(source, destination, null);
 };
 
+function LoadPlugin(src, DBModule) {
+	try {
+		var loadedSrc = require(src);
+		if (loadedSrc.prototypes) {
+			for (var key in loadedSrc.prototypes) {
+				DBModule.prototype[key] = loadedSrc.prototypes[key];
+			}
+		}
+		if (loadedSrc.statics) {
+			for (var key in loadedSrc.statics) {
+				DBModule[key] = loadedSrc.statics[key];
+			}
+		}
+		if (typeof loadedSrc.init === 'function') {
+			_DatabasePluginInits.push(loadedSrc.init);
+		}
+	}
+	catch (err) {
+		// If the file doesn't exist; we don't care, these are OPTIONAL plugins.
+	}
+}
 
 function iosProperty(_this, property) {
     if (typeof property === "function") {
@@ -785,6 +844,9 @@ Database.RESULTSASARRAY  = 1;
 Database.RESULTSASOBJECT = 2;
 Database.VALUESARENATIVE = 4;
 Database.VALUESARESTRINGS = 8;
+
+LoadPlugin('nativescript-sqlite-commercial', Database);
+LoadPlugin('nativescript-sqlite-encrypted', Database);
 
 module.exports = Database;
 

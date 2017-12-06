@@ -27,20 +27,16 @@ This is released under the MIT License, meaning you are free to include this in 
 [![Patreon](https://img.shields.io/badge/Pledge-Patreon-brightgreen.svg?style=plastic)](https://www.patreon.com/NathanaelA)
 
 
-### NativeScript-SQLite Commercial Version
-This is released under a commercial license, allowing you to use the commercial version of the plugin in a project.
+### NativeScript-SQLite Commercial/Encrypted Version
+This is released under a commercial license, allowing you to use the commercial version of the plugin in your projects.
 
 The [commercial version](http://nativescript.tools/product/10) comes with the following enhancements:
 - TypeScript definitions
 - Totally backwards compatible with the free version
+- Prepared statements
 - Multilevel transaction support
+- Encryption
 - (Coming soon) Multi-threading
-- (Coming soon) Prepared statements
-
-
-## Encrypted SQLite
-
-If you need encrypted sqlite, please contact nathan@master-technology.com for more information.
 
 
 ## Example Application
@@ -50,6 +46,11 @@ To use you need to do:
 1. `npm install tns-core-modules`
 2. `tns platform add ios` or `tns platform add android`
 3. `tns plugin add nativescript-sqlite`
+
+***optional***
+* `tns plugin add nativescript-sqlite-commercial`
+* `tns plugin add nativescript-sqlite-encrypted`
+
 Then run the app the normal way you would.
 
 
@@ -90,15 +91,22 @@ If you are planning on shipping a database with the application; drop the file i
 * Sqlite.VALUESARENATIVE - Returns the values as the native values; i.e. Integer = Integer, Float = Number
 * Sqlite.VALUESARESTRINGS - Returns all the values as a string; so the Integer 1 would be returned as "1"
 
+
+* Sqlite.HAS_COMMERCIAL - will be true if commercial library is loaded.
+* Sqlite.HAS_ENCRYPTION - will be true if encryption library is loaded.
+* Sqlite.HAS_THREADING - will be true if multithreading library is loaded.
+
 ### Methods
 #### new Sqlite(dbname, options, callback)
 ##### Parameters
 * dbname: your database name.   This can be ":memory:" for a memory Database. This can be "" for a Temporary Database.
-* options - currently the only option is "readOnly", which if set to true will make the db read only when it opens it
+* options 
+  * "readOnly", which if set to true will make the db read only when it opens it
+  * "key", used for opening encrypted databases (See Encryption at bottom of document)
 * (optional) callback (error, db): db is the fully OPEN database object that allows interacting with the db.
 * RETURNS: promise of the DB object
 
- You should choose either to use a promise or a callback; you can use whichever you are most comfortable with -- however, as with this example, you CAN use both if you want; but side effects might occur.
+ You should choose either to use a promise or a callback; you can use whichever you are most comfortable with -- however, as with this example, you CAN use both if you want; but side effects WILL occur with some functions.
 
 ```js
 // my-page.js
@@ -129,7 +137,7 @@ db_promise.then(function(db) {
 ```js
 // my-page.js
 new Sqlite("test.db", function(err, db) {
-  console.log("Is a Sqlite Database:", Sqlite.isSqlite(db) ? "Yes" : "No);  // Should print "Yes"
+  console.log("Is a Sqlite Database:", Sqlite.isSqlite(db) ? "Yes" : "No");  // Should print "Yes"
 });
 ```
 
@@ -175,7 +183,7 @@ new Sqlite("test.db", function(err, db) {
       db.version(1); // Sets the version to 1
     }
   });
-};
+});
 ```
 
 #### DB.isOpen()
@@ -304,8 +312,50 @@ promise.then(function (count) {
 });
 ```
 
-### Commercial Only Features
 
+
+## Commercial Only Features
+
+#### To enable the optional features
+
+To enable encryption: `tns plugin add nativescript-sqlite-encrypted-1.0.0.tgz`
+
+To enable commercial: `tns plugin add nativescript-sqlite-commercial-1.0.0.tgz`
+
+
+### Encryption Support
+Pass the encryption key into database open function using the `options.key` and it will be applied.  Please note the database itself MUST be created with encryption to use encryption.  So if you create a plain database, you can not retroactively add encryption to it.
+
+Note: Enabling Encryption adds about 3 megs to the size to the application APK on android and about 2 megs to a iOS application.  
+    
+
+### Prepared Queries
+#### DB.prepare(SQL) 
+##### Parameter:
+* SQL Statement
+* Returns Prepared Statement
+
+#### PREPAREDSTATEMENT.execute(param1, param2, param3, optional_callback)
+#### PREPAREDSTATEMENT.execute([param1, param2, param3], optional_callback)
+#### PREPAREDSTATEMENT.execute([ [ p1, p2, p3], [p1, p2, p3], ...], optional_callback)
+###### Parameters:
+* Pass in values, Array of values, or Array of Arrays
+* Pass in an optional callback last for when finished.
+* Returns a Promise
+
+#### PREPAREDSATEMENT.finished()
+* Cleans up and destroys this prepared statement.  Use when you are all done with the prepared statement. 
+
+```js
+var prep = db.prepare('insert into names (first, last) values (?,?)');
+for (var i=0;i<10;i++) {
+	prep.execute(["Name", i]);
+}
+prep.finished();
+```
+
+
+### Transactions
 #### DB.begin()
 ##### Parameters
 * callback (Optional)
@@ -316,25 +366,26 @@ This starts a new transactions, if you start a nested transaction, until you com
 ##### Parameters
 * callback (Optional)
 * RETURNS promise
-This commits a transaction, if this is a nested transaction; the changes are not written until the first/final transaction is committed.
+This commits a single transaction, if this is a nested transaction; the changes are not written until the first/final transaction is committed.
 
 #### DB.commitAll()
 ##### Parameters
 * callback (Optional)
 * RETURNS promise
-This commits the entire transaction group, everything is written and any opne transactions are committed.
+This commits the entire transaction group, everything is written and any open transactions are committed.
 
 #### DB.rollback()
 ##### Parameters
 * callback (Optional)
 * RETURNS promise
-This rolls back a transaction, if this is a nested transaction; only the nested transaction is rolled back.
+This rolls back a single transaction, if this is a nested transaction; only the outermost nested transaction is rolled back.
 
 #### DB.rollbackAll()
 ##### Parameters
 * callback (Optional)
 * RETURNS promise
 This rolls back the entire transaction group; everything is cancelled.
+
 
 ## Tutorials
 
@@ -344,8 +395,3 @@ Need a little more to get started?  Check out these tutorials for using SQLite i
 * [SQLite in a NativeScript Vanilla Application](https://www.thepolyglotdeveloper.com/2016/04/use-sqlite-save-data-telerik-nativescript-app/)
 
 
-### Sponsor
-
-<a target='_blank' rel='nofollow' href='https://app.codesponsor.io/link/HXrmpSuyowGyBLzwEVbqXdDa/NathanaelA/nativescript-sqlite'>
-  <img alt='Sponsor' width='888' height='68' src='https://app.codesponsor.io/embed/HXrmpSuyowGyBLzwEVbqXdDa/NathanaelA/nativescript-sqlite.svg' />
-</a>

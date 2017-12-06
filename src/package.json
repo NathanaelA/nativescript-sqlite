@@ -1,6 +1,6 @@
 {
   "name": "nativescript-sqlite",
-  "version": "1.1.11",
+  "version": "1.2.0",
   "description": "A sqlite NativeScript module for Android and iOS",
   "main": "sqlite",
   "nativescript": {
@@ -28,7 +28,8 @@
     "DB",
     "iOS",
     "Android",
-    "JavaScript"
+    "JavaScript",
+	"encryption"
   ],
   "author": {
     "name": "Nathanael Anderson",

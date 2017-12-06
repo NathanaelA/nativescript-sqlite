@@ -5,7 +5,7 @@
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 0.1.5 - Android
+ * Version 2.0.0 - Android
  *************************************************************************************/
 
 "use strict";
@@ -18,12 +18,14 @@ var appModule = require("application");
 // Needed for Creating Database - Android Specific flag
 //var CREATEIFNEEDED = 0x10000000;
 
+// Used to track any plugin Init
+var _DatabasePluginInits = [];
+
 
 /***
  * Parses a Row of data into a JS Array (as Native)
  * @param cursor {Object}
  * @returns {Array}
- * @constructor
  */
 function DBGetRowArrayNative(cursor) {
     //noinspection JSUnresolvedFunction
@@ -65,7 +67,6 @@ function DBGetRowArrayNative(cursor) {
  * Parses a Row of data into a JS Array (as String)
  * @param cursor
  * @returns {Array}
- * @constructor
  */
 function DBGetRowArrayString(cursor) {
     //noinspection JSUnresolvedFunction
@@ -107,7 +108,6 @@ function DBGetRowArrayString(cursor) {
  * Parses a Row of data into a JS Object (as Native)
  * @param cursor
  * @returns {{}}
- * @constructor
  */
 function DBGetRowObjectNative(cursor) {
     //noinspection JSUnresolvedFunction
@@ -151,7 +151,6 @@ function DBGetRowObjectNative(cursor) {
  * Parses a Row of data into a JS Object (as String)
  * @param cursor
  * @returns {{}}
- * @constructor
  */
 function DBGetRowObjectString(cursor) {
     //noinspection JSUnresolvedFunction
@@ -219,78 +218,125 @@ function setResultValueTypeEngine(resultType, valueType) {
  * @constructor
  */
 function Database(dbname, options, callback) {
-    if (!this instanceof Database) { // jshint ignore:line
-        //noinspection JSValidateTypes
-        return new Database(dbname, options, callback);
-    }
-    this._isOpen = false;
-    this._resultType = Database.RESULTSASARRAY;
-    this._valuesType = Database.VALUESARENATIVE;
+	if (!this instanceof Database) { // jshint ignore:line
+		//noinspection JSValidateTypes
+		return new Database(dbname, options, callback);
+	}
+	this._isOpen = false;
+	this._resultType = Database.RESULTSASARRAY;
+	this._valuesType = Database.VALUESARENATIVE;
 
 
-    if (typeof options === 'function') {
-        callback = options;
-        //noinspection JSUnusedAssignment
-        options = {};
-    } else {
-        //noinspection JSUnusedAssignment
-        options = options || {};
-    }
+	if (typeof options === 'function') {
+		callback = options;
+		//noinspection JSUnusedAssignment
+		options = {};
+	} else {
+		//noinspection JSUnusedAssignment
+		options = options || {};
+	}
 
-    // Check to see if it has a path, or if it is a relative dbname
-    // dbname = "" - Temporary Database
-    // dbname = ":memory:" = memory database
-    if (dbname !== ""  && dbname !== ":memory:") {
-        //var pkgName = appModule.android.context.getPackageName();
-        //noinspection JSUnresolvedFunction
-        dbname = _getContext().getDatabasePath(dbname).getAbsolutePath();
-        var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
+	// Check to see if it has a path, or if it is a relative dbname
+	// dbname = "" - Temporary Database
+	// dbname = ":memory:" = memory database
+	if (dbname !== "" && dbname !== ":memory:") {
+		//var pkgName = appModule.android.context.getPackageName();
+		//noinspection JSUnresolvedFunction
+		dbname = _getContext().getDatabasePath(dbname).getAbsolutePath();
+		var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
 
-        // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
-        // So we create it if it is missing
+		// Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
+		// So we create it if it is missing
 
-        try {
-            var javaFile = new java.io.File(path);
-            if (!javaFile.exists()) {
-                //noinspection JSUnresolvedFunction
-                javaFile.mkdirs();
-                //noinspection JSUnresolvedFunction
-                javaFile.setReadable(true);
-                //noinspection JSUnresolvedFunction
-                javaFile.setWritable(true);
-            }
-        }
-        catch (err) {
-            console.info("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
-        }
-    }
-    var self = this;
-
-    return new Promise(function (resolve, reject) {
-        try {
-        	var flags = null;
-        	if (typeof options.androidFlags !== 'undefined') {
-        		flags = options.androidFlags;
+		try {
+			var javaFile = new java.io.File(path);
+			if (!javaFile.exists()) {
+				//noinspection JSUnresolvedFunction
+				javaFile.mkdirs();
+				//noinspection JSUnresolvedFunction
+				javaFile.setReadable(true);
+				//noinspection JSUnresolvedFunction
+				javaFile.setWritable(true);
 			}
-            if (dbname === ":memory:") {
-                //noinspection JSUnresolvedVariable
-                self._db = android.database.sqlite.SQLiteDatabase.create(flags);
-            } else {
-                //noinspection JSUnresolvedVariable,JSUnresolvedFunction
-                self._db = android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(dbname, flags);
-            }
-        } catch (err) {
-            console.error("SQLITE.CONSTRUCTOR -  Open DB Error", err);
-            if (callback) { callback(err, null); }
-            reject(err);
-            return;
-        }
+		}
+		catch (err) {
+			console.info("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
+		}
+	}
+	var self = this;
 
-        self._isOpen = true;
-        if (callback) { callback(null, self); }
-        resolve(self);
-    });
+	return new Promise(function (resolve, reject) {
+		try {
+			var flags = 0;
+			if (typeof options.androidFlags !== 'undefined') {
+				flags = options.androidFlags;
+			}
+			self._db = self._openDatabase(dbname, flags, options, _getContext());
+		} catch (err) {
+			console.error("SQLITE.CONSTRUCTOR -  Open DB Error", err);
+			if (callback) {
+				callback(err, null);
+			}
+			reject(err);
+			return;
+		}
+
+		self._isOpen = true;
+
+		var doneCnt = _DatabasePluginInits.length, doneHandled = 0;
+		var done = function (err) {
+			if (err) {
+				doneHandled = doneCnt;  // We don't want any more triggers after this
+				if (callback) {
+					callback(err, null);
+				}
+				reject(err);
+				return;
+			}
+			doneHandled++;
+			if (doneHandled === doneCnt) {
+				if (callback) {
+					callback(null, self);
+				}
+				resolve(self);
+			}
+		};
+
+		if (doneCnt) {
+			try {
+				for (var i = 0; i < doneCnt; i++) {
+					_DatabasePluginInits[i].call(self, options, done);
+				}
+			}
+			catch (err) {
+				done(err);
+			}
+		} else {
+			if (callback) {
+				callback(null, self);
+			}
+			resolve(self);
+		}
+
+	});
 }
+
+/**
+ * Function to handle opening Database
+ * @param dbname
+ * @param flags
+ * @param options
+ * @private
+ */
+Database.prototype._openDatabase = function(dbname, flags) {
+	if (dbname === ":memory:") {
+		//noinspection JSUnresolvedVariable
+		return android.database.sqlite.SQLiteDatabase.create(flags);
+	} else {
+		//noinspection JSUnresolvedVariable,JSUnresolvedFunction
+		return android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(dbname, flags);
+	}
+};
 
 /***
  * Constant that this structure is a sqlite structure
@@ -365,6 +411,18 @@ Database.prototype.valueType = function(value) {
 Database.prototype.begin = function(callback) {
   throw new Error("Transactions are a Commercial version feature.");
 };
+
+/**
+ * Dummy prepare function for public version
+ * @param sql
+ * @returns {*}
+ */
+Database.prototype.prepare = function(sql) {
+	throw new Error("Prepared statements are a Commercial version feature.");
+};
+
+
+
 
 /***
  * Closes this database, any queries after this will fail with an error
@@ -855,6 +913,9 @@ Database.RESULTSASOBJECT = 2;
 Database.VALUESARENATIVE = 4;
 Database.VALUESARESTRINGS = 8;
 
+LoadPlugin('nativescript-sqlite-commercial', Database);
+LoadPlugin('nativescript-sqlite-encrypted', Database);
+
 module.exports = Database;
 
 /**
@@ -871,4 +932,27 @@ function _getContext() {
 
     ctx = java.lang.Class.forName("android.app.ActivityThread").getMethod("currentApplication", null).invoke(null, null);
     return ctx;
+}
+
+/** Loads a SQLite Plugin **/
+function LoadPlugin(src, DBModule) {
+	try {
+		var loadedSrc = require(src);
+		if (loadedSrc.prototypes) {
+			for (var key in loadedSrc.prototypes) {
+				DBModule.prototype[key] = loadedSrc.prototypes[key];
+			}
+		}
+		if (loadedSrc.statics) {
+			for (var key in loadedSrc.statics) {
+				DBModule[key] = loadedSrc.statics[key];
+			}
+		}
+		if (typeof loadedSrc.init === 'function') {
+			_DatabasePluginInits.push(loadedSrc.init);
+		}
+	}
+	catch (err) {
+		// If the file doesn't exist; we don't care, these are OPTIONAL plugins.
+	}
 }
