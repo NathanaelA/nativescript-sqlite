@@ -3,17 +3,17 @@
     <ActionBar title="NativeScript SQLite Example"/>
   </Page.actionBar>
   <GridLayout rows="*,auto" columns="*">
-    <ScrollView id="scroller" cssClass="border">
+    <ScrollView id="scroller" class="border">
       <Repeater items="{{names}}">
         <Repeater.itemTemplate>
-          <Label text="{{ name }}" cssClass="{{ css }}"/>
+          <Label text="{{ name }}" class="{{ css }}"/>
         </Repeater.itemTemplate>
       </Repeater>
     </ScrollView>
-    <GridLayout row="1" rows="*,auto" columns="*,auto" cssClass="border">
-      <TextField id="entry" hint="Type a new name"/>
+    <GridLayout row="1" rows="*,auto" columns="*,auto" class="border">
+      <TextField id="entry" hint="Type a new name" text="test"/>
       <Button id="go" col="1" text="Add" tap="addNewName"/>
-      <HtmlView row="1" colspan="2" html="&lt;a href='http://www.master-technology.com'&gt;(c)2015, Master Technology&lt;/a&gt;" cssClass="copyright"/>
+      <HtmlView row="1" colSpan="2"  html="&lt;a href='http://www.master-technology.com'&gt;(c)2015-2017, Master Technology&lt;/a&gt;" class="copyright"/>
     </GridLayout>
   </GridLayout>
 </Page>

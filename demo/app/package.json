@@ -1,1 +1,8 @@
-{"name":"nativescript-sqlite-example","main":"app.js","jsoptions":"--expose_gc","version":"2.5.0","author":{"name":"Master Technology","email":"support@master-technology.com"},"description":"Nativescript SQLite Sample Application","license":"MIT","keywords":["SQLite","mobile","nativescript","database"],"repository":{"type":"git","url":"git://github.com/NathanaelA/nativescript-sqlite-example.git"},"bugs":{"url":"https://github.com/NathanaelA/nativescript-sqlite-example/issues"},"homepage":"https://github.com/NathanaelA/nativescript-sqlite-example"}
+{
+  "android": {
+    "v8Flags": "--expose_gc"
+  },
+  "main": "app.js",
+  "name": "tns-template-hello-world",
+  "version": "3.3.0"
+}

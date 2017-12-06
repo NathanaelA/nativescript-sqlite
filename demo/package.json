@@ -1,17 +1,25 @@
 {
-  "description": "NativeScript SQLite Demo Application",
-  "license": "MIT",
-  "readme": "NativeScript SQLite Demo Application",
-  "repository": "https://github.com/NathanaelA/nativescript-sqlite",
-  "nativescript": {
-    "id": "com.mastertechapps.nativescriptsqliteexample"
-  },
-  "dependencies": {
-    "nativescript-sqlite": "file:..",
-    "nativescript-theme-core": "~1.0.2",
-    "tns-core-modules": "2.5.1"
-  },
-  "devDependencies": {
-    "nativescript-dev-android-snapshot": "^0.*.*"
-  }
+	"description": "NativeScript Application",
+	"license": "SEE LICENSE IN <your-license-filename>",
+	"readme": "NativeScript Application",
+	"repository": "<fill-your-repository-here>",
+	"nativescript": {
+		"id": "com.mastertechapps.nativescriptsqliteexample",
+		"tns-android": {
+			"version": "3.3.1"
+		}
+	},
+	"dependencies": {
+		"nativescript-sqlite": "file:..\\src",
+		"nativescript-sqlite-commercial": "file:..\\commercial",
+		"nativescript-sqlite-encrypted": "file:..\\encrypted",
+		"nativescript-theme-core": "~1.0.2",
+		"tns-core-modules": "~3.3.0"
+	},
+	"devDependencies": {
+		"babel-traverse": "6.4.5",
+		"babel-types": "6.4.5",
+		"babylon": "6.4.5",
+		"lazy": "1.0.11"
+	}
 }

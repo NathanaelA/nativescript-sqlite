@@ -16,4 +16,6 @@ button {
     background-color: black;
     color: white;
     font-size: 10;
+    width: 100%;
+    horizontal-align: center;
 }

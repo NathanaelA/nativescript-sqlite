@@ -8,10 +8,28 @@ var ObservableArray = require("data/observable-array").ObservableArray;
 
 var dbname = 'name_db.sqlite';
 var db = null;
+var enc_db = null;
 var page = null;
 
 var data = new ObservableArray();
-data.push({name: 'Loading...'});
+
+if (sqlite.HAS_COMMERCIAL) {
+	console.log("Using Commercial");
+	data.push({name:'Commercial Support', css:'one'});
+} else {
+	console.log("No Commercial Support");
+}
+
+if (sqlite.HAS_ENCRYPTION) {
+	console.log("Using Encryption");
+	dbname = 'encrypted.sqlite';
+	data.push({name:'Encryption Support', css:'one'});
+} else {
+	console.log("No Encryption");
+}
+data.push({name: 'Loading...', css: 'one'});
+
+
 
 exports.pageLoaded = function(args) {
     page = args.object;
@@ -20,12 +38,20 @@ exports.pageLoaded = function(args) {
     if (!sqlite.exists(dbname)) {
         sqlite.copyDatabase(dbname);
     }
-    new sqlite(dbname, function(err, dbConnection) {
-	if (err) {
-	    console.log(err);
+    new sqlite(dbname, {key: 'testing'}, function(err, dbConnection) {
+
+		if (err) {
+	    console.log(err, err.stack);
 	}
         db = dbConnection;
         db.resultType(sqlite.RESULTSASOBJECT);
+
+		if (sqlite.HAS_ENCRYPTION) {
+			db.get("PRAGMA cipher_version;").then(function(results) {
+				console.log("Cipher version", results['cipher_version']);
+			});
+		}
+
         reloadData();
     });
 };
@@ -34,10 +60,11 @@ exports.addNewName = function() {
     var entry = page.getViewById('entry');
     var name = entry.text;
     if (name.length > 0) {
-        if (name.toLowerCase() === "test" || name.toLowerCase() === "runtest" || name.toLowerCase() === "tests" || name.toLowerCase() === "runtests") {
+        if (name.toLowerCase() === "test" || name.toLowerCase() === "runtest" || name.toLowerCase() === "tests" || name.toLowerCase() === "runtests" || name.indexOf("Test") === 0) {
             runTests();
             return;
         }
+
         db.execSQL("insert into names (name) values (?)", name);
         reloadData();
     }
@@ -66,18 +93,18 @@ function reloadData() {
 }
 
 function setupTests(callback) {
-    data.push({name: 'Creating tables and data...'});
+    data.push({name: 'Creating tables and data...', css: 'one'});
     db.execSQL('drop table if exists tests;', function(err) {
         if (err) { console.log("!---- Drop Err", err); }
         db.execSQL('create table tests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text)', function(err) {
             if (err) {
-                data.push({name: 'Failed to create tables and data...'});
+                data.push({name: 'Failed to create tables and data...', css: 'one'});
                 console.log("!---- Create Table err", err);
                 return;
             }
             db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (1,1.2,2.4,"Text1")', function (err) {
                 if (err) {
-                    data.push({name: 'Failed to create tables and data...'});
+                    data.push({name: 'Failed to create tables and data...', css: 'one'});
                     console.log("!---- Insert err", err);
                     return;
                 }
@@ -132,12 +159,14 @@ function runATest(options, callback) {
         var passed = true;
         if (err) {
            console.log("!------------ Error");
-           data.push({name: options.name + " test failed with "+err.toString()});
+           data.push({name: options.name + " test failed with "+err.toString(), css:'one'});
            return callback(false);
         }
         if (!inData || inData.length !== options.results.length) {
+
+        	console.dir(inData);
             console.log("!----------- No Data");
-            data.push({name: options.name + " test failed with different results length"});
+            data.push({name: options.name + " test failed with different results length", css: 'one'});
             return callback(false);
         }
         if (inData.length === 0) {
@@ -149,8 +178,8 @@ function runATest(options, callback) {
             var result = checkRowOfData(inData[i], options.results[i]);
             if (!result.status) {
                 passed = false;
-                data.push({name: options.name + " test failed on row: "+i+", field: "+result.field});
-                console.log("$$$$$ Failure: ", inData[i], options.results[i], typeof inData[i][result.field], typeof options.results[i][result.field]);
+                data.push({name: options.name + " test failed on row: "+i+", field: "+result.field, css: 'one'});
+                console.log("$$$$$ Failure:", inData[i], options.results[i], typeof inData[i][result.field], typeof options.results[i][result.field]);
                 break;
             }
         }
@@ -162,15 +191,16 @@ function runATest(options, callback) {
     var checkEachResults = function(err, inData) {
         if (!checksPassed) return;
         if (err) {
-            data.push({name: options.name + " test failed with "+err.toString()});
+            data.push({name: options.name + " test failed with "+err.toString(), css: 'one'});
+            console.log(options.name + " test failed with ",err.toString());
             checksPassed = false;
             return;
         }
         var result = checkRowOfData(inData, options.results[checkRow]);
         if (!result.status) {
             checksPassed = false;
-            data.push({name: options.name + " test failed on row: "+checkRow+", field: "+result.field});
-            console.log("$$$$$ Failure: ", inData, options.results[checkRow], typeof inData[result.field], typeof options.results[checkRow][result.field]);
+            data.push({name: options.name + " test failed on row: "+checkRow+", field: "+result.field, css: 'one'});
+            console.log("$$$$ Failure: ", inData, options.results[checkRow], typeof inData[result.field], typeof options.results[checkRow][result.field]);
         }
         checkRow++;
     };
@@ -216,7 +246,7 @@ function runTestGroup(tests, callback) {
         if (!status) {
             return callback(false);
         } else if (runningTest > -1) {
-            data.push({name: "Passed: " + tests[runningTest].name});
+            data.push({name: "Passed: " + tests[runningTest].name, 'css':'two'});
         }
         runningTest++;
         if (runningTest >= tests.length) {
@@ -225,7 +255,7 @@ function runTestGroup(tests, callback) {
         runATest(tests[runningTest], runTest);
     };
 
-    data.push({name: "-----------------------------"});
+    data.push({name: "-----------------------------", css: 'two'});
     runTest(true);
 }
 
@@ -281,23 +311,121 @@ function runStringObjectTest(callback) {
     runTestGroup(tests, callback);
 }
 
+function setupPreparedTests(callback) {
+	if (!sqlite.HAS_COMMERCIAL) {
+		callback();
+		return;
+	}
+	console.log("!--------- Creating Prepared Tests Data");
+	db.execSQL('drop table if exists preparetests;', function (err) {
+		if (err) {
+			console.log("!---- Drop Err", err);
+		}
+		db.execSQL('create table preparetests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text)', function (err) {
+			if (err) {
+				data.push({name: 'Failed to create tables and data...', css: 'one'});
+				console.log("!---- Create Table err", err);
+				return;
+			}
+			callback();
+		});
+	});
+}
+
+function runPreparedTests(callback) {
+	if (!sqlite.HAS_COMMERCIAL) {
+		callback();
+		return;
+	}
+	db.resultType(sqlite.RESULTSASARRAY);
+	db.valueType(sqlite.VALUESARENATIVE);
+
+	setupPreparedTests(function() {
+		createPreparedData(true, function () {
+
+			var tests = [{
+				name: 'Verify Rollback Check',
+				sql: 'select count(*) from preparetests',
+				results: [0],
+				use: 0
+			}];
+			runTestGroup(tests, function () {
+				createPreparedData(false, function () {
+
+					tests = [{
+						name: 'Verify Commit Check',
+						sql: 'select count(*) from preparetests',
+						results: [3],
+						use: 0
+					},
+						{
+							name: 'Commit/Prepare All', sql: 'select * from preparetests order by int_field', results: [
+								[1, 1.2, 2.4, 'Text1'],
+								[2, 2.4, 3.6, 'Text2'],
+								[3, 3.6, 4.8, 'Text3']
+							], use: 1
+						}];
+					runTestGroup(tests, callback);
+				});
+			});
+		});
+	});
+}
+
+function createPreparedData(rollback, callback) {
+	if (!sqlite.HAS_COMMERCIAL) {
+		callback();
+		return;
+	}
+	try {
+		console.log("!------------- Create Prepared Tests");
+		var prepared = db.prepare("insert into preparetests (int_field, num_field, real_field, text_field) values (?,?,?,?);");
+	} catch(err) {
+		console.log("Error creating prepare data", err);
+	}
+	db.begin();
+	prepared.execute([1,1.2,2.4,"Text1"], function(err) {
+		if (err) {
+			data.push({name: 'Failed to insert data...', 'css': 'one'});
+			console.log("!---- Insert err", err, err.stack);
+			return;
+		}
+		prepared.execute([[2,2.4,3.6,"Text2"], [3,3.6,4.8,"Text3"]], function(err2) {
+			if (err2) {
+				data.push({name: 'Failed to create tables and data...', css: 'one'});
+				console.log("!---- Insert err", err, err && err.stack);
+				return;
+			}
+			if (rollback) {
+				db.rollback();
+			} else {
+				db.commit();
+			}
+			prepared.finished();
+			callback();
+		});
+	});
+}
+
 
 function runTests() {
     data.length = 0;
-    data.push({name: 'Running SQLite tests...'});
+    data.push({name: 'Running SQLite tests...', css: 'one'});
     setupTests(function() {
         setTimeout( function() {
-            data.push({name: 'Created tables & data...'});
+            data.push({name: 'Created tables & data...', css: 'one'});
             runNativeArrayTest(function () {
                 runNativeObjectTest(function () {
                     runStringArrayTest(function () {
                         runStringObjectTest(function () {
-                            data.push({name: "-----------------------------"});
-                            data.push({name: 'Tests completed...'});
+                        	runPreparedTests(function () {
+								data.push({name: "-----------------------------", css: 'two'});
+								data.push({name: 'Tests completed...', css: 'two'});
+							});
                         });
-                    }); 
+                    });
                 });
-            }); 
+            });
         },10);
     });
 }

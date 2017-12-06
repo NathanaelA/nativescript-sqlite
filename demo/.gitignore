@@ -1,0 +1,12 @@
+/.idea
+.idea
+node-modules
+platforms
+lib
+/watcher.entities
+node_modules/
+/npm-debug.log
+/go.bat
+/watcher.js
+/.jshint
+/watcher.package.json
