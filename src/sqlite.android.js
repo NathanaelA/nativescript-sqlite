@@ -334,7 +334,7 @@ Database.prototype._openDatabase = function(dbname, flags) {
 		return android.database.sqlite.SQLiteDatabase.create(flags);
 	} else {
 		//noinspection JSUnresolvedVariable,JSUnresolvedFunction
-		return android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(dbname, flags);
+		return android.database.sqlite.SQLiteDatabase.openDatabase(dbname, null, flags | 0x10000000);
 	}
 };
 

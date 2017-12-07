@@ -16,3 +16,4 @@ v1.1.11 - Fix for Documentation and Package.json (no plugin changes)
 v2.0.0  - Allowed sqlite plugin to have plugins.   New version now supports a fairly extensible interface to allow the optional
         - commercial, encryption, multitasking support to be loaded at the time you load the sqlite library.  Everything is now totally
         - automatic; and has full support for Transactions, Prepared statements, and Encryption.
+v2.0.1  - Fix for opening database issue, now supports flags properly.
