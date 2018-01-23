@@ -178,7 +178,7 @@ If Version number, then the database will be changed to the version you passed t
 ```js
 new Sqlite("test.db", function(err, db) {
   db.version(function(err, ver) {
-    if (ver === 0) {
+    if (ver == 0) {
       db.execSQL("Create table....");
       db.version(1); // Sets the version to 1
     }
