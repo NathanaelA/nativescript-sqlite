@@ -1,11 +1,11 @@
 /************************************************************************************
- * (c) 2015-2017 Master Technology
+ * (c) 2015-2018 Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.0.0 - iOS
+ * Version 2.2.0 - iOS
  ***********************************************************************************/
 
 "use strict";
@@ -14,9 +14,10 @@ var fs = require('file-system');
 /* jshint undef: true, camelcase: false */
 /* global Promise, NSFileManager, NSBundle, NSString, interop, sqlite3_open_v2, sqlite3_close, sqlite3_prepare_v2, sqlite3_step,
  sqlite3_finalize, sqlite3_bind_null, sqlite3_bind_text, sqlite3_column_type, sqlite3_column_int64,
- sqlite3_column_double, sqlite3_column_text,  sqlite3_column_count, sqlite3_column_name */
+ sqlite3_column_double, sqlite3_column_text, sqlite3_column_count, sqlite3_column_name, sqlitehelper */
 
 var _DatabasePluginInits = [];
+var TRANSIENT = sqlitehelper.getTrans();
 
 
 /***
@@ -600,14 +601,15 @@ Database.prototype.each = function(sql, params, callback, complete) {
  */
 Database.prototype._bind = function(statement, params) {
     var param, res;
-    if (Array.isArray(params)) {
+
+	if (Array.isArray(params)) {
         var count = params.length;
         for (var i=0; i<count; ++i) {
             if (params[i] == null) { // jshint ignore:line
                 res = sqlite3_bind_null(statement, i+1);
             } else {
                 param = params[i].toString();
-                res = sqlite3_bind_text(statement, i+1, param, -1, null );
+                res = sqlite3_bind_text(statement, i+1, param, -1, TRANSIENT );
             }
             if (res) {
                 console.error("SQLITE.Binding Error ", res);
@@ -619,7 +621,7 @@ Database.prototype._bind = function(statement, params) {
             res = sqlite3_bind_null(statement, 1);
         } else {
             param = params.toString();
-            res = sqlite3_bind_text(statement, 1, param, -1, null );
+			res = sqlite3_bind_text(statement, 1, param, -1, TRANSIENT );
         }
         if (res) {
             console.error("SQLITE.Binding Error ", res);
@@ -807,9 +809,7 @@ Database.copyDatabase = function(name) {
     fileManager.copyItemAtPathToPathError(source, destination, null);
 };
 
-function LoadPlugin(src, DBModule) {
-	try {
-		var loadedSrc = require(src);
+function UsePlugin(loadedSrc, DBModule) {
 		if (loadedSrc.prototypes) {
 			for (var key in loadedSrc.prototypes) {
 				DBModule.prototype[key] = loadedSrc.prototypes[key];
@@ -823,10 +823,6 @@ function LoadPlugin(src, DBModule) {
 		if (typeof loadedSrc.init === 'function') {
 			_DatabasePluginInits.push(loadedSrc.init);
 		}
-	}
-	catch (err) {
-		// If the file doesn't exist; we don't care, these are OPTIONAL plugins.
-	}
 }
 
 function iosProperty(_this, property) {
@@ -845,8 +841,27 @@ Database.RESULTSASOBJECT = 2;
 Database.VALUESARENATIVE = 4;
 Database.VALUESARESTRINGS = 8;
 
-LoadPlugin('nativescript-sqlite-commercial', Database);
-LoadPlugin('nativescript-sqlite-encrypted', Database);
+/** These are optional plugins, must have a static require statement for webpack **/
+TryLoadingCommercialPlugin();
+TryLoadingEncryptionPlugin();
+
+function TryLoadingCommercialPlugin() {
+	try {
+		var sqlCom = require('nativescript-sqlite-commercial');
+		UsePlugin(sqlCom, Database);
+	}
+	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+	}
+}
+
+function TryLoadingEncryptionPlugin() {
+	try {
+		var sqlEnc = require('nativescript-sqlite-encrypted');
+		UsePlugin(sqlEnc, Database);
+	}
+	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+	}
+}
 
 module.exports = Database;
 

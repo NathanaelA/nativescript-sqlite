@@ -17,3 +17,5 @@ v2.0.0  - Allowed sqlite plugin to have plugins.   New version now supports a fa
         - commercial, encryption, multitasking support to be loaded at the time you load the sqlite library.  Everything is now totally
         - automatic; and has full support for Transactions, Prepared statements, and Encryption.
 v2.0.1  - Fix for opening database issue, now supports flags properly.
+v2.1.0  - make plugin system more webpackable.
+v2.2.0  - Fix an iOS insert/update corruption issue.  Several commercial diagnostic enhancements.

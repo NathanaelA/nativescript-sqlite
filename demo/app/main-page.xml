@@ -11,7 +11,7 @@
       </Repeater>
     </ScrollView>
     <GridLayout row="1" rows="*,auto" columns="*,auto" class="border">
-      <TextField id="entry" hint="Type a new name" text="test"/>
+      <TextField id="entry" hint="Type a new name" text=""/>
       <Button id="go" col="1" text="Add" tap="addNewName"/>
       <HtmlView row="1" colSpan="2"  html="&lt;a href='http://www.master-technology.com'&gt;(c)2015-2017, Master Technology&lt;/a&gt;" class="copyright"/>
     </GridLayout>

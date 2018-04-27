@@ -1,4 +1,5 @@
 .idea
 *.tgz
 *.tar
-
+node_modules/
+demoos/

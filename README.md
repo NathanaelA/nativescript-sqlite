@@ -20,7 +20,7 @@ The [commercial version](http://nativescript.tools/product/10) comes with the fo
 - tns plugin add nativescript-sqlite@latest
 
 ### Installation of Encrypted Plugin (Provides encryption support)
-- tns plugin add nativescript-sqlite-encrypted-1.0.0.tgz
+- tns plugin add nativescript-sqlite-encrypted-1.1.0.tgz
 
 ### Installation of Commercial Plugin (Provides Transactions and Prepared statments)
-- tns plugin add nativescript-sqlite-commercial-1.0.0.tgz
+- tns plugin add nativescript-sqlite-commercial-1.1.0.tgz

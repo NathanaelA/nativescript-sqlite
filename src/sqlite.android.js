@@ -1,11 +1,11 @@
 /**************************************************************************************
- * (c) 2015-2017, Master Technology
+ * (c) 2015-2018, Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
- * Any questions please feel free to email me or put a issue up on github
+ * Any questions please feel free to put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.0.0 - Android
+ * Version 2.2.0 - Android
  *************************************************************************************/
 
 "use strict";
@@ -913,8 +913,8 @@ Database.RESULTSASOBJECT = 2;
 Database.VALUESARENATIVE = 4;
 Database.VALUESARESTRINGS = 8;
 
-LoadPlugin('nativescript-sqlite-commercial', Database);
-LoadPlugin('nativescript-sqlite-encrypted', Database);
+TryLoadingCommercialPlugin();
+TryLoadingEncryptionPlugin();
 
 module.exports = Database;
 
@@ -934,10 +934,8 @@ function _getContext() {
     return ctx;
 }
 
-/** Loads a SQLite Plugin **/
-function LoadPlugin(src, DBModule) {
-	try {
-		var loadedSrc = require(src);
+/** Uses a SQLite Plugin **/
+function UsePlugin(loadedSrc, DBModule) {
 		if (loadedSrc.prototypes) {
 			for (var key in loadedSrc.prototypes) {
 				DBModule.prototype[key] = loadedSrc.prototypes[key];
@@ -951,8 +949,22 @@ function LoadPlugin(src, DBModule) {
 		if (typeof loadedSrc.init === 'function') {
 			_DatabasePluginInits.push(loadedSrc.init);
 		}
+}
+
+function TryLoadingCommercialPlugin() {
+	try {
+		var sqlCom = require('nativescript-sqlite-commercial');
+		UsePlugin(sqlCom, Database);
 	}
-	catch (err) {
-		// If the file doesn't exist; we don't care, these are OPTIONAL plugins.
+	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+	}
+}
+
+function TryLoadingEncryptionPlugin() {
+	try {
+		var sqlEnc = require('nativescript-sqlite-encrypted');
+		UsePlugin(sqlEnc, Database);
+	}
+	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
 	}
 }

@@ -2,8 +2,8 @@ var sqlite = require('nativescript-sqlite');
 var ObservableArray = require("data/observable-array").ObservableArray;
 
 
-// var Tracing = require('./tracing.js');
-// Tracing(sqlite, {ignore: ["close", "resultType", "valueType", "_toStringArray", "_getResultEngine"], disableAddedFunction: true});
+//var Tracing = require('./tracing.js');
+//Tracing(sqlite, {ignore: ["close", "resultType", "valueType", "_toStringArray", "_getResultEngine"], disableAddedFunction: true});
 
 
 var dbname = 'name_db.sqlite';
@@ -39,10 +39,9 @@ exports.pageLoaded = function(args) {
         sqlite.copyDatabase(dbname);
     }
     new sqlite(dbname, {key: 'testing'}, function(err, dbConnection) {
-
 		if (err) {
-	    console.log(err, err.stack);
-	}
+	    	console.log(err, err.stack);
+		}
         db = dbConnection;
         db.resultType(sqlite.RESULTSASOBJECT);
 
@@ -53,7 +52,9 @@ exports.pageLoaded = function(args) {
 		}
 
         reloadData();
-    });
+    }).catch(function(val) {
+       console.log("sqlite error", val);
+	});
 };
 
 exports.addNewName = function() {
@@ -158,8 +159,9 @@ function runATest(options, callback) {
         //console.log("!--------------  Checking Results", options.name, "Error: ", err, "Data:", inData);
         var passed = true;
         if (err) {
-           console.log("!------------ Error");
-           data.push({name: options.name + " test failed with "+err.toString(), css:'one'});
+           console.log("!------------ Error", err.toString());
+           data.push({name: options.name + " test failed with: ", css: 'one'});
+           data.push({name: "  " + err.toString(), css:'one'});
            return callback(false);
         }
         if (!inData || inData.length !== options.results.length) {
