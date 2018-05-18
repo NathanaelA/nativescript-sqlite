@@ -45,6 +45,10 @@ exports.pageLoaded = function(args) {
         db = dbConnection;
         db.resultType(sqlite.RESULTSASOBJECT);
 
+        db.version().then(function (results) {
+			console.log("User Version: ", results, typeof results, Number.isNumber(results)); //, String.isString(results));
+		});
+
 		if (sqlite.HAS_ENCRYPTION) {
 			db.get("PRAGMA cipher_version;").then(function(results) {
 				console.log("Cipher version", results['cipher_version']);

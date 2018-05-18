@@ -8,7 +8,7 @@
 android {  
   defaultConfig {  
     generatedDensities = []
-    applicationId = "com.mastertechapps.nativescriptsqliteexample" 
+    applicationId = "technology.master.sqlite.demo" 
     
     //override supported platforms
     // ndk {

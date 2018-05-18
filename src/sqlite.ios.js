@@ -164,7 +164,7 @@ Database.prototype._isSqlite = true;
 Database.prototype.version = function(valueOrCallback) {
     if (typeof valueOrCallback === 'function') {
         return this.get('PRAGMA user_version', function (err, data) {
-            valueOrCallback(err, data && data[0]);
+            valueOrCallback(err, data && parseInt(data[0],10));
         }, Database.RESULTSASARRAY);
     } else if (!isNaN(valueOrCallback+0)) {
         return this.execSQL('PRAGMA user_version='+(valueOrCallback+0).toString());

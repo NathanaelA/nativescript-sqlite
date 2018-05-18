@@ -36,7 +36,9 @@ The [commercial version](http://nativescript.tools/product/10) comes with the fo
 - Prepared statements
 - Multilevel transaction support
 - Encryption
+- Full source code
 - (Coming soon) Multi-threading
+
 
 
 ## Example Application
@@ -60,6 +62,22 @@ Run `tns plugin add nativescript-sqlite` in your ROOT directory of your project.
 or
 Run `tns plugin add nativescript-sqlite-commercial.tgz` in your root directory of your project.
 
+
+## Webpacking
+
+If you are including your own sqlite database embedded in your app; and you are webpacking then around line 100 of the `webpack.config.js` is
+a section that looks like so:
+
+```js
+    // Copy assets to out dir. Add your own globs as needed.
+            new CopyWebpackPlugin([
+                { from: "App_Resources/**" },
+                { from: "fonts/**" },
+                { from: "**/*.jpg" },
+                { from: "**/*.png" },
+```
+
+Add a new line `{from "**/*.sqlite"}` so that it will pick up your sqlite file while bundling the application.
 
 ## Usage
 
