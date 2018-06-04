@@ -19,4 +19,4 @@ v2.0.0  - Allowed sqlite plugin to have plugins.   New version now supports a fa
 v2.0.1  - Fix for opening database issue, now supports flags properly.
 v2.1.0  - make plugin system more webpackable.
 v2.2.0  - Fix an iOS insert/update corruption issue.  Several commercial diagnostic enhancements.
-v2.2.1  - Fix an iOS issue; 32 bit library wasn't built into new framework.
+v2.2.1  - Fix an iOS issue; 32 bit library wasn't built into new framework.  Upgrade to NS 4.x
