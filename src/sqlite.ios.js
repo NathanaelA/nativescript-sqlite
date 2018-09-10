@@ -101,7 +101,7 @@ function Database(dbname, options, callback) {
             self._db = new interop.Reference();
             // SQLITE_OPEN_FULLMUTEX = 65536, SQLITE_OPEN_CREATE = 4, SQLITE_OPEN_READWRITE = 2 --- 4 | 2 | 65536 = 65542
             if (options && options.readOnly) {
-                error = sqlite3_open_v2(dbname, self._db, 65536 | flags, null);
+                error = sqlite3_open_v2(dbname, self._db, 65537 | flags, null);
             } else {
                 error = sqlite3_open_v2(dbname, self._db, 65542 | flags, null);
             }
