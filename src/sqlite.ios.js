@@ -19,6 +19,28 @@ var fs = require('file-system');
 var _DatabasePluginInits = [];
 var TRANSIENT = sqlitehelper.getTrans();
 
+/***
+ * Converts a string to a UTF-8 char array and wraps it in an adopted pointer
+ * (which is GC managed and kept alive until it's referenced by a variable).
+ * The reason for doing it is that iOS runtime marshals JS string arguments via
+ * temporary buffers which are deallocated immediately after the call returns. In
+ * some cases however, we need them to stay alive for subsequent native calls
+ * because otherwise attempts to read the freed memory may lead to unpredictable
+ * app crashes.
+ * E.g. `sqlite3_step` function happens to use the stored `char *` passed as
+ * `dbname` to `sqlite3_open_v2`.
+ * @param str
+ * @returns {AdoptedPointer} object
+ */
+function toCharPtr(str) {
+    var objcStr = NSString.stringWithString(str);
+    var bufferSize = strlen(objcStr.UTF8String) + 1;
+    var buffer = interop.alloc(bufferSize);
+
+    objcStr.getCStringMaxLengthEncoding(buffer, bufferSize, NSUTF8StringEncoding);
+
+    return buffer;
+}
 
 /***
  * Creates a Cursor Tracking Statement for reading result sets
@@ -88,6 +110,7 @@ function Database(dbname, options, callback) {
             console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
         }
     }
+    this._dbnamePtr = toCharPtr(dbname);
     var self = this;
     //noinspection JSUnresolvedFunction
     return new Promise(function (resolve, reject) {
@@ -101,9 +124,9 @@ function Database(dbname, options, callback) {
             self._db = new interop.Reference();
             // SQLITE_OPEN_FULLMUTEX = 65536, SQLITE_OPEN_CREATE = 4, SQLITE_OPEN_READWRITE = 2 --- 4 | 2 | 65536 = 65542
             if (options && options.readOnly) {
-                error = sqlite3_open_v2(dbname, self._db, 65536 | flags, null);
+                error = sqlite3_open_v2(self._dbnamePtr, self._db, 65536 | flags, null);
             } else {
-                error = sqlite3_open_v2(dbname, self._db, 65542 | flags, null);
+                error = sqlite3_open_v2(self._dbnamePtr, self._db, 65542 | flags, null);
             }
             self._db = self._db.value;
         } catch (err) {
