@@ -1,6 +1,6 @@
 {
   "name": "nativescript-sqlite",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "A sqlite NativeScript module for Android and iOS",
   "main": "sqlite",
   "nativescript": {
@@ -17,6 +17,7 @@
 	  "category": "Database"
 	}
   },
+  "typings": "sqlite.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/nathanaela/nativescript-sqlite.git"
