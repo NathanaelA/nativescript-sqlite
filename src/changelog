@@ -21,3 +21,4 @@ v2.1.0  - make plugin system more webpackable.
 v2.2.0  - Fix an iOS insert/update corruption issue.  Several commercial diagnostic enhancements.
 v2.2.1  - Fix an iOS issue; 32 bit library wasn't built into new framework.  Upgrade to NS 4.x for demo
 v2.2.2  - Fix an iOS issue; dbname could be deallocatd by runtime/objc marshalling - Thanks Martin Bektchiev!
+v2.2.3  - Fix SQLite ReadOnly bitmask flag on iOS - Thanks Eduardo Speroni!
