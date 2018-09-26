@@ -124,7 +124,7 @@ If you are planning on shipping a database with the application; drop the file i
 * dbname: your database name.   This can be ":memory:" for a memory Database. This can be "" for a Temporary Database.
 * options 
   * "readOnly", which if set to true will make the db read only when it opens it
-  * "key", used for opening encrypted databases (See Encryption at bottom of document)
+  * "key", used for using/opening encrypted databases (See Encryption at bottom of document)  
 * (optional) callback (error, db): db is the fully OPEN database object that allows interacting with the db.
 * RETURNS: promise of the DB object
 
@@ -340,15 +340,16 @@ promise.then(function (count) {
 
 #### To enable the optional features
 
-To enable encryption: `tns plugin add nativescript-sqlite-encrypted-1.0.0.tgz`
+To enable encryption: `tns plugin add nativescript-sqlite-encrypted-1.2.1.tgz`
 
-To enable commercial: `tns plugin add nativescript-sqlite-commercial-1.0.0.tgz`
+To enable commercial: `tns plugin add nativescript-sqlite-commercial-1.2.0.tgz`
 
 
 ### Encryption Support
-Pass the encryption key into database open function using the `options.key` and it will be applied.  Please note the database itself MUST be created with encryption to use encryption.  So if you create a plain database, you can not retroactively add encryption to it.
+Pass the encryption key into database open function using the `options.key` and it will be applied.  Please note the database itself MUST be created with encryption to use encryption.  So if you create a plain database, you can not retroactively add encryption to it.  
+If you pass a blank (**""**) empty key, then it will treat it as no key.   But, it will still use the encrypted driver in case you need certain features from the more modern sqlite driver; but don't need encryption.  
 
-Note: Enabling Encryption adds about 3 megs to the size to the application APK on android and about 2 megs to a iOS application.  
+Note: Enabling/Compiling in the encryption driver adds about 3 megs to the size to the application APK on android and about 2 megs to a iOS application.  
     
 
 ### Prepared Queries
