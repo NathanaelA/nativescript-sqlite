@@ -81,7 +81,7 @@ a section that looks like so:
                 { from: "**/*.png" },
 ```
 
-Add a new line `{from "**/*.sqlite"}` so that it will pick up your sqlite file while bundling the application.
+Add a new line `{from: "**/*.sqlite"}` so that it will pick up your sqlite file while bundling the application.
 
 ## Usage
 
