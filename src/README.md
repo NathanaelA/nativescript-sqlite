@@ -40,8 +40,9 @@ The [commercial version](http://nativescript.tools/product/10) comes with the fo
 - (Coming soon) Multi-threading
 
 Note: On iOS when installing the encryption, you **might** have to delete the following file:
-`node_modules/nativescript-sqlite/platforms/ios/module.modulemap`.
-This file is REQUIRED for normal un-encrypted sqlite; but it can conflict with encryption on some versions of XCode.  When you run the app; if you get a console line about encryption not being linked in; then this is the cause. 
+`node_modules/nativescript-sqlite/platforms/ios/module.modulemap`.  And then run a `tns platform clean ios`
+This file is REQUIRED for normal un-encrypted sqlite; but it can conflict with encryption on some versions of XCode.  When you run the app; if you get a console line about encryption not being linked in; then this is the cause.
+ 
 
 
 
