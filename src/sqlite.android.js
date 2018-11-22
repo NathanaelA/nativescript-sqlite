@@ -10,6 +10,7 @@
 
 "use strict";
 var appModule = require("application");
+var fsModule  = require("file-system");
 
 
 /*jshint undef: true */
@@ -852,7 +853,12 @@ Database.copyDatabase = function(name) {
 
     //Open your local db as the input stream
     //noinspection JSUnresolvedFunction
-    var myInput = _getContext().getAssets().open("app/"+name);
+    try {
+        var myInput = new java.io.FileInputStream(fsModule.knownFolders.currentApp().path + '/' + name);
+    }
+    catch (err) {
+        console.info("SQLITE - COPYDATABASE - DB file not found or can't be read", err);
+    }
 
     if (name.indexOf('/')) {
         name = name.substring(name.indexOf('/')+1);
