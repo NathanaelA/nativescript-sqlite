@@ -182,11 +182,11 @@ new Sqlite("test.db", function(err, db) {
 
 ```js
 // If we are in Debug Code, we always delete the database first so that the latest copy of the database is used...
-if (DEBUGMODE && Sqlite.exists("mydatabase.sqlite")) {
+if (DEBUGMODE && Sqlite.exists("mydatabase")) {
   Sqlite.deleteDatabase("mydatabase.sqlite");
 }
-if (!Sqlite.exists("mydatabase.sqlite")) {
-  Sqlite.copyDatabase("mydatabase.sqlite");
+if (!Sqlite.exists("mydatabase")) {
+  Sqlite.copyDatabase("mydatabase");
 }
 ```
 
