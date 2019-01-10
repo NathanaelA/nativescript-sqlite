@@ -22,3 +22,5 @@ v2.2.0  - Fix an iOS insert/update corruption issue.  Several commercial diagnos
 v2.2.1  - Fix an iOS issue; 32 bit library wasn't built into new framework.  Upgrade to NS 4.x for demo
 v2.2.2  - Fix an iOS issue; dbname could be deallocatd by runtime/objc marshalling - Thanks Martin Bektchiev!
 v2.2.3  - Fix SQLite ReadOnly bitmask flag on iOS - Thanks Eduardo Speroni!
+v2.2.4  - Fix CopyDatabase on Android to respect the app version (for livesync) - Thanks Webleaf
+v2.2.5  - Fix CopyDatabase indexOf to lastIndexOf - Thanks Webleaf

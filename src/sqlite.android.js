@@ -1,11 +1,11 @@
 /**************************************************************************************
- * (c) 2015-2018, Master Technology
+ * (c) 2015-2019, Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.2.0 - Android
+ * Version 2.2.5 - Android
  *************************************************************************************/
 
 "use strict";
@@ -852,14 +852,17 @@ Database.deleteDatabase = function(name) {
 Database.copyDatabase = function(name) {
 
     //Open your local db as the input stream
-    //noinspection JSUnresolvedFunction
+    var myInput;
     try {
-        var myInput = new java.io.FileInputStream(fsModule.knownFolders.currentApp().path + '/' + name);
+        // Attempt to use the local app directory version
+        myInput = new java.io.FileInputStream(fsModule.knownFolders.currentApp().path + '/' + name);
     }
     catch (err) {
-        console.info("SQLITE - COPYDATABASE - DB file not found or can't be read", err);
+        // Use the Assets version
+        myInput = _getContext().getAssets().open("app/"+name);        
     }
 
+     
     if (name.indexOf('/')) {
         name = name.substring(name.lastIndexOf('/')+1);
     }

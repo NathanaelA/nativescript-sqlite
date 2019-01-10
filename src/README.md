@@ -55,8 +55,8 @@ To use you need to do:
 3. `tns plugin add nativescript-sqlite`
 
 ***optional***
-* `tns plugin add nativescript-sqlite-commercial`
-* `tns plugin add nativescript-sqlite-encrypted`
+* `tns plugin add nativescript-sqlite-commercial-???.tgz`
+* `tns plugin add nativescript-sqlite-encrypted-???.tgz`
 
 Then run the app the normal way you would.
 
@@ -64,8 +64,10 @@ Then run the app the normal way you would.
 ## Installation
 
 Run `tns plugin add nativescript-sqlite` in your ROOT directory of your project.
-or
-Run `tns plugin add nativescript-sqlite-commercial.tgz` in your root directory of your project.
+
+***optional***
+* `tns plugin add nativescript-sqlite-commercial-???.tgz`
+* `tns plugin add nativescript-sqlite-encrypted-???.tgz`
 
 
 ## Webpacking
@@ -83,6 +85,16 @@ a section that looks like so:
 ```
 
 Add a new line `{from: "**/*.sqlite"}` so that it will pick up your sqlite file while bundling the application.
+
+In addition if you are not using the Commercial or Encrypted plugin; you would need to add:
+
+```
+externals: {
+     'nativescript-sqlite-commercial': 'nativescript-sqlite-commercial',
+     'nativescript-sqlite-encrypted': 'nativescript-sqlite-encrypted',
+},
+```
+so that it ignores those during webpacking...
 
 ## Usage
 

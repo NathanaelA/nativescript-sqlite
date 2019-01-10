@@ -1,11 +1,11 @@
 /************************************************************************************
- * (c) 2015-2018 Master Technology
+ * (c) 2015-2019 Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.2.0 - iOS
+ * Version 2.2.5 - iOS
  ***********************************************************************************/
 
 "use strict";
