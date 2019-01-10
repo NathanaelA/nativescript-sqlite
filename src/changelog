@@ -24,3 +24,4 @@ v2.2.2  - Fix an iOS issue; dbname could be deallocatd by runtime/objc marshalli
 v2.2.3  - Fix SQLite ReadOnly bitmask flag on iOS - Thanks Eduardo Speroni!
 v2.2.4  - Fix CopyDatabase on Android to respect the app version (for livesync) - Thanks Webleaf
 v2.2.5  - Fix CopyDatabase indexOf to lastIndexOf - Thanks Webleaf
+v2.2.6  - Forgot to include the ios sqlite helper in v2.2.4/v2.2.5
