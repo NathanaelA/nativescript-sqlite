@@ -861,7 +861,7 @@ Database.copyDatabase = function(name) {
     }
 
     if (name.indexOf('/')) {
-        name = name.substring(name.indexOf('/')+1);
+        name = name.substring(name.lastIndexOf('/')+1);
     }
 
     //noinspection JSUnresolvedFunction
