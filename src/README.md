@@ -109,7 +109,7 @@ The database defaults to returning result sets in arrays; i.e. [[field1, field2,
 
 ## Shipping a Database with the application
 
-If you are planning on shipping a database with the application; drop the file in your projects /app folder.  The Sqlite.copyDatabase("database_name") will copy the database from that folder to the proper database folder on your platform.
+If you are planning on shipping a database with the application; drop the file in your projects /app folder (`src` if using Angular).  The Sqlite.copyDatabase("database_name") will copy the database from that folder to the proper database folder on your platform.
 
 
 ### Callbacks
