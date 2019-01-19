@@ -5,8 +5,10 @@
  *
  * Any questions please feel free to put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.2.5 - Android
+ * Version 2.3.0 - Android
  *************************************************************************************/
+
+/* global global */
 
 "use strict";
 var appModule = require("application");
@@ -237,13 +239,23 @@ function Database(dbname, options, callback) {
 		options = options || {};
 	}
 
+	if (options && options.multithreading && typeof global.Worker === 'function') {
+	       // We don't want this passed into the worker; to try and start another worker (which would fail).
+	        delete options.multithreading;
+	        if (!Database.HAS_COMMERCIAL) {
+	            throw new Error("Commercial only feature; see http://nativescript.tools/product/10");
+            }
+            return new Database._multiSQL(dbname, options, callback);
+    }
+
+
 	// Check to see if it has a path, or if it is a relative dbname
 	// dbname = "" - Temporary Database
 	// dbname = ":memory:" = memory database
 	if (dbname !== "" && dbname !== ":memory:") {
 		//var pkgName = appModule.android.context.getPackageName();
 		//noinspection JSUnresolvedFunction
-		dbname = _getContext().getDatabasePath(dbname).getAbsolutePath();
+		dbname = _getContext().getDatabasePath(dbname).getAbsolutePath().toString();
 		var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
 
 		// Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
@@ -401,7 +413,7 @@ Database.prototype.valueType = function(value) {
         this._valuesType = Database.VALUESARESTRINGS;
         setResultValueTypeEngine(this._resultType, this._valuesType);
     }
-    return this._resultType;
+    return this._valuesType;
 };
 
 /**

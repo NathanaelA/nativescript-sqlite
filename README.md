@@ -14,13 +14,13 @@ The [commercial version](http://nativescript.tools/product/10) comes with the fo
 - Prepared statements
 - Multilevel transaction support
 - Encryption
-- (Coming soon) Multi-threading
+- **Multi-threading**
 
 ## Installation
 - tns plugin add nativescript-sqlite@latest
 
 ### Installation of Encrypted Plugin (Provides encryption support)
-- tns plugin add nativescript-sqlite-encrypted-1.2.0.tgz
+- tns plugin add nativescript-sqlite-encrypted-1.3.0.tgz
 
 ### Installation of Commercial Plugin (Provides Transactions and Prepared statments)
-- tns plugin add nativescript-sqlite-commercial-1.2.0.tgz
+- tns plugin add nativescript-sqlite-commercial-1.3.0.tgz

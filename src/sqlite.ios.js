@@ -5,7 +5,7 @@
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.2.5 - iOS
+ * Version 2.3.0 - iOS
  ***********************************************************************************/
 
 "use strict";
@@ -18,6 +18,7 @@ var fs = require('file-system');
 
 var _DatabasePluginInits = [];
 var TRANSIENT = sqlitehelper.getTrans();
+
 
 /***
  * Converts a string to a UTF-8 char array and wraps it in an adopted pointer
@@ -80,6 +81,14 @@ function Database(dbname, options, callback) {
         options = {};
     } else {
         options = options || {};
+    }
+
+    if (options && options.multithreading && typeof global.Worker === 'function') {
+        delete options.multithreading;
+        if (!Database.HAS_COMMERCIAL) {
+            throw new Error("Commercial only feature; see http://nativescript.tools/product/10");
+        }
+        return new Database._multiSQL(dbname, options, callback);
     }
 
     // Check to see if it has a path, or if it is a relative dbname
@@ -230,7 +239,7 @@ Database.prototype.valueType = function(value) {
     } else if (value === Database.VALUESARESTRINGS) {
         this._valuesType = Database.VALUESARESTRINGS;
     }
-    return this._resultType;
+    return this._valuesType;
 };
 
 /**

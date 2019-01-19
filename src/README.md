@@ -5,7 +5,7 @@
 
 # NativeScript sqlite
 
-A NativeScript module providing sqlite actions for Android and iOS.
+A NativeScript module providing sqlite actions for Android and iOS. (with multi-threading)
 
 ## Developed by
 [![MasterTech](https://plugins.nativescript.rocks/i/mtns.png)](https://plugins.nativescript.rocks/mastertech-nstudio)
@@ -37,14 +37,12 @@ The [commercial version](http://nativescript.tools/product/10) comes with the fo
 - Multilevel transaction support
 - Encryption
 - Full source code
-- (Coming soon) Multi-threading
+- **Multi-threading** 
 
 Note: On iOS when installing the encryption, you **might** have to delete the following file:
 `node_modules/nativescript-sqlite/platforms/ios/module.modulemap`.  And then run a `tns platform clean ios`
 This file is REQUIRED for normal un-encrypted sqlite; but it can conflict with encryption on some versions of XCode.  When you run the app; if you get a console line about encryption not being linked in; then this is the cause.
  
-
-
 
 ## Example Application
 
@@ -129,7 +127,6 @@ If you are planning on shipping a database with the application; drop the file i
 
 * Sqlite.HAS_COMMERCIAL - will be true if commercial library is loaded.
 * Sqlite.HAS_ENCRYPTION - will be true if encryption library is loaded.
-* Sqlite.HAS_THREADING - will be true if multithreading library is loaded.
 
 ### Methods
 #### new Sqlite(dbname, options, callback)
@@ -137,7 +134,8 @@ If you are planning on shipping a database with the application; drop the file i
 * dbname: your database name.   This can be ":memory:" for a memory Database. This can be "" for a Temporary Database.
 * options 
   * "readOnly", which if set to true will make the db read only when it opens it
-  * "key", used for using/opening encrypted databases (See Encryption at bottom of document)  
+  * "key", used for using/opening encrypted databases (See Encryption at bottom of document)
+  * "multithreading", enable background multitasking.  All SQL is ran on a background worker thread.  
 * (optional) callback (error, db): db is the fully OPEN database object that allows interacting with the db.
 * RETURNS: promise of the DB object
 
@@ -223,6 +221,7 @@ new Sqlite("test.db", function(err, db) {
 
 #### DB.isOpen()
 * RETURNS: Boolean, Is the current database open true/false
+Please note; it is possible that this value could be wrong initially in multithreading as the db might still be in the process of opening.  For compatibility we set this to true automatically in multithreading after you do an open. 
 
 
 #### DB.resultType()
@@ -363,6 +362,9 @@ Pass the encryption key into database open function using the `options.key` and 
 If you pass a blank (**""**) empty key, then it will treat it as no key.   But, it will still use the encrypted driver in case you need certain features from the more modern sqlite driver; but don't need encryption.  
 
 Note: Enabling/Compiling in the encryption driver adds about 3 megs to the size to the application APK on android and about 2 megs to a iOS application.  
+    
+### Multitasking / Multithreading
+The commercial version supports putting all SQL access into a background thread, so your UI doesn't freeze while doing data access.  To enable; just pass in {multithreading: true} as an option when creating a new Sqlite connection.        
     
 
 ### Prepared Queries
