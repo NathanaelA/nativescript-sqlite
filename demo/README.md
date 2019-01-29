@@ -1,26 +1,9 @@
-# NativeScript JavaScript Template
+# NativeScript SQLite Demo App
 
-This template creates a "Hello, world" NativeScript app using JavaScript.
+If you want to test the Encryption or Commercial features; then drop the plugins in the root of the github folder, and then do:
 
-This is the default template, so you can create a new app that uses it with the `--template` option:
+### Commercial:
+`tns plugin add ../nativescript-commercial-1.3.0.tgz` in this folder.   
 
-```
-tns create my-app-name --template tns-template-hello-world
-```
-
-Or without it:
-
-```
-tns create my-app-name
-```
-
-> Note: Both commands will create a new NativeScript app that uses the latest version of this template published to [npm] (https://www.npmjs.com/package/tns-template-hello-world).
-
-If you want to create a new app that uses the source of the template from the `master` branch, you can execute the following:
-
-```
-tns create my-app-name --template https://github.com/NativeScript/template-hello-world.git#master
-```
-# Issues
-
-Issues related to `template-hello-world` template should be logged in the https://github.com/NativeScript/NativeScript repository.
+### Encryption:
+`tns plugin add ../nativescript-encryption-1.3.0.tgz` in this folder.   
