@@ -76,6 +76,11 @@ exports.addNewName = function() {
 	entry.text = '';
 };
 
+exports.openMT = function() {
+   const utils = require('utils/utils');
+   utils.openUrl("https://www.master-technology.com");
+};
+
 function reloadData() {
 	db.resultType(sqlite.RESULTSASOBJECT);
 	db.valueType(sqlite.VALUESARENATIVE);
@@ -211,8 +216,15 @@ function runATest(options, callback) {
 		checkRow++;
 	};
 
-	var checkFinalResults = function() {
+	const checkFinalResults = function() {
 		callback(checksPassed);
+	};
+
+	const promiseResults = function(res) {
+		checkResults(null, res);
+	};
+	const promiseFailed = function(err) {
+		checkResults(err);
 	};
 
 	if (options.values) {
@@ -226,6 +238,17 @@ function runATest(options, callback) {
 			case 2:
 				db.each(options.sql, options.values, checkEachResults, checkFinalResults);
 				break;
+
+			case 3:
+				db.get(options.sql, options.values).then(promiseResults).catch(promiseFailed);
+				break;
+			case 4:
+				db.all(options.sql, options.values).then(promiseResults).catch(promiseFailed);
+				break;
+			case 5:
+				db.each(options.sql, options.values, checkEachResults).then(checkFinalResults).catch(promiseFailed);
+				break;
+
 			default:
 				callback(false);
 		}
@@ -240,6 +263,18 @@ function runATest(options, callback) {
 			case 2:
 				db.each(options.sql, checkEachResults, checkFinalResults);
 				break;
+
+			case 3:
+				db.get(options.sql).then(promiseResults).catch(promiseFailed);
+				break;
+			case 4:
+				let p = db.all(options.sql).then(promiseResults).catch(promiseFailed);
+				break;
+			case 5:
+				db.each(options.sql, checkEachResults).then(checkFinalResults).catch(promiseFailed);
+				break;
+
+
 			default:
 				callback(false);
 		}
@@ -247,8 +282,8 @@ function runATest(options, callback) {
 }
 
 function runTestGroup(tests, callback) {
-	var runningTest = -1;
-	var runTest = function(status) {
+	let runningTest = -1;
+	const runTest = function(status) {
 		if (!status) {
 			return callback(false);
 		} else if (runningTest > -1) {
@@ -270,11 +305,19 @@ function runNativeArrayTest(callback) {
 	db.resultType(sqlite.RESULTSASARRAY);
 	db.valueType(sqlite.VALUESARENATIVE);
 
-	var tests = [
+	const tests = [
+		// Callback
 		{name: 'NativeArray Check', sql: 'select count(*) from tests', results: [2], use: 0},
 		{name: 'NativeArray Get', sql: 'select * from tests where int_field=?', values: [2], results: [2,4.8,5.6,'Text2'], use: 0},
 		{name: 'NativeArray All',    sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2']], use: 1},
-		{name: 'NativeArray Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2']], use: 2}
+		{name: 'NativeArray Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2']], use: 2},
+
+		// Promise
+		{name: 'NativeArray Promise Check', sql: 'select count(*) from tests', results: [2], use: 3},
+		{name: 'NativeArray Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: [2,4.8,5.6,'Text2'], use: 3},
+		{name: 'NativeArray Promise All',    sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2']], use: 4},
+		{name: 'NativeArray Promise Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2']], use: 5}
+
 	];
 	runTestGroup(tests, callback);
 }
@@ -283,10 +326,16 @@ function runStringArrayTest(callback) {
 	console.log("!--------------  Starting RSA Test");
 	db.resultType(sqlite.RESULTSASARRAY);
 	db.valueType(sqlite.VALUESARESTRINGS);
-	var tests = [
+	const tests = [
+		// Callback Version
 		{name: 'StringArray Get', sql: 'select * from tests where int_field=?', values: [2], results: ["2","4.8","5.6",'Text2'], use: 0},
 		{name: 'StringArray All', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2']], use: 1},
-		{name: 'StringArray Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2']], use: 2}
+		{name: 'StringArray Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2']], use: 2},
+
+		// Promise Version
+		{name: 'StringArray Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: ["2","4.8","5.6",'Text2'], use: 3},
+		{name: 'StringArray Promise All', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2']], use: 4},
+		{name: 'StringArray Promise Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2']], use: 5}
 	];
 	runTestGroup(tests, callback);
 }
@@ -296,10 +345,17 @@ function runNativeObjectTest(callback) {
 	db.resultType(sqlite.RESULTSASOBJECT);
 	db.valueType(sqlite.VALUESARENATIVE);
 
-	var tests = [
+	const tests = [
+		// Callback
 		{name: 'NativeObject Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}, use: 0},
 		{name: 'NativeObject All', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}], use: 1},
-		{name: 'NativeObject Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}], use: 2}
+		{name: 'NativeObject Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}], use: 2},
+
+		// Promise
+		{name: 'NativeObject Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}, use: 3},
+		{name: 'NativeObject Promise All', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}], use: 4},
+		{name: 'NativeObject Promise Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}], use: 5}
+
 	];
 	runTestGroup(tests, callback);
 }
@@ -309,10 +365,17 @@ function runStringObjectTest(callback) {
 	db.resultType(sqlite.RESULTSASOBJECT);
 	db.valueType(sqlite.VALUESARENATIVE);
 
-	var tests = [
+	const tests = [
+		// Callback
 		{name: 'StringObject Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}, use: 0},
 		{name: 'StringObject All', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}], use: 1},
-		{name: 'StringObject Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}], use: 2}
+		{name: 'StringObject Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}], use: 2},
+
+		// Promise
+		{name: 'StringObject Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}, use: 3},
+		{name: 'StringObject Promise All', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}], use: 4},
+		{name: 'StringObject Promise Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}], use: 5}
+
 	];
 	runTestGroup(tests, callback);
 }

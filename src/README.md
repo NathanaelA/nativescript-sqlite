@@ -431,5 +431,5 @@ Need a little more to get started?  Check out these tutorials for using SQLite i
 
 * [SQLite in a NativeScript Angular Application](https://www.thepolyglotdeveloper.com/2016/10/using-sqlite-in-a-nativescript-angular-2-mobile-app/)
 * [SQLite in a NativeScript Vanilla Application](https://www.thepolyglotdeveloper.com/2016/04/use-sqlite-save-data-telerik-nativescript-app/)
-
+* [SQLite in a NativeScript Vue Application](https://www.nativescript.org/blog/data-management-with-sqlite-and-vuex-in-a-nativescript-vue-app)
 

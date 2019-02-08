@@ -26,3 +26,4 @@ v2.2.4  - Fix CopyDatabase on Android to respect the app version (for livesync) 
 v2.2.5  - Fix CopyDatabase indexOf to lastIndexOf - Thanks Webleaf
 v2.2.6  - Forgot to include the ios sqlite helper in v2.2.4/v2.2.5
 v2.3.0  - Several minor issues fixed, Multi-threading added to Sqlite
+v2.3.1  - iOS SQLExec bind returns the wrong error value

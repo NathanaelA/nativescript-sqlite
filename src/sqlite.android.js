@@ -5,14 +5,14 @@
  *
  * Any questions please feel free to put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.3.0 - Android
+ * Version 2.3.1 - Android
  *************************************************************************************/
 
-/* global global */
+/* global global, require, module */
 
 "use strict";
-var appModule = require("application");
-var fsModule  = require("file-system");
+const appModule = require("application");
+const fsModule  = require("file-system");
 
 
 /*jshint undef: true */
@@ -22,7 +22,7 @@ var fsModule  = require("file-system");
 //var CREATEIFNEEDED = 0x10000000;
 
 // Used to track any plugin Init
-var _DatabasePluginInits = [];
+let _DatabasePluginInits = [];
 
 
 /***
@@ -32,10 +32,10 @@ var _DatabasePluginInits = [];
  */
 function DBGetRowArrayNative(cursor) {
     //noinspection JSUnresolvedFunction
-    var count = cursor.getColumnCount();
-    var results = [];
-    for (var i=0;i<count;i++) {
-        var type = cursor.getType(i);
+    let count = cursor.getColumnCount();
+    let results = [];
+    for (let i=0;i<count;i++) {
+        const type = cursor.getType(i);
         switch (type) {
             case 0: // NULL
                 results.push(null);
@@ -52,10 +52,12 @@ function DBGetRowArrayNative(cursor) {
                 break;
 
             case 3: // String
+                //noinspection JSUnresolvedFunction
                 results.push(cursor.getString(i));
                 break;
 
             case 4: // Blob
+                // noinspection JSCheckFunctionSignatures
                 results.push(cursor.getBlob(i));
                 break;
 
@@ -73,10 +75,10 @@ function DBGetRowArrayNative(cursor) {
  */
 function DBGetRowArrayString(cursor) {
     //noinspection JSUnresolvedFunction
-    var count = cursor.getColumnCount();
-    var results = [];
-    for (var i=0;i<count;i++) {
-        var type = cursor.getType(i);
+    let count = cursor.getColumnCount();
+    let results = [];
+    for (let i=0;i<count;i++) {
+        const type = cursor.getType(i);
         switch (type) {
             case 0: // NULL
                 results.push(null);
@@ -93,10 +95,12 @@ function DBGetRowArrayString(cursor) {
                 break;
 
             case 3: // String
+                //noinspection JSUnresolvedFunction
                 results.push(cursor.getString(i));
                 break;
 
             case 4: // Blob
+                // noinspection JSCheckFunctionSignatures
                 results.push(cursor.getBlob(i));
                 break;
 
@@ -114,12 +118,12 @@ function DBGetRowArrayString(cursor) {
  */
 function DBGetRowObjectNative(cursor) {
     //noinspection JSUnresolvedFunction
-    var count = cursor.getColumnCount();
-    var results = {};
-    for (var i=0;i<count;i++) {
-        var type = cursor.getType(i);
+    const count = cursor.getColumnCount();
+    let results = {};
+    for (let i=0;i<count;i++) {
+        const type = cursor.getType(i);
         //noinspection JSUnresolvedFunction
-        var name = cursor.getColumnName(i);
+        const name = cursor.getColumnName(i);
         switch (type) {
             case 0: // NULL
                 results[name] = null;
@@ -136,10 +140,12 @@ function DBGetRowObjectNative(cursor) {
                 break;
 
             case 3: // String
+                //noinspection JSUnresolvedFunction
                 results[name] = cursor.getString(i);
                 break;
 
             case 4: // Blob
+                // noinspection JSCheckFunctionSignatures
                 results[name] = cursor.getBlob(i);
                 break;
 
@@ -157,12 +163,12 @@ function DBGetRowObjectNative(cursor) {
  */
 function DBGetRowObjectString(cursor) {
     //noinspection JSUnresolvedFunction
-    var count = cursor.getColumnCount();
-    var results = {};
-    for (var i=0;i<count;i++) {
-        var type = cursor.getType(i);
+    const count = cursor.getColumnCount();
+    let results = {};
+    for (let i=0;i<count;i++) {
+        const type = cursor.getType(i);
         //noinspection JSUnresolvedFunction
-        var name = cursor.getColumnName(i);
+        const name = cursor.getColumnName(i);
         switch (type) {
             case 0: // NULL
                 results[name] = null;
@@ -179,10 +185,12 @@ function DBGetRowObjectString(cursor) {
                 break;
 
             case 3: // String
+                //noinspection JSUnresolvedFunction
                 results[name] = cursor.getString(i);
                 break;
 
             case 4: // Blob
+                // noinspection JSCheckFunctionSignatures
                 results[name] = cursor.getBlob(i);
                 break;
 
@@ -194,7 +202,7 @@ function DBGetRowObjectString(cursor) {
 }
 
 // Default Resultset engine
-var DBGetRowResults = DBGetRowArrayNative;
+let DBGetRowResults = DBGetRowArrayNative;
 
 function setResultValueTypeEngine(resultType, valueType) {
     if (resultType === Database.RESULTSASOBJECT) {
@@ -239,7 +247,8 @@ function Database(dbname, options, callback) {
 		options = options || {};
 	}
 
-	if (options && options.multithreading && typeof global.Worker === 'function') {
+    //noinspection JSUnresolvedVariable
+    if (options && options.multithreading && typeof global.Worker === 'function') {
 	       // We don't want this passed into the worker; to try and start another worker (which would fail).
 	        delete options.multithreading;
 	        if (!Database.HAS_COMMERCIAL) {
@@ -256,13 +265,14 @@ function Database(dbname, options, callback) {
 		//var pkgName = appModule.android.context.getPackageName();
 		//noinspection JSUnresolvedFunction
 		dbname = _getContext().getDatabasePath(dbname).getAbsolutePath().toString();
-		var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
+		let path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
 
 		// Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
 		// So we create it if it is missing
 
 		try {
-			var javaFile = new java.io.File(path);
+            //noinspection JSUnresolvedFunction,JSUnresolvedVariable
+            let javaFile = new java.io.File(path);
 			if (!javaFile.exists()) {
 				//noinspection JSUnresolvedFunction
 				javaFile.mkdirs();
@@ -276,11 +286,11 @@ function Database(dbname, options, callback) {
 			console.info("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
 		}
 	}
-	var self = this;
+	const self = this;
 
 	return new Promise(function (resolve, reject) {
 		try {
-			var flags = 0;
+			let flags = 0;
 			if (typeof options.androidFlags !== 'undefined') {
 				flags = options.androidFlags;
 			}
@@ -296,8 +306,8 @@ function Database(dbname, options, callback) {
 
 		self._isOpen = true;
 
-		var doneCnt = _DatabasePluginInits.length, doneHandled = 0;
-		var done = function (err) {
+		let doneCnt = _DatabasePluginInits.length, doneHandled = 0;
+		const done = function (err) {
 			if (err) {
 				doneHandled = doneCnt;  // We don't want any more triggers after this
 				if (callback) {
@@ -317,7 +327,7 @@ function Database(dbname, options, callback) {
 
 		if (doneCnt) {
 			try {
-				for (var i = 0; i < doneCnt; i++) {
+				for (let i = 0; i < doneCnt; i++) {
 					_DatabasePluginInits[i].call(self, options, done);
 				}
 			}
@@ -336,18 +346,17 @@ function Database(dbname, options, callback) {
 
 /**
  * Function to handle opening Database
- * @param dbname
+ * @param dbName
  * @param flags
- * @param options
  * @private
  */
-Database.prototype._openDatabase = function(dbname, flags) {
-	if (dbname === ":memory:") {
+Database.prototype._openDatabase = function(dbName, flags) {
+	if (dbName === ":memory:") {
 		//noinspection JSUnresolvedVariable
 		return android.database.sqlite.SQLiteDatabase.create(flags);
 	} else {
 		//noinspection JSUnresolvedVariable,JSUnresolvedFunction
-		return android.database.sqlite.SQLiteDatabase.openDatabase(dbname, null, flags | 0x10000000);
+		return android.database.sqlite.SQLiteDatabase.openDatabase(dbName, null, flags | 0x10000000);
 	}
 };
 
@@ -416,15 +425,17 @@ Database.prototype.valueType = function(value) {
     return this._valuesType;
 };
 
+// noinspection JSUnusedLocalSymbols
 /**
  * Dummy transaction function for public version
  * @param callback
- * @returns {Promise<T>}
+ * @returns {Promise}
  */
 Database.prototype.begin = function(callback) {
   throw new Error("Transactions are a Commercial version feature.");
 };
 
+// noinspection JSUnusedLocalSymbols
 /**
  * Dummy prepare function for public version
  * @param sql
@@ -443,7 +454,7 @@ Database.prototype.prepare = function(sql) {
  */
 Database.prototype.close = function(callback) {
 
-    var self = this;
+    const self = this;
     return new Promise(function(resolve, reject) {
         if (!self._isOpen) {
             if (callback) {
@@ -475,9 +486,9 @@ Database.prototype.execSQL = function(sql, params, callback) {
         params = undefined;
     }
 
-    var self = this;
+    const self = this;
     return new Promise(function(resolve, reject) {
-        var hasCallback = true;
+        let hasCallback = true;
         if (typeof callback !== 'function') {
             callback = reject;
             hasCallback = false;
@@ -489,8 +500,8 @@ Database.prototype.execSQL = function(sql, params, callback) {
         }
 
         // Need to see if we have to run any status queries afterwords
-        var flags = 0;
-        var test = sql.trim().substr(0, 7).toLowerCase();
+        let flags = 0;
+        let test = sql.trim().substr(0, 7).toLowerCase();
         if (test === 'insert ') {
             flags = 1;
         } else if (test === 'update ' || test === 'delete ') {
@@ -516,6 +527,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
                 resolve(null);
                 break;
             case 1:
+                // noinspection JSIgnoredPromiseFromCall
                 self.get('select last_insert_rowid()', function (err, data) {
                     if (hasCallback) {
                         callback(err, data && data[0]);
@@ -528,6 +540,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
                 }, Database.RESULTSASARRAY | Database.VALUESARENATIVE);
                 break;
             case 2:
+                // noinspection JSIgnoredPromiseFromCall
                 self.get('select changes()', function (err, data) {
                     if (hasCallback) {
                         callback(err, data && data[0]);
@@ -561,9 +574,9 @@ Database.prototype.get = function(sql, params, callback, mode) {
         params = undefined;
     }
 
-    var self = this;
+    const self = this;
     return new Promise(function(resolve, reject) {
-        var hasCallback = true;
+        let hasCallback = true;
         if (typeof callback !== 'function') {
             callback = reject;
             hasCallback = false;
@@ -574,7 +587,7 @@ Database.prototype.get = function(sql, params, callback, mode) {
             return;
         }
 
-        var cursor;
+        let cursor;
         try {
             if (params !== undefined) {
                 //noinspection JSUnresolvedFunction
@@ -589,6 +602,7 @@ Database.prototype.get = function(sql, params, callback, mode) {
         }
 
         // No Records
+        // noinspection JSUnresolvedFunction
         if (cursor.getCount() === 0) {
             cursor.close();
             if (hasCallback) {
@@ -598,8 +612,8 @@ Database.prototype.get = function(sql, params, callback, mode) {
             return;
         }
 
-        var results;
-        var resultEngine = self._getResultEngine(mode);
+        let results;
+        const resultEngine = self._getResultEngine(mode);
         try {
             //noinspection JSUnresolvedFunction
             cursor.moveToFirst();
@@ -619,11 +633,11 @@ Database.prototype.get = function(sql, params, callback, mode) {
 Database.prototype._getResultEngine = function(mode) {
     if (mode == null || mode === 0) return DBGetRowResults;
 
-    var resultType = (mode & Database.RESULTSASARRAY|Database.RESULTSASOBJECT);
+    let resultType = (mode & Database.RESULTSASARRAY|Database.RESULTSASOBJECT);
     if (resultType === 0) {
         resultType = this._resultType;
     }
-    var valueType = (mode & Database.VALUESARENATIVE|Database.VALUESARESTRINGS);
+    let valueType = (mode & Database.VALUESARENATIVE|Database.VALUESARESTRINGS);
     if (valueType === 0) {
         valueType = this._valuesType;
     }
@@ -657,9 +671,9 @@ Database.prototype.all = function(sql, params, callback) {
         params = undefined;
     }
 
-    var self = this;
+    const self = this;
     return new Promise(function(resolve, reject) {
-        var hasCallback = true;
+        let hasCallback = true;
         if (typeof callback !== 'function') {
             callback = reject;
             hasCallback = false;
@@ -670,7 +684,7 @@ Database.prototype.all = function(sql, params, callback) {
             return;
         }
 
-        var cursor, count;
+        let cursor, count;
         try {
             if (params !== undefined) {
                 //noinspection JSUnresolvedFunction
@@ -679,6 +693,7 @@ Database.prototype.all = function(sql, params, callback) {
                 //noinspection JSUnresolvedFunction
                 cursor = self._db.rawQuery(sql, null);
             }
+            // noinspection JSUnresolvedFunction
             count = cursor.getCount();
         } catch (err) {
             callback(err);
@@ -698,10 +713,10 @@ Database.prototype.all = function(sql, params, callback) {
         //noinspection JSUnresolvedFunction
         cursor.moveToFirst();
 
-        var results = [];
+        let results = [];
         try {
-            for (var i = 0; i < count; i++) {
-                var data = DBGetRowResults(cursor); // jshint ignore:line
+            for (let i = 0; i < count; i++) {
+                const data = DBGetRowResults(cursor); // jshint ignore:line
                 results.push(data);
                 //noinspection JSUnresolvedFunction
                 cursor.moveToNext();
@@ -738,13 +753,13 @@ Database.prototype.each = function(sql, params, callback, complete) {
         throw new Error("SQLITE.EACH - requires a callback");
     }
 
-    var self = this;
+    const self = this;
     return new Promise(function (resolve, reject) {
 
         // Set the error Callback
-        var errorCB = complete || callback;
+        let errorCB = complete || callback;
 
-        var cursor, count;
+        let cursor, count;
         try {
             if (params !== undefined) {
                 //noinspection JSUnresolvedFunction
@@ -753,6 +768,7 @@ Database.prototype.each = function(sql, params, callback, complete) {
                 //noinspection JSUnresolvedFunction
                 cursor = self._db.rawQuery(sql, null);
             }
+            // noinspection JSUnresolvedFunction
             count = cursor.getCount();
         } catch (err) {
             errorCB(err, null);
@@ -773,8 +789,8 @@ Database.prototype.each = function(sql, params, callback, complete) {
         cursor.moveToFirst();
 
         try {
-            for (var i = 0; i < count; i++) {
-                var data = DBGetRowResults(cursor); // jshint ignore:line
+            for (let i = 0; i < count; i++) {
+                const data = DBGetRowResults(cursor); // jshint ignore:line
                 callback(null, data);
                 //noinspection JSUnresolvedFunction
                 cursor.moveToNext();
@@ -799,10 +815,10 @@ Database.prototype.each = function(sql, params, callback, complete) {
  * @private
  */
 Database.prototype._toStringArray = function(params) {
-    var stringParams = [];
+    let stringParams = [];
     if (Object.prototype.toString.apply(params) === '[object Array]') {
-        var count = params.length;
-        for (var i=0; i<count; ++i) {
+        const count = params.length;
+        for (let i=0; i<count; ++i) {
             if (params[i] == null) { // jshint ignore:line
                 stringParams.push(null);
             } else {
@@ -835,8 +851,10 @@ Database.isSqlite = function(obj) {
  */
 Database.exists = function(name) {
     //noinspection JSUnresolvedFunction
-    var dbName = _getContext().getDatabasePath(name).getAbsolutePath();
-    var dbFile = new java.io.File(dbName);
+    const dbName = _getContext().getDatabasePath(name).getAbsolutePath();
+    // noinspection JSUnresolvedFunction,JSUnresolvedVariable
+    const dbFile = new java.io.File(dbName);
+    // noinspection JSUnresolvedFunction
     return dbFile.exists();
 };
 
@@ -846,10 +864,12 @@ Database.exists = function(name) {
  */
 Database.deleteDatabase = function(name) {
     //noinspection JSUnresolvedFunction
-    var dbName = _getContext().getDatabasePath(name).getAbsolutePath();
-    var dbFile = new java.io.File(dbName);
+    const dbName = _getContext().getDatabasePath(name).getAbsolutePath();
+    // noinspection JSUnresolvedFunction,JSUnresolvedVariable
+    let dbFile = new java.io.File(dbName);
     if (dbFile.exists()) {
         dbFile.delete();
+        // noinspection JSUnresolvedFunction,JSUnresolvedVariable
         dbFile = new java.io.File(dbName + '-journal');
         if (dbFile.exists()) {
             dbFile.delete();
@@ -864,14 +884,16 @@ Database.deleteDatabase = function(name) {
 Database.copyDatabase = function(name) {
 
     //Open your local db as the input stream
-    var myInput;
+    let myInput;
     try {
         // Attempt to use the local app directory version
+        // noinspection JSUnresolvedFunction,JSUnresolvedVariable
         myInput = new java.io.FileInputStream(fsModule.knownFolders.currentApp().path + '/' + name);
     }
     catch (err) {
         // Use the Assets version
-        myInput = _getContext().getAssets().open("app/"+name);        
+        // noinspection JSUnresolvedFunction
+        myInput = _getContext().getAssets().open("app/"+name);
     }
 
      
@@ -880,14 +902,16 @@ Database.copyDatabase = function(name) {
     }
 
     //noinspection JSUnresolvedFunction
-    var dbname = _getContext().getDatabasePath(name).getAbsolutePath();
-    var path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
+    const dbName = _getContext().getDatabasePath(name).getAbsolutePath();
+    const path = dbName.substr(0, dbName.lastIndexOf('/') + 1);
 
     // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
     // So we create it if it is missing
 
     try {
-        var javaFile = new java.io.File(path);
+        // noinspection JSUnresolvedFunction,JSUnresolvedVariable
+        const javaFile = new java.io.File(path);
+        //noinspection JSUnresolvedFunction
         if (!javaFile.exists()) {
             //noinspection JSUnresolvedFunction
             javaFile.mkdirs();
@@ -902,17 +926,18 @@ Database.copyDatabase = function(name) {
     }
 
     //Open the empty db as the output stream
-    var myOutput = new java.io.FileOutputStream(dbname);
+    // noinspection JSUnresolvedFunction,JSUnresolvedVariable
+    const myOutput = new java.io.FileOutputStream(dbName);
 
 
-    var success = true;
+    let success = true;
     try {
-        //transfer bytes from the inputfile to the outputfile
+        //transfer bytes from the input file to the output file
         //noinspection JSUnresolvedFunction,JSUnresolvedVariable
-        var buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.class.getField("TYPE").get(null), 1024);
-        var length;
+        let buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.class.getField("TYPE").get(null), 1024);
+        let length;
         while ((length = myInput.read(buffer)) > 0) {
-            //noinspection JSCheckFunctionSignatures
+            // noinspection JSUnresolvedFunction
             myOutput.write(buffer, 0, length);
         }
     }
@@ -922,7 +947,9 @@ Database.copyDatabase = function(name) {
 
 
     //Close the streams
+    // noinspection JSUnresolvedFunction
     myOutput.flush();
+    // noinspection JSUnresolvedFunction
     myOutput.close();
     myInput.close();
     return success;
@@ -948,9 +975,11 @@ function _getContext() {
     if (appModule.android.context) {
         return (appModule.android.context);
     }
-    var ctx = java.lang.Class.forName("android.app.AppGlobals").getMethod("getInitialApplication", null).invoke(null, null);
+    //noinspection JSUnresolvedFunction,JSUnresolvedVariable
+    let ctx = java.lang.Class.forName("android.app.AppGlobals").getMethod("getInitialApplication", null).invoke(null, null);
     if (ctx) return ctx;
 
+    //noinspection JSUnresolvedFunction,JSUnresolvedVariable
     ctx = java.lang.Class.forName("android.app.ActivityThread").getMethod("currentApplication", null).invoke(null, null);
     return ctx;
 }
@@ -958,13 +987,15 @@ function _getContext() {
 /** Uses a SQLite Plugin **/
 function UsePlugin(loadedSrc, DBModule) {
 		if (loadedSrc.prototypes) {
-			for (var key in loadedSrc.prototypes) {
+			for (let key in loadedSrc.prototypes) {
+			    if (!loadedSrc.prototypes.hasOwnProperty(key)) { continue; }
 				DBModule.prototype[key] = loadedSrc.prototypes[key];
 			}
 		}
 		if (loadedSrc.statics) {
-			for (var key in loadedSrc.statics) {
-				DBModule[key] = loadedSrc.statics[key];
+			for (let key in loadedSrc.statics) {
+                if (!loadedSrc.statics.hasOwnProperty(key)) { continue; }
+                DBModule[key] = loadedSrc.statics[key];
 			}
 		}
 		if (typeof loadedSrc.init === 'function') {
@@ -974,7 +1005,7 @@ function UsePlugin(loadedSrc, DBModule) {
 
 function TryLoadingCommercialPlugin() {
 	try {
-		var sqlCom = require('nativescript-sqlite-commercial');
+		const sqlCom = require('nativescript-sqlite-commercial');
 		UsePlugin(sqlCom, Database);
 	}
 	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
@@ -983,7 +1014,7 @@ function TryLoadingCommercialPlugin() {
 
 function TryLoadingEncryptionPlugin() {
 	try {
-		var sqlEnc = require('nativescript-sqlite-encrypted');
+		const sqlEnc = require('nativescript-sqlite-encrypted');
 		UsePlugin(sqlEnc, Database);
 	}
 	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */

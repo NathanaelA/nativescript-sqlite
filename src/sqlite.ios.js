@@ -5,19 +5,20 @@
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.3.0 - iOS
+ * Version 2.3.1 - iOS
  ***********************************************************************************/
+/* global global, require, module */
 
 "use strict";
-var fs = require('file-system');
+const fs = require('file-system');
 
 /* jshint undef: true, camelcase: false */
 /* global Promise, NSFileManager, NSBundle, NSString, interop, sqlite3_open_v2, sqlite3_close, sqlite3_prepare_v2, sqlite3_step,
  sqlite3_finalize, sqlite3_bind_null, sqlite3_bind_text, sqlite3_column_type, sqlite3_column_int64,
  sqlite3_column_double, sqlite3_column_text, sqlite3_column_count, sqlite3_column_name, sqlitehelper */
 
-var _DatabasePluginInits = [];
-var TRANSIENT = sqlitehelper.getTrans();
+let _DatabasePluginInits = [];
+const TRANSIENT = sqlitehelper.getTrans();
 
 
 /***
@@ -34,9 +35,9 @@ var TRANSIENT = sqlitehelper.getTrans();
  * @returns {AdoptedPointer} object
  */
 function toCharPtr(str) {
-    var objcStr = NSString.stringWithString(str);
-    var bufferSize = strlen(objcStr.UTF8String) + 1;
-    var buffer = interop.alloc(bufferSize);
+    const objcStr = NSString.stringWithString(str);
+    const bufferSize = strlen(objcStr.UTF8String) + 1;
+    const buffer = interop.alloc(bufferSize);
 
     objcStr.getCStringMaxLengthEncoding(buffer, bufferSize, NSUTF8StringEncoding);
 
@@ -95,8 +96,9 @@ function Database(dbname, options, callback) {
     // DBNAME = "" - is a Temporary Database
     // DBNAME = ":memory:" - is a Memory only database
     if (dbname !== "" && dbname !== ":memory:") {
-        var path;
+        let path;
         if (dbname.indexOf('/') === -1) {
+            // noinspection JSUnresolvedVariable, JSUnresolvedFunction
             path = fs.knownFolders.documents().path;
             dbname = path + '/' + dbname;
         } else {
@@ -107,9 +109,11 @@ function Database(dbname, options, callback) {
         // So we create it if it is missing
 
         try {
+            // noinspection JSUnresolvedVariable
             if (!fs.File.exists(path)) {
                 //noinspection JSUnresolvedFunction
-                var fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
+                const fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
+                //noinspection JSUnresolvedFunction
                 if (!fileManager.createDirectoryAtPathWithIntermediateDirectoriesAttributesError(path, true, null, null)) {
                     console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error");
                 }
@@ -120,12 +124,12 @@ function Database(dbname, options, callback) {
         }
     }
     this._dbnamePtr = toCharPtr(dbname);
-    var self = this;
+    const self = this;
     //noinspection JSUnresolvedFunction
     return new Promise(function (resolve, reject) {
-        var error;
+        let error;
         try {
-        	var flags = 0;
+        	let flags = 0;
         	if (typeof options.iosFlags !== 'undefined') {
         		flags = options.iosFlags;
 			}
@@ -152,8 +156,8 @@ function Database(dbname, options, callback) {
 
         self._isOpen = true;
 
-        var doneCnt = _DatabasePluginInits.length, doneHandled = 0;
-        var done = function(err) {
+        let doneCnt = _DatabasePluginInits.length, doneHandled = 0;
+        const done = function(err) {
         	if (err) {
         		doneHandled = doneCnt;  // We don't want any more triggers after this
 				if (callback) { callback(err, null); }
@@ -169,7 +173,7 @@ function Database(dbname, options, callback) {
 
         if (doneCnt) {
         	try {
-				for (var i = 0; i < doneCnt; i++) {
+				for (let i = 0; i < doneCnt; i++) {
 					_DatabasePluginInits[i].call(self, options, done);
 				}
 			} catch (err) {
@@ -268,7 +272,7 @@ Database.prototype.prepare = function(sql) {
  */
 Database.prototype.close = function(callback) {
 
-    var self = this;
+    const self = this;
     return new Promise( function (resolve, reject) {
         if (!self._isOpen) {
             if (callback) {
@@ -302,10 +306,10 @@ Database.prototype.execSQL = function(sql, params, callback) {
         params = undefined;
     }
 
-    var self = this;
+    const self = this;
     return new Promise( function(resolve, reject) {
 
-        var hasCallback = true;
+        let hasCallback = true;
         if (typeof callback !== 'function') {
             callback = reject;
             hasCallback = false;
@@ -317,8 +321,8 @@ Database.prototype.execSQL = function(sql, params, callback) {
         }
 
         // Need to see if we have to run any status queries afterwords
-        var flags = 0;
-        var test = sql.trim().substr(0, 7).toLowerCase();
+        let flags = 0;
+        let test = sql.trim().substr(0, 7).toLowerCase();
         if (test === 'insert ') {
             flags = 1;
         } else if (test === 'update ' || test === 'delete ') {
@@ -326,9 +330,9 @@ Database.prototype.execSQL = function(sql, params, callback) {
         }
 
 
-        var res;
+        let res;
         try {
-            var statement = new interop.Reference();
+            let statement = new interop.Reference();
             res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
             statement = statement.value;
             if (res) {
@@ -337,13 +341,15 @@ Database.prototype.execSQL = function(sql, params, callback) {
             }
             if (params !== undefined) {
                 if (!self._bind(statement, params)) {
+                    sqlite3_finalize(statement);
                     callback("SQLITE.ExecSQL Bind Error");
                     return;
                 }
             }
-            var result = sqlite3_step(statement);
+            let result = sqlite3_step(statement);
+            sqlite3_finalize(statement);
             if (result && result !== 100 && result !== 101) {
-                callback("SQLITE.ExecSQL Failed " + res);
+                callback("SQLITE.ExecSQL Failed " + result);
                 return;
             }
 
@@ -412,9 +418,9 @@ Database.prototype.get = function(sql, params, callback, mode) {
     }
 
 
-    var self = this;
+    const self = this;
     return new Promise( function (resolve, reject) {
-        var hasCallback = true;
+        let hasCallback = true;
 
         if (typeof callback !== 'function') {
             callback = reject;
@@ -426,23 +432,26 @@ Database.prototype.get = function(sql, params, callback, mode) {
             return;
         }
 
-        var cursor;
+        let cursor;
         try {
-            var statement = new interop.Reference();
-            var res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
-            var cursorStatement = new CursorStatement(statement.value, self._resultType, self._valuesType);
-            statement = statement.value;
+            let statement = new interop.Reference();
+            let res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
             if (res) {
                 callback("SQLITE.GET Failed Prepare: " + res);
                 return;
             }
+            statement = statement.value;
+            let cursorStatement = new CursorStatement(statement, self._resultType, self._valuesType);
+
             if (params !== undefined) {
                 if (!self._bind(statement, params)) {
+                    sqlite3_finalize(statement);
                     callback("SQLITE.GET Bind Error");
                     return;
                 }
             }
-            var result = sqlite3_step(statement);
+
+            let result = sqlite3_step(statement);
             if (result === 100) {
                 cursor = self._getResults(cursorStatement, mode);
             }
@@ -485,10 +494,10 @@ Database.prototype.all = function(sql, params, callback) {
         params = undefined;
     }
 
-    var self = this;
+    const self = this;
     return new Promise(function(resolve, reject) {
 
-        var hasCallback = true;
+        let hasCallback = true;
         if (typeof callback !== 'function') {
             callback = reject;
             hasCallback = false;
@@ -499,27 +508,31 @@ Database.prototype.all = function(sql, params, callback) {
             return;
         }
 
-        var rows = [], res;
+        let rows = [], res;
         try {
-            var statement = new interop.Reference();
+            let statement = new interop.Reference();
             res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
-            var cursorStatement = new CursorStatement(statement.value, self._resultType, self._valuesType);
-            statement = statement.value;
             if (res) {
                 callback("SQLITE.ALL - Prepare Error " + res);
                 return;
             }
+
+            statement = statement.value;
+            let cursorStatement = new CursorStatement(statement, self._resultType, self._valuesType);
+
             if (params !== undefined) {
                 if (!self._bind(statement, params)) {
+                    sqlite3_finalize(statement);
                     callback("SQLITE.ALL Bind Error");
                     return;
                 }
             }
-            var result;
+
+            let result;
             do {
                 result = sqlite3_step(statement);
                 if (result === 100) {
-                    var cursor = self._getResults(cursorStatement);
+                    let cursor = self._getResults(cursorStatement);
                     if (cursor) {
                         rows.push(cursor);
                     }
@@ -571,36 +584,38 @@ Database.prototype.each = function(sql, params, callback, complete) {
         throw new Error("SQLITE.EACH - requires a callback");
     }
 
-    var self = this;
+    const self = this;
     return new Promise (function(resolve, reject) {
 
         // Set the error Callback
-        var errorCB = complete || callback;
+        let errorCB = complete || callback;
 
-        var count = 0, res;
+        let count = 0, res;
         try {
 
-            var statement = new interop.Reference();
+            let statement = new interop.Reference();
             res = sqlite3_prepare_v2(self._db, sql, -1, statement, null);
-            var cursorStatement = new CursorStatement(statement.value, self._resultType, self._valuesType);
-            statement = statement.value;
             if (res) {
                 errorCB("SQLITE.EACH Error in Prepare" + res);
                 reject("SQLITE.EACH Error in Prepare" + res);
                 return;
             }
+            statement = statement.value;
+            let cursorStatement = new CursorStatement(statement, self._resultType, self._valuesType);
+
             if (params !== undefined) {
                 if (!self._bind(statement, params)) {
+                    sqlite3_finalize(statement);
                     errorCB("SQLITE.EACH Bind Error");
                     reject("SQLITE.EACH Bind Error");
                     return;
                 }
             }
-            var result;
+            let result;
             do {
                 result = sqlite3_step(statement);
                 if (result === 100) {
-                    var cursor = self._getResults(cursorStatement);
+                    let cursor = self._getResults(cursorStatement);
                     if (cursor) {
                         count++;
                         callback(null, cursor);
@@ -633,11 +648,11 @@ Database.prototype.each = function(sql, params, callback, complete) {
  * @private
  */
 Database.prototype._bind = function(statement, params) {
-    var param, res;
+    let param, res;
 
 	if (Array.isArray(params)) {
-        var count = params.length;
-        for (var i=0; i<count; ++i) {
+        const count = params.length;
+        for (let i=0; i<count; ++i) {
             if (params[i] == null) { // jshint ignore:line
                 res = sqlite3_bind_null(statement, i+1);
             } else {
@@ -665,7 +680,7 @@ Database.prototype._bind = function(statement, params) {
 };
 
 Database.prototype._getNativeResult = function(statement, column) {
-    var resultType = sqlite3_column_type(statement, column);
+    const resultType = sqlite3_column_type(statement, column);
     switch (resultType) {
         case 1: // Int
             return sqlite3_column_int64(statement, column);
@@ -685,7 +700,7 @@ Database.prototype._getNativeResult = function(statement, column) {
 };
 
 Database.prototype._getStringResult = function(statement, column) {
-    var resultType = sqlite3_column_type(statement, column);
+    const resultType = sqlite3_column_type(statement, column);
     switch (resultType) {
         case 1: // Int
             //return sqlite3_column_int(statement, column).toString();
@@ -707,9 +722,9 @@ Database.prototype._getStringResult = function(statement, column) {
 };
 
 Database.prototype._getResults = function(cursorStatement, mode) {
-    var resultType, valueType;
-    var statement = cursorStatement.statement;
-    var i;
+    let resultType, valueType;
+    let statement = cursorStatement.statement;
+    let i;
 
     if (!mode) {
         resultType = cursorStatement.resultType;
@@ -731,7 +746,7 @@ Database.prototype._getResults = function(cursorStatement, mode) {
         if (resultType === Database.RESULTSASOBJECT) {
             for (i=0;i<cursorStatement.count;i++) {
                 //noinspection JSUnresolvedFunction
-                var cn =  NSString.stringWithUTF8String(sqlite3_column_name(statement, i)).toString();
+                let cn =  NSString.stringWithUTF8String(sqlite3_column_name(statement, i)).toString();
                 if (!cn || cursorStatement.columns.indexOf(cn) >= 0) {
                     cn = "column"+i;
                 }
@@ -741,7 +756,7 @@ Database.prototype._getResults = function(cursorStatement, mode) {
         cursorStatement.built=true;
     }
 
-    var cnt = cursorStatement.count, data;
+    let cnt = cursorStatement.count, data;
     if (cnt === 0) { return null; }
     if (resultType === Database.RESULTSASARRAY) {
         data = [];
@@ -756,7 +771,7 @@ Database.prototype._getResults = function(cursorStatement, mode) {
         }
         return data;
     } else {
-        var colName = cursorStatement.columns;
+        let colName = cursorStatement.columns;
         data = {};
         if (valueType === Database.VALUESARESTRINGS) {
             for (i = 0; i < cnt; i++) {
@@ -786,16 +801,16 @@ Database.exists = function(name) {
     }
 
     //noinspection JSUnresolvedFunction
-    var fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
+    const fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
 
     return fileManager.fileExistsAtPath(name);
 };
 
 Database.deleteDatabase = function(name) {
     //noinspection JSUnresolvedFunction
-    var fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
+    const fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
 
-    var path;
+    let path;
     if (name.indexOf('/') === -1) {
         path = fs.knownFolders.documents().path + '/';
     } else {
@@ -806,18 +821,18 @@ Database.deleteDatabase = function(name) {
     if (!fileManager.fileExistsAtPath(path + name)) { return; }
 
     // Need to remove the trailing .sqlite
-    var idx = name.lastIndexOf('.');
+    let idx = name.lastIndexOf('.');
     if (idx) {
         name = name.substr(0,idx);
     }
 
-    var files = fileManager.contentsOfDirectoryAtPathError(path, null);
+    let files = fileManager.contentsOfDirectoryAtPathError(path, null);
     if (!files) {
         return;
     }
 
-    for (var i = 0; i < files.count; i++) {
-        var fileName = files.objectAtIndex(i);
+    for (let i = 0; i < files.count; i++) {
+        const fileName = files.objectAtIndex(i);
         if (fileName.indexOf(name) !== -1) {
             fileManager.removeItemAtPathError(path + fileName, null);
         }
@@ -827,9 +842,9 @@ Database.deleteDatabase = function(name) {
 Database.copyDatabase = function(name) {
     //noinspection JSUnresolvedFunction
 
-    var fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
+    const fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
 
-    var path;
+    let path;
     if (name.indexOf('/') === -1) {
         path = fs.knownFolders.documents().path + '/';
     } else {
@@ -837,19 +852,19 @@ Database.copyDatabase = function(name) {
         name = name.substr(path.length);
     }
 
-    var source = fs.knownFolders.currentApp().path + '/' + name;
-    var destination = path + name;
+    let source = fs.knownFolders.currentApp().path + '/' + name;
+    let destination = path + name;
     fileManager.copyItemAtPathToPathError(source, destination, null);
 };
 
 function UsePlugin(loadedSrc, DBModule) {
 		if (loadedSrc.prototypes) {
-			for (var key in loadedSrc.prototypes) {
+			for (let key in loadedSrc.prototypes) {
 				DBModule.prototype[key] = loadedSrc.prototypes[key];
 			}
 		}
 		if (loadedSrc.statics) {
-			for (var key in loadedSrc.statics) {
+			for (let key in loadedSrc.statics) {
 				DBModule[key] = loadedSrc.statics[key];
 			}
 		}
@@ -880,7 +895,7 @@ TryLoadingEncryptionPlugin();
 
 function TryLoadingCommercialPlugin() {
 	try {
-		var sqlCom = require('nativescript-sqlite-commercial');
+		let sqlCom = require('nativescript-sqlite-commercial');
 		UsePlugin(sqlCom, Database);
 	}
 	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
@@ -889,7 +904,7 @@ function TryLoadingCommercialPlugin() {
 
 function TryLoadingEncryptionPlugin() {
 	try {
-		var sqlEnc = require('nativescript-sqlite-encrypted');
+		let sqlEnc = require('nativescript-sqlite-encrypted');
 		UsePlugin(sqlEnc, Database);
 	}
 	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
