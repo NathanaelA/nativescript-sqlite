@@ -118,7 +118,16 @@ function setupTests(callback) {
 					console.log("!---- Insert err", err);
 					return;
 				}
-				db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (2,4.8,5.6,"Text2")', callback);
+				db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (2,4.8,5.6,"Text2")').then(() => {
+					callback();
+				}).catch((err) => {
+					if (err) {
+						data.push({name: 'Failed to insert data into tests', css: 'one'}); 
+						console.log("!---- Insert err2:", err);
+						return;
+					}
+					callback(err);
+				});
 			});
 		});
 	});
@@ -249,6 +258,14 @@ function runATest(options, callback) {
 				db.each(options.sql, options.values, checkEachResults).then(checkFinalResults).catch(promiseFailed);
 				break;
 
+			case 6:
+				db.execSQL(options.sql, options.params, checkResults);
+				break;
+
+			case 7:
+				db.execSQL(options.sql, options.params).then(promiseResults).catch(promiseFailed);
+				break;
+
 			default:
 				callback(false);
 		}
@@ -268,10 +285,18 @@ function runATest(options, callback) {
 				db.get(options.sql).then(promiseResults).catch(promiseFailed);
 				break;
 			case 4:
-				let p = db.all(options.sql).then(promiseResults).catch(promiseFailed);
+				db.all(options.sql).then(promiseResults).catch(promiseFailed);
 				break;
 			case 5:
 				db.each(options.sql, checkEachResults).then(checkFinalResults).catch(promiseFailed);
+				break;
+
+			case 6:
+				db.execSQL(options.sql, checkResults);
+				break;
+
+			case 7:
+				db.execSQL(options.sql).then(promiseResults).catch(promiseFailed);
 				break;
 
 
