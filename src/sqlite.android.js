@@ -5,7 +5,7 @@
  *
  * Any questions please feel free to put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.3.1 - Android
+ * Version 2.3.2 - Android
  *************************************************************************************/
 
 /* global global, require, module */
@@ -975,12 +975,22 @@ function _getContext() {
     if (appModule.android.context) {
         return (appModule.android.context);
     }
+    if (typeof appModule.getNativeApplication === 'function') {
+        let ctx = appModule.getNativeApplication();
+        if (ctx) {
+            return ctx;
+        }
+    }
+
+
     //noinspection JSUnresolvedFunction,JSUnresolvedVariable
-    let ctx = java.lang.Class.forName("android.app.AppGlobals").getMethod("getInitialApplication", null).invoke(null, null);
+    ctx = java.lang.Class.forName("android.app.AppGlobals").getMethod("getInitialApplication", null).invoke(null, null);
     if (ctx) return ctx;
 
     //noinspection JSUnresolvedFunction,JSUnresolvedVariable
     ctx = java.lang.Class.forName("android.app.ActivityThread").getMethod("currentApplication", null).invoke(null, null);
+    if (ctx) return ctx;
+
     return ctx;
 }
 
