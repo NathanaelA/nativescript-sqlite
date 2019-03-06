@@ -1,23 +1,23 @@
-{ 
+{
     "nativescript": {
         "id": "org.nativescript.demo",
         "tns-android": {
-            "version": "5.1.0"
+            "version": "5.2.1"
         },
         "tns-ios": {
-            "version": "5.1.0"
+            "version": "5.2.0"
         }
     },
-    "description": "NativeScript Application",
-    "license": "SEE LICENSE IN <your-license-filename>",
+    "description": "SQLite Demo Application",
+    "license": "MIT",
     "repository": "<fill-your-repository-here>",
     "dependencies": {
+        "nativescript-sqlite": "file:../src",
         "nativescript-theme-core": "~1.0.4",
-        "tns-core-modules": "~5.1.0",
-        "nativescript-sqlite": "file:..\\src"
+        "tns-core-modules": "^5.2.2"
     },
     "devDependencies": {
-        "nativescript-dev-webpack": "~0.19.0"
+        "nativescript-dev-webpack": "^0.20.2"
     },
-    "readme": "NativeScript Application"
+    "readme": "SQLite Demo Application"
 }

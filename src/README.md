@@ -82,7 +82,7 @@ a section that looks like so:
                 { from: "**/*.png" },
 ```
 
-Add a new line `{from: "**/*.sqlite"}` so that it will pick up your sqlite file while bundling the application.
+Add a new line `{ from: { glob: "**/*.sqlite" } },` so that it will pick up your sqlite file while bundling the application.
 
 In addition if you are not using the Commercial or Encrypted plugin; you would need to add:
 
@@ -135,7 +135,8 @@ If you are planning on shipping a database with the application; drop the file i
 * options 
   * "readOnly", which if set to true will make the db read only when it opens it
   * "key", used for using/opening encrypted databases (See Encryption at bottom of document)
-  * "multithreading", enable background multitasking.  All SQL is ran on a background worker thread.  
+  * "multithreading", enable background multitasking.  All SQL is ran on a background worker thread.
+  * "migrate", migrates a Encrypted Sql database from v3 to the new v4.  If you are a new user you do not need to set this flag as new created databases will already be in v4.  If you are upgrading a app that used v1.3.0 or earlier of NS-Sqlite-Encrypted; then you will probably want to set this flag to true.  
 * (optional) callback (error, db): db is the fully OPEN database object that allows interacting with the db.
 * RETURNS: promise of the DB object
 
@@ -361,7 +362,24 @@ To enable commercial: `tns plugin add nativescript-sqlite-commercial-1.2.0.tgz`
 Pass the encryption key into database open function using the `options.key` and it will be applied.  Please note the database itself MUST be created with encryption to use encryption.  So if you create a plain database, you can not retroactively add encryption to it.  
 If you pass a blank (**""**) empty key, then it will treat it as no key.   But, it will still use the encrypted driver in case you need certain features from the more modern sqlite driver; but don't need encryption.  
 
-Note: Enabling/Compiling in the encryption driver adds about 3 megs to the size to the application APK on android and about 2 megs to a iOS application.  
+Note: Enabling/Compiling in the encryption driver adds about 3 megs to the size to the application APK on android and about 2 megs to a iOS application.
+
+#### Encryption Upgrade
+There is a NEW upgrade option you can pass to the database constructor.   if you were using an older version (1.3.0 or earlier) of this NS-Sqlite-Encryption.   
+* "migrate", migrates a Encrypted Sql database from v3 to the new v4.  If you are a new user you do not need to set this flag as new created databases will already be in v4.  If you are upgrading a app that used v1.3.0 or earlier of NS-Sqlite-Encrypted; then you will probably want to set this flag to true.  
+
+#### iOS Encryption Notes
+  
+  If you see `SQLCipher does not seem to be linked into the application`
+  
+  Sometimes iOS decides it really wants to bring in the native SQLite over the encrypted version.
+  A couple things you can try:
+  - Delete some files that aren't needed when using encryption that might bring in the standard sqlite plugin.
+    - `rm node_modules/nativescript-sqlite/platforms/ios/build.xcconfig`
+    - `rm node_modules/nativescript-sqlite/platforms/ios/module.modulemap`
+    - Then `tns platform clean ios`
+
+        
     
 ### Multitasking / Multithreading
 The commercial version supports putting all SQL access into a background thread, so your UI doesn't freeze while doing data access.  To enable; just pass in {multithreading: true} as an option when creating a new Sqlite connection.        
