@@ -1,5 +1,5 @@
-var sqlite = require('nativescript-sqlite');
-var ObservableArray = require("data/observable-array").ObservableArray;
+const sqlite = require('nativescript-sqlite');
+const ObservableArray = require("tns-core-modules/data/observable-array").ObservableArray;
 
 
 //var Tracing = require('./tracing.js');
@@ -22,13 +22,20 @@ if (sqlite.HAS_COMMERCIAL) {
 
 if (sqlite.HAS_ENCRYPTION) {
 	console.log("Using Encryption");
-	dbname = 'encrypted.sqlite';
+	//dbname = 'encrypted.sqlite';
 	data.push({name:'Encryption Support', css:'one'});
 } else {
 	console.log("No Encryption");
 }
 data.push({name: 'Loading...', css: 'one'});
 
+
+if (sqlite.HAS_SYNC) {
+    console.log("Using Sync");
+    data.push({name: 'Sync Support',css: 'one'});
+} else {
+    console.log("No Sync");
+}
 
 
 exports.pageLoaded = function(args) {
@@ -38,7 +45,7 @@ exports.pageLoaded = function(args) {
 	if (!sqlite.exists(dbname)) {
 		sqlite.copyDatabase(dbname);
 	}
-	new sqlite(dbname, {key: 'testing', multithreading: !!sqlite.HAS_COMMERCIAL, migrate: true}, function(err, dbConnection) {
+	new sqlite(dbname, {zkey: 'testing', multithreading: false /* !!sqlite.HAS_COMMERCIAL */, migrate: true}, function(err, dbConnection) {
 		if (err) {
 			console.log(err, err.stack);
 		}
@@ -62,13 +69,50 @@ exports.pageLoaded = function(args) {
 };
 
 exports.addNewName = function() {
-	var entry = page.getViewById('entry');
-	var name = entry.text;
+	const entry = page.getViewById('entry');
+	const name = entry.text;
 	if (name.length > 0) {
 		if (name.toLowerCase() === "test" || name.toLowerCase() === "runtest" || name.toLowerCase() === "tests" || name.toLowerCase() === "runtests" || name.indexOf("Test") === 0) {
 			runTests();
 			return;
 		}
+
+		if (name.toLowerCase() === "sync") {
+		    db.enableTracking("names", {'syncTime': 10}).then((res) => {
+		        console.log("Result", res);
+            }).catch((err) => {
+                console.log("Error",err, err.stack);
+            });
+		    return;
+        }
+
+		if (name.toLowerCase() === "fsync") {
+			db.enableTracking("names", {force: true, syncTime: 10}).then((res) => {
+				console.log("Result", res);
+			}).catch((err) => {
+				console.log("Error",err, err.stack);
+			});
+			return;
+		}
+
+		if (name.toLowerCase() === "csync") {
+			db.execSQL("update __mt_sync_tracking set completed=1");
+			return;
+		}
+
+
+		if (name.toLowerCase() === "dsync") {
+			db.execSQL("delete from __mt_sync_tracking");
+			return;
+		}
+
+		if (name.toLowerCase() === 'tsync') {
+			db.all("select * from __mt_sync_tracking").then((res) => {
+				console.log("Results:", res);
+			});
+			return;
+		}
+
 
 		db.execSQL("insert into names (name) values (?)", name);
 		reloadData();
@@ -77,7 +121,7 @@ exports.addNewName = function() {
 };
 
 exports.openMT = function() {
-   const utils = require('utils/utils');
+   const utils = require('tns-core-modules/utils/utils');
    utils.openUrl("https://www.master-technology.com");
 };
 
@@ -410,7 +454,19 @@ function setupPreparedTests(callback) {
 		callback();
 		return;
 	}
-	console.log("!--------- Creating Prepared Tests Data");
+
+    console.log("!--------- Creating Prepared Tests Data");
+    db.execSQL(['drop table if exists preparetests;','create table preparetests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text)'], function (err) {
+        if (err) {
+            data.push({name: 'Failed to create tables and data...', css: 'one'});
+            console.log("!---- Create Table err", err);
+            return;
+        }
+        callback();
+    });
+
+
+    /*
 	db.execSQL('drop table if exists preparetests;', function (err) {
 		if (err) {
 			console.log("!---- Drop Err", err);
@@ -423,7 +479,7 @@ function setupPreparedTests(callback) {
 			}
 			callback();
 		});
-	});
+	}); */
 }
 
 function runPreparedTests(callback) {
@@ -437,7 +493,7 @@ function runPreparedTests(callback) {
 	setupPreparedTests(function() {
 		createPreparedData(true, function () {
 
-			var tests = [{
+			let tests = [{
 				name: 'Verify Rollback Check',
 				sql: 'select count(*) from preparetests',
 				results: [0],
