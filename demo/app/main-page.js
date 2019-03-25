@@ -45,7 +45,7 @@ exports.pageLoaded = function(args) {
 	if (!sqlite.exists(dbname)) {
 		sqlite.copyDatabase(dbname);
 	}
-	new sqlite(dbname, {zkey: 'testing', multithreading: false /* !!sqlite.HAS_COMMERCIAL */, migrate: true}, function(err, dbConnection) {
+	new sqlite(dbname, {key: 'testing', multithreading: !!sqlite.HAS_COMMERCIAL, migrate: true}, function(err, dbConnection) {
 		if (err) {
 			console.log(err, err.stack);
 		}
