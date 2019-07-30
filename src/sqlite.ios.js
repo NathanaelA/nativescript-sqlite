@@ -5,12 +5,12 @@
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.3.1 - iOS
+ * Version 2.5.0 - iOS
  ***********************************************************************************/
 /* global global, require, module */
 
 "use strict";
-const fs = require('file-system');
+const fs = require('tns-core-modules/file-system');
 
 /* jshint undef: true, camelcase: false */
 /* global Promise, NSFileManager, NSBundle, NSString, interop, sqlite3_open_v2, sqlite3_close, sqlite3_prepare_v2, sqlite3_step,
@@ -18,7 +18,7 @@ const fs = require('file-system');
  sqlite3_column_double, sqlite3_column_text, sqlite3_column_count, sqlite3_column_name, sqlitehelper */
 
 let _DatabasePluginInits = [];
-const TRANSIENT = sqlitehelper.getTrans();
+const TRANSIENT = new interop.Pointer(-1);
 
 
 /***
@@ -91,6 +91,7 @@ function Database(dbname, options, callback) {
         }
         return new Database._multiSQL(dbname, options, callback);
     }
+    this._options = options;
 
     // Check to see if it has a path, or if it is a relative dbname
     // DBNAME = "" - is a Temporary Database
@@ -264,6 +265,16 @@ Database.prototype.prepare = function(sql) {
 	throw new Error("Prepared statements are a Commercial version feature.");
 };
 
+// noinspection JSUnusedLocalSymbols
+/**
+ * Dummy sync enable tracking function for public version
+ * @returns {*}
+ */
+Database.prototype.enableTracking = function(tables, options, callback) {
+    throw new Error("Table sync is a Commercial version feature.");
+};
+
+
 
 /***
  * Closes this database, any queries after this will fail with an error
@@ -399,6 +410,8 @@ Database.prototype.execSQL = function(sql, params, callback) {
                 }
                 resolve();
         }
+    }).catch(err => {
+        console.log("!!!", err, sql);
     });
 };
 
@@ -486,9 +499,10 @@ Database.prototype.get = function(sql, params, callback, mode) {
  * @param sql - Sql to run
  * @param params - optional
  * @param callback - (err, results)
+ * @param mode - set a specific return mode
  * @returns Promise
  */
-Database.prototype.all = function(sql, params, callback) {
+Database.prototype.all = function(sql, params, callback, mode) {
     if (typeof params === 'function') {
         callback = params;
         params = undefined;
@@ -532,7 +546,7 @@ Database.prototype.all = function(sql, params, callback) {
             do {
                 result = sqlite3_step(statement);
                 if (result === 100) {
-                    let cursor = self._getResults(cursorStatement);
+                    let cursor = self._getResults(cursorStatement, mode);
                     if (cursor) {
                         rows.push(cursor);
                     }
@@ -860,11 +874,16 @@ Database.copyDatabase = function(name) {
 function UsePlugin(loadedSrc, DBModule) {
 		if (loadedSrc.prototypes) {
 			for (let key in loadedSrc.prototypes) {
-				DBModule.prototype[key] = loadedSrc.prototypes[key];
+                if (!loadedSrc.prototypes.hasOwnProperty(key)) { continue; }
+                if (DBModule.prototype[key]) {
+                    DBModule.prototype["_"+key] = DBModule.prototype[key];
+                }
+                DBModule.prototype[key] = loadedSrc.prototypes[key];
 			}
 		}
 		if (loadedSrc.statics) {
 			for (let key in loadedSrc.statics) {
+                if (!loadedSrc.statics.hasOwnProperty(key)) { continue; }
 				DBModule[key] = loadedSrc.statics[key];
 			}
 		}
@@ -884,18 +903,21 @@ function iosProperty(_this, property) {
 }
 
 // Literal Defines
-Database.RESULTSASARRAY  = 1;
-Database.RESULTSASOBJECT = 2;
-Database.VALUESARENATIVE = 4;
-Database.VALUESARESTRINGS = 8;
+Database.prototype.RESULTSASARRAY   = Database.RESULTSASARRAY   = 1;
+Database.prototype.RESULTSASOBJECT  = Database.RESULTSASOBJECT  = 2;
+Database.prototype.VALUESARENATIVE  = Database.VALUESARENATIVE  = 4;
+Database.prototype.VALUESARESTRINGS = Database.VALUESARESTRINGS = 8;
+
+
 
 /** These are optional plugins, must have a static require statement for webpack **/
 TryLoadingCommercialPlugin();
 TryLoadingEncryptionPlugin();
+TryLoadingSyncPlugin();
 
 function TryLoadingCommercialPlugin() {
 	try {
-		let sqlCom = require('nativescript-sqlite-commercial');
+		const sqlCom = require('nativescript-sqlite-commercial');
 		UsePlugin(sqlCom, Database);
 	}
 	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
@@ -904,12 +926,22 @@ function TryLoadingCommercialPlugin() {
 
 function TryLoadingEncryptionPlugin() {
 	try {
-		let sqlEnc = require('nativescript-sqlite-encrypted');
+		const sqlEnc = require('nativescript-sqlite-encrypted');
 		UsePlugin(sqlEnc, Database);
 	}
 	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
 	}
 }
+
+function TryLoadingSyncPlugin() {
+    try {
+        const sqlSync = require('nativescript-sqlite-sync');
+        UsePlugin(sqlSync, Database);
+    }
+    catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+    }
+}
+
 
 module.exports = Database;
 

@@ -2,7 +2,7 @@
  * Created by nathanaeland on 2/16/2016.
  */
 
-var sqlite = require('nativescript-sqlite');
+var sqlite = require('@proplugins/nativescript-sqlite');
 var dbName = 'name_db.sqlite';
 
 describe('Database', function () {

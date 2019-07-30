@@ -1,14 +1,15 @@
-[![npm](https://img.shields.io/npm/v/nativescript-sqlite.svg)](https://www.npmjs.com/package/nativescript-sqlite)
-[![npm](https://img.shields.io/npm/dt/nativescript-sqlite.svg?label=npm%20downloads)](https://www.npmjs.com/package/nativescript-sqlite)
-[![Twitter Follow](https://img.shields.io/twitter/follow/congocart.svg?style=social&label=Follow%20me)](https://twitter.com/congocart)
-
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![License](https://img.shields.io/badge/platform-ios%20%7C%20android-lightgrey.svg) ![Proplugins](https://img.shields.io/badge/Pro%20plugins-Release-green.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wcQFCgSC/acTQAAAzxJREFUOMt91W+IVGUUBvDfnZldM90pm63cXWVaWzcMKU2WESIrCKRMUOwP5RZFwTrgtyDKov/0wTJBiimIILWwZEnqgxElGYk7qEGZabmhU+qWzZjMVGruzvTlnbgsWy9ceN/znvuc59zznHMjsZXO51QLRel8LsJkTA/PPLTiGL5CqVooji2483Ut9amQCvdnExOAXYQH8DF+xBu4D+uxNdiWwb6tq2AqnsX7uCwxDqwbd2E1bgixMvgrlshPuH7OyqeicF6PNViC3lQMbCZ2YArKOIFPA8ODgclsnI4aye8OvvNcY+GKzQ9hWgA+gANRYHgBtmExzuIlvFctFA/4j9W3/N0liaj+dhTZjXN4eWiwfygRCrAUVwXfo9g0EVit3AF2fH5z540Lvh6YfcWxcr0RzcOHQ4P9QwtXbJYI1bkW3+MkVlYLxcPpfG5CZrVyR2vf3EOvvbD6rUUPL9u+c3Q0uW1osH9jXCpd6Xyukc7njqbzuXzTXsn2iO+b7GrljjW1ckejVu5o/P7rjA/GB0zh6rDPhkI0V1sl23Mx6pnS8HHt1Mod9+MSjOFoKjn24JSBXJRMaEELMgnMiIEciu3XYQh7KtNm31T7e3qflOexIOjx1rb2kdPJhGnYgAHckcIo9obq1mKAh9EJpjQ2jA5M3uWUWmrj2VnO297WPnI4+LUGMHgsgW+RDCnPGcfwRYxJOlH/LLm0vicZ+dOrbe0ja2N+PXHRJ/Ab5mMmVsUu65nS8BPhrlekS4vWU51XroNHN/8buzcIH/YlUMEnwbAonc9dB923ZVSyPTKl4f3oD120OOvL+t3L51vbf1A6n+vF2tDfr6AUBb2txCOYFD74lmqhGC+QSrZncqY0fKaR6RZVjkjnc9nQXfOCOh7HpmbrTcU9eCb05s+4t1oo7ptI3Ol8bk7orqdxIXZiabVQrEWx4dCFLzArvHcKT6IU5PQHukNFb8cvuBTncUu1UPwhnc+Jxo2vLryJufgmVLA3BNgdRlnzvD/4flQtFI80MZJwbu/xJmhtUt+MwTAg6lgey/REYNOJXWGsbakWiiNNMIj+5xfQgstxTZDUWGB1MqR7plooNuJg8A+UzC22+9VP+QAAAABJRU5ErkJggg==) ![NativeScriptCore](https://img.shields.io/badge/Core-demo-darkblue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wcQFQ4vkYI5TwAAAlhJREFUOMullU1IVFEUx3/nzvPNOBh92CAYBn1ALlyFUZRj2dDGwISIhLFttXEnIRGJmOGipSUF0SoposVAQi3EQiLEIAjSVUJhfpRULhp1xt5p8Xo+n/OGCTpweZxzz/m/e/7nnHsFoKHdMaIcROkCmoBySosAWWAU4ZZlMz76wKg0tDtGHK4Cvfyf9I0NmWuSTDv1KBOeVdVdIu4Kk2I+IrRZQJdnqIhDS0pIVMKPJXg8rKzmgmC5PJxrhn01wtxXJTMCv7IusCqdFkqT99eWlHC5zQ9ObBd6BpSKuG9bW4PGeuFQnUtjdRXcHFSiNgC1xiuAKiQqg6c5k4ILrUJ+LViK346v7q4O6LYJklPIV0c71NeFboXGmBJ4WBHo7hAvpVJ4PqCjEIv6G99/sl6Qndvg9nVBtRAhagcrbTz+Th0TTh72N95+gMFHfvSBPdB1UQpaae8uaD4ORjYBTk1r4IRlFjx9Dg+f+aCnT0DqqOu/MbP5Rfe7DmgMzMzC8MtN/Flw/wm8m/JtPR1CYoevf56DifchHBoDq/lCxvN5uHFHya74nO2v8V2WV93Y0CqHTZoIzH+DS91a9IbYXGXZGBwmkQh8/AT99zTAH4CYQjXrgS0sKsXArQgMv4IXr4P22QW/wkDOAkaBsyKQGYHqKnecpme0oGkF6B1Qtm4R4jH4sgD9dwPdMSnJtHME5Y3XPrm8O5tWBOyycAqWV9z+NhIcBqDVWDbjQJ+XZtSGeKw4GEB5zPUJgAlXxoZMZj37xrRzXpVOoBaw//EJyAGTf2/rTDLtyB9FfcLlI/KGaQAAAABJRU5ErkJggg==) [![Twitter Follow](https://img.shields.io/twitter/follow/congocart.svg?style=social&label=Follow%20me)](https://twitter.com/congocart)
 
 # NativeScript sqlite
+<table><tr><td>
+<a href="https://proplugins.org"><img src="https://proplugins.org/logos/logo.png" width="200"/></a>
+</td><td>
+<div>Sponsored By:<br>
+<a href="https://master.technology"><img src="https://proplugins.org/logos/mt-banner.png" width="200"/></a></div>
+</td></tr></table>
+
 
 A NativeScript module providing sqlite actions for Android and iOS. (with multi-threading)
-
-## Developed by
-[![MasterTech](https://plugins.nativescript.rocks/i/mtns.png)](https://plugins.nativescript.rocks/mastertech-nstudio)
 
 
 ## License
@@ -21,14 +22,11 @@ There are two possible licenses this is released under;
 
 ### NativeScript-Sqlite Free version
 
-This is released under the MIT License, meaning you are free to include this in any type of program -- However for entities that need a support contract, changes, enhancements and/or a commercial license please see [http://nativescript.tools](http://nativescript.tools/product/10)
-
-[![Donate](https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=HN8DDMWVGBNQL&lc=US&item_name=Nathanael%20Anderson&item_number=nativescript%2dsqlite&no_note=1&no_shipping=1&currency_code=USD&bn=PP%2dDonationsBF%3ax%3aNonHosted)
-[![Patreon](https://img.shields.io/badge/Pledge-Patreon-brightgreen.svg?style=plastic)](https://www.patreon.com/NathanaelA)
+This part of the library is released under the MIT License, meaning you are free to include this code any type of program -- However for entities that need a support contract, changes, enhancements and/or a commercial license please see [http://nativescript.tools](http://nativescript.tools/product/10)
 
 
 ### NativeScript-SQLite Commercial/Encrypted Version
-This is released under a commercial license, allowing you to use the commercial version of the plugin in your projects.
+This also has a commercial license version, allowing you to use the commercial version of the plugin in your projects.
 
 The [commercial version](http://nativescript.tools/product/10) comes with the following enhancements:
 - TypeScript definitions
@@ -36,6 +34,7 @@ The [commercial version](http://nativescript.tools/product/10) comes with the fo
 - Prepared statements
 - Multilevel transaction support
 - Encryption
+- multiple sql statements per query
 - Full source code
 - **Multi-threading** 
 
@@ -46,26 +45,28 @@ This file is REQUIRED for normal un-encrypted sqlite; but it can conflict with e
 
 ## Example Application
 
-An example application can be cloned from this repo, in the demo folder.
+An example application can be downloaded form npm.proplugins.org or cloned from git.proplugins.org, in the demo folder.
 To use you need to do:
-1. `npm install tns-core-modules`
-2. `tns platform add ios` or `tns platform add android`
-3. `tns plugin add nativescript-sqlite`
+* `npm i`
+* `tns run`
 
 ***optional***
 * `tns plugin add nativescript-sqlite-commercial-???.tgz`
 * `tns plugin add nativescript-sqlite-encrypted-???.tgz`
+* `tns plugin add nativescript-sqlite-sync-???.tgz`
 
 Then run the app the normal way you would.
 
 
 ## Installation
 
-Run `tns plugin add nativescript-sqlite` in your ROOT directory of your project.
+Run `tns plugin add @proplugins/nativescript-sqlite` in your ROOT directory of your project.
 
 ***optional***
-* `tns plugin add nativescript-sqlite-commercial-???.tgz`
-* `tns plugin add nativescript-sqlite-encrypted-???.tgz`
+* `tns plugin add ./plugins/nativescript-sqlite-commercial-???.tgz`
+* `tns plugin add ./plugins/nativescript-sqlite-encrypted-???.tgz`
+* `tns plugin add ./plugins/nativescript-sqlite-sync-???.tgz`
+
 
 
 ## Webpacking
@@ -74,32 +75,38 @@ If you are including your own sqlite database embedded in your app; and you are 
 a section that looks like so:
 
 ```js
-    // Copy assets to out dir. Add your own globs as needed.
+            // Copy assets to out dir. Add your own globs as needed.
             new CopyWebpackPlugin([
-                { from: "App_Resources/**" },
-                { from: "fonts/**" },
-                { from: "**/*.jpg" },
-                { from: "**/*.png" },
+                { from: { glob: "fonts/**" } },
+                { from: { glob: "**/*.jpg" } },
+                { from: { glob: "**/*.png" } },
+                { from: { glob: "**/*.sqlite" }},
+            ], { ignore: [`${relative(appPath, appResourcesFullPath)}/**`] })
 ```
 
 Add a new line `{ from: { glob: "**/*.sqlite" } },` so that it will pick up your sqlite file while bundling the application.
 
-In addition if you are not using the Commercial or Encrypted plugin; you would need to add:
+In addition if you are not using the Sync, Commercial or Encrypted plugin; you would need to add to the webpack.config.js file any you are not using:
 
 ```
-externals: {
-     'nativescript-sqlite-commercial': 'nativescript-sqlite-commercial',
-     'nativescript-sqlite-encrypted': 'nativescript-sqlite-encrypted',
-},
+        externals.push('nativescript-sqlite-commercial');
+        externals.push('nativescript-sqlite-encrypted');
+        externals.push('nativescript-sqlite-sync');
 ```
-so that it ignores those during webpacking...
+so that it ignores those during webpacking, right below the line that says 
+'const externals = nsWebpack.getConvertedExternals(env.externals)'
 
 ## Usage
 
 To use the sqlite module you must first `require()` it:
 
 ```js
-var Sqlite = require( "nativescript-sqlite" );
+const Sqlite = require( "@proplugins/nativescript-sqlite" );
+```
+
+(or with TypeScript, if using the commercial version)
+```ts
+import {Sqlite} from "@proplugins/nativescript-sqlite";
 ```
 
 After you have a reference to the module you can then call the available methods.
@@ -127,6 +134,7 @@ If you are planning on shipping a database with the application; drop the file i
 
 * Sqlite.HAS_COMMERCIAL - will be true if commercial library is loaded.
 * Sqlite.HAS_ENCRYPTION - will be true if encryption library is loaded.
+* Sqlite.HAS_SYNC - will be true if sync library is loaded.
 
 ### Methods
 #### new Sqlite(dbname, options, callback)
@@ -134,8 +142,8 @@ If you are planning on shipping a database with the application; drop the file i
 * dbname: your database name.   This can be ":memory:" for a memory Database. This can be "" for a Temporary Database.
 * options 
   * "readOnly", which if set to true will make the db read only when it opens it
-  * "key", used for using/opening encrypted databases (See Encryption at bottom of document)
-  * "multithreading", enable background multitasking.  All SQL is ran on a background worker thread.
+  * "key", used for using/opening encrypted databases (See Encryption at bottom of document, require Commercial version)
+  * "multithreading", enable background multitasking.  All SQL is ran on a background worker thread.   (Requires Commercial version)
   * "migrate", migrates a Encrypted Sql database from v3 to the new v4.  If you are a new user you do not need to set this flag as new created databases will already be in v4.  If you are upgrading a app that used v1.3.0 or earlier of NS-Sqlite-Encrypted; then you will probably want to set this flag to true.  
 * (optional) callback (error, db): db is the fully OPEN database object that allows interacting with the db.
 * RETURNS: promise of the DB object
@@ -144,8 +152,8 @@ If you are planning on shipping a database with the application; drop the file i
 
 ```js
 // my-page.js
-var Sqlite = require( "/path/to/node_modules/nativescript-sqlite" );
-var db_promise = new Sqlite("MyTable", function(err, db) {
+const Sqlite = require( "/path/to/node_modules/nativescript-sqlite" );
+const db_promise = new Sqlite("MyTable", function(err, db) {
     if (err) {
       console.error("We failed to open database", err);
     } else {
@@ -175,19 +183,19 @@ new Sqlite("test.db", function(err, db) {
 });
 ```
 
-#### Sqlite.exists()
+#### Sqlite.exists(dbName)
 ##### Parameters
-* database name
+* dbName - database name
 * RETURNS: Boolean, True if the database exists in the App/OS Database folder
 
 
-#### Sqlite.deleteDatabase()
-* database name to delete in the App/OS Database folder
+#### Sqlite.deleteDatabase(dbName)
+* dbName - database name to delete in the App/OS Database folder
 * RETURNS: Nothing
 
 
-#### Sqlite.copyDatabase()
-* database name to copy from your app folder to the proper database folder on the OS
+#### Sqlite.copyDatabase(dbName)
+* dbName - database name to copy from your app folder to the proper database folder on the OS
 * RETURNS: True if copy was successful
 * NOTES: This will only copy the file if it does not already exist at the destination.
 
@@ -202,7 +210,7 @@ if (!Sqlite.exists("mydatabase.sqlite")) {
 ```
 
 ### DB Methods = Returned Database Object from Constructor
-#### DB.version()
+#### DB.version(<numeric value>)
 ##### Parameters
 * Value to set it to, or a Callback for retrieving the value.
 If Callback Value will have the version.  On a new Database it will be Zero
@@ -225,13 +233,13 @@ new Sqlite("test.db", function(err, db) {
 Please note; it is possible that this value could be wrong initially in multithreading as the db might still be in the process of opening.  For compatibility we set this to true automatically in multithreading after you do an open. 
 
 
-#### DB.resultType()
+#### DB.resultType(Sqlite.YYY)
 ##### Parameters
 * Pass in Sqlite.RESULTSASOBJECT or Sqlite.RESULTSASARRAY to change the result sets configuration
 This will set the database to return the results in which ever choice you make.  (Default is RESULTSASARRAY)
 
 
-#### DB.valueType()
+#### DB.valueType(Sqlite.YYY)
 ##### Parameters
 * Pass in Sqlite.VALUESARENATIVE or Sqlite.VALUESARESTRING to change the result sets configuration
 This will set the database to return the results to which ever choice you make.  (Default is VALUESARENATIVE)
@@ -243,13 +251,15 @@ This will set the database to return the results to which ever choice you make. 
 NOTE: Any DB calls after this will throw errors.
 
 
-#### DB.execSQL()
+#### DB.execSQL(SQL statement, params, callback)
+#### DB.execSQL([multiple statements], [params], callback) - Commercial Version Feature
 ##### Parameters
-* SQL statement to run, can use ? for Parameters
+* SQL statements to run, can use ? for Parameters
 * Params (Optional) - an array of Parameters
 * Callback will either return null or the last id inserted or the record count of update/delete
 This routine you can use for "update", "insert", "delete" and any other sqlite command where you are not expecting a result set back.
 If this is a Insert it will return the last row id of the new inserted record.  If it is a update/insert it will return the number of rows affected.
+If you send multiple queries, then you will get an array of results.
 * RETURNS: Promise; resolved results are the same as the callback values.
 
 ```js
@@ -260,15 +270,17 @@ db.execSQL("insert into Hello (word) values (?)", ["Hi"], function(err, id) {
 ```
 
 ```js
+// NOTE: Sending Arrays of queries is only available in Commercial version...
 // new SQLite(....
-var promise = db.execSQL("insert into Hello (word) values (?)", ["Hi"]);
-promise.then(function(id) {
-        console.log("The new record id is:", id);
+const promise = db.execSQL(["insert into Hello (word) values (?)", "insert into Hello (word) values (?)"], [["Hi"], ["Hello"]]);
+promise.then(function(ids) {
+        console.log("The new record ids are:", ids[0], ids[1]);
 });
 ```
 
 
-#### DB.get()
+#### DB.get(statement, params, callbacks)
+#### DB.get([multiple statements], [params], callback) - Commercial Version Feature
 ##### Parameters
 * SQL SELECT statement, can use ? for parameters
 * Params (Optional)
@@ -284,7 +296,7 @@ db.get('select * from Hello where id=?', [1], function(err, row) {
 
 ```js
 // new SQLite(...
-var promise = db.get('select * from Hello where id=?', [1]);
+const promise = db.get('select * from Hello where id=?', [1]);
 promise.then(function(row) {
     console.log("Row of data was: ", row);  // Prints [["Field1", "Field2",...]]
 });
@@ -292,7 +304,8 @@ promise.then(function(row) {
 
 
 
-#### DB.all()
+#### DB.all(query, params, callback)
+#### DB.all([multiple queries], [params], callback) - Commercial Version Feature
 ##### Parameters
 * SQL SELECT statement, can use ? for parameters
 * Params (Optional)
@@ -308,7 +321,7 @@ db.all('select * from Hello where id > ? and id < ?', [1,100], function(err, res
 
 ```js
 // new SQLite(...
-var promise = db.all('select * from Hello where id > ? and id < ?', [1,100]);
+const promise = db.all('select * from Hello where id > ? and id < ?', [1,100]);
 promise.then(function(resultSet) {
   console.log("Result set is:", resultSet); // Prints [["Row_1 Field_1" "Row_1 Field_2",...], ["Row 2"...], ...]
 });
@@ -338,7 +351,7 @@ function (err, count) {
 
 ```js
 // new SQLite(...
-var promise = db.each('select * from Hello where id >= ? and id <= ?', [1, 100],
+const promise = db.each('select * from Hello where id >= ? and id <= ?', [1, 100],
 function (err, row) {
   console.log("Row results it:", row); // Prints ["Row x Field_1", "Row x Field 2"...] for each row passed to it
 });
@@ -403,8 +416,8 @@ The commercial version supports putting all SQL access into a background thread,
 * Cleans up and destroys this prepared statement.  Use when you are all done with the prepared statement. 
 
 ```js
-var prep = db.prepare('insert into names (first, last) values (?,?)');
-for (var i=0;i<10;i++) {
+const prep = db.prepare('insert into names (first, last) values (?,?)');
+for (let i=0;i<10;i++) {
 	prep.execute(["Name", i]);
 }
 prep.finished();
@@ -451,3 +464,11 @@ Need a little more to get started?  Check out these tutorials for using SQLite i
 * [SQLite in a NativeScript Vanilla Application](https://www.thepolyglotdeveloper.com/2016/04/use-sqlite-save-data-telerik-nativescript-app/)
 * [SQLite in a NativeScript Vue Application](https://www.nativescript.org/blog/data-management-with-sqlite-and-vuex-in-a-nativescript-vue-app)
 
+## Error Notes
+- If you get an error about opening a SQL table `android.database.sqlite.SQLiteException: Failed to change locale for db <dbname> to 'en_US'.`
+You need to create the table and insert the locale it is failing on: 
+```
+CREATE TABLE android_metadata ( locale TEXT );
+insert into android_metadata values ('en_us');
+```
+Or pass the `.androidFlags` value of `16` to the open statement.

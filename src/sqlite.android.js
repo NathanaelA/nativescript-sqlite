@@ -5,14 +5,14 @@
  *
  * Any questions please feel free to put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.3.2 - Android
+ * Version 2.5.0 - Android
  *************************************************************************************/
 
 /* global global, require, module */
 
 "use strict";
-const appModule = require("application");
-const fsModule  = require("file-system");
+const appModule = require("tns-core-modules/application");
+const fsModule  = require("tns-core-modules/file-system");
 
 
 /*jshint undef: true */
@@ -256,6 +256,7 @@ function Database(dbname, options, callback) {
             }
             return new Database._multiSQL(dbname, options, callback);
     }
+    this._options = options;
 
 
 	// Check to see if it has a path, or if it is a relative dbname
@@ -446,6 +447,14 @@ Database.prototype.prepare = function(sql) {
 };
 
 
+// noinspection JSUnusedLocalSymbols
+/**
+ * Dummy sync enable tracking function for public version
+ * @returns {*}
+ */
+Database.prototype.enableTracking = function(tables, options, callback) {
+    throw new Error("Table sync is a Commercial version feature.");
+};
 
 
 /***
@@ -631,13 +640,15 @@ Database.prototype.get = function(sql, params, callback, mode) {
 };
 
 Database.prototype._getResultEngine = function(mode) {
-    if (mode == null || mode === 0) return DBGetRowResults;
+    if (mode == null || mode === 0) {
+        mode = this._resultType | this._valuesType;
+    }
 
-    let resultType = (mode & Database.RESULTSASARRAY|Database.RESULTSASOBJECT);
+    let resultType = (mode & (Database.RESULTSASARRAY|Database.RESULTSASOBJECT));
     if (resultType === 0) {
         resultType = this._resultType;
     }
-    let valueType = (mode & Database.VALUESARENATIVE|Database.VALUESARESTRINGS);
+    let valueType = (mode & (Database.VALUESARENATIVE|Database.VALUESARESTRINGS));
     if (valueType === 0) {
         valueType = this._valuesType;
     }
@@ -663,10 +674,12 @@ Database.prototype._getResultEngine = function(mode) {
  * @param sql - Sql to run
  * @param params - optional
  * @param callback - (err, results)
+ * @param mode - Allow you to force a specific mode
  * @returns Promise
  */
-Database.prototype.all = function(sql, params, callback) {
+Database.prototype.all = function(sql, params, callback, mode) {
     if (typeof params === 'function') {
+        mode = callback;
         callback = params;
         params = undefined;
     }
@@ -713,10 +726,14 @@ Database.prototype.all = function(sql, params, callback) {
         //noinspection JSUnresolvedFunction
         cursor.moveToFirst();
 
+        const resultEngine = self._getResultEngine(mode);
+
+
+
         let results = [];
         try {
             for (let i = 0; i < count; i++) {
-                const data = DBGetRowResults(cursor); // jshint ignore:line
+                const data = resultEngine(cursor); // jshint ignore:line
                 results.push(data);
                 //noinspection JSUnresolvedFunction
                 cursor.moveToNext();
@@ -877,6 +894,43 @@ Database.deleteDatabase = function(name) {
     }
 };
 
+
+Database.manualBackup = function(name) {
+    const dbName = _getContext().getDatabasePath(name).getAbsolutePath();
+    let dbFile = new java.io.File(dbName);
+    let myInput = new java.io.FileInputStream(dbName);
+    if (dbFile.exists()) {
+
+        // Attempt to use the local app directory version
+        // noinspection JSUnresolvedFunction,JSUnresolvedVariable
+        const outPath = android.os.Environment.getExternalStoragePublicDirectory (android.os.Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/" + name;
+        let myOutput = new java.io.FileOutputStream( outPath );
+        let success = true;
+         try {
+             //transfer bytes from the input file to the output file
+             //noinspection JSUnresolvedFunction,JSUnresolvedVariable
+             let buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.class.getField("TYPE").get(null), 1024);
+             let length;
+             while ((length = myInput.read(buffer)) > 0) {
+                 // noinspection JSUnresolvedFunction
+                 myOutput.write(buffer, 0, length);
+             }
+         }
+         catch (err) {
+             success = false;
+         }
+
+
+         //Close the streams
+         // noinspection JSUnresolvedFunction
+         myOutput.flush();
+         // noinspection JSUnresolvedFunction
+         myOutput.close();
+         myInput.close();
+        return success;
+    }
+
+};
 /**
  * Copy the database from the install location
  * @param name
@@ -956,13 +1010,14 @@ Database.copyDatabase = function(name) {
 };
 
 // Literal Defines
-Database.RESULTSASARRAY  = 1;
-Database.RESULTSASOBJECT = 2;
-Database.VALUESARENATIVE = 4;
-Database.VALUESARESTRINGS = 8;
+Database.prototype.RESULTSASARRAY   = Database.RESULTSASARRAY   = 1;
+Database.prototype.RESULTSASOBJECT  = Database.RESULTSASOBJECT  = 2;
+Database.prototype.VALUESARENATIVE  = Database.VALUESARENATIVE  = 4;
+Database.prototype.VALUESARESTRINGS = Database.VALUESARESTRINGS = 8;
 
 TryLoadingCommercialPlugin();
 TryLoadingEncryptionPlugin();
+TryLoadingSyncPlugin();
 
 module.exports = Database;
 
@@ -984,7 +1039,7 @@ function _getContext() {
 
 
     //noinspection JSUnresolvedFunction,JSUnresolvedVariable
-    ctx = java.lang.Class.forName("android.app.AppGlobals").getMethod("getInitialApplication", null).invoke(null, null);
+    let ctx = java.lang.Class.forName("android.app.AppGlobals").getMethod("getInitialApplication", null).invoke(null, null);
     if (ctx) return ctx;
 
     //noinspection JSUnresolvedFunction,JSUnresolvedVariable
@@ -999,6 +1054,9 @@ function UsePlugin(loadedSrc, DBModule) {
 		if (loadedSrc.prototypes) {
 			for (let key in loadedSrc.prototypes) {
 			    if (!loadedSrc.prototypes.hasOwnProperty(key)) { continue; }
+			    if (DBModule.prototype[key]) {
+			        DBModule.prototype["_"+key] = DBModule.prototype[key];
+                }
 				DBModule.prototype[key] = loadedSrc.prototypes[key];
 			}
 		}
@@ -1018,7 +1076,8 @@ function TryLoadingCommercialPlugin() {
 		const sqlCom = require('nativescript-sqlite-commercial');
 		UsePlugin(sqlCom, Database);
 	}
-	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+	catch (e) {
+	    /* Do Nothing if it doesn't exist as it is an optional plugin */
 	}
 }
 
@@ -1030,3 +1089,13 @@ function TryLoadingEncryptionPlugin() {
 	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
 	}
 }
+
+function TryLoadingSyncPlugin() {
+    try {
+        const sqlSync = require('nativescript-sqlite-sync');
+        UsePlugin(sqlSync, Database);
+    }
+    catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+    }
+}
+

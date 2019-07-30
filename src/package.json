@@ -1,6 +1,6 @@
 {
-  "name": "nativescript-sqlite",
-  "version": "2.3.3",
+  "name": "@proplugins/nativescript-sqlite",
+  "version": "2.4.0",
   "description": "A sqlite NativeScript module for Android and iOS",
   "main": "sqlite",
   "nativescript": {
@@ -13,6 +13,8 @@
 	  "pan": "true",
 	  "core3": "true",
 	  "core4": "true",
+	  "core5": "true",
+	  "core6": "true",
 	  "vue": "true",
 	  "category": "Database"
 	}
@@ -20,33 +22,30 @@
   "typings": "sqlite.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nathanaela/nativescript-sqlite.git"
+    "url": "https://git.master.technology/proplugins/nativescript-sqlite.git"
   },
   "keywords": [
     "NativeScript",
     "SQL",
     "SQLite",
-	"SQLCipher",
-	"Encrypted",
+    "SQLCipher",
+    "Encrypted",
     "Database",
     "DB",
     "iOS",
     "Android",
     "JavaScript",
-	"encryption",
+    "encryption",
     "multithreaded"
   ],
   "author": {
     "name": "Nathanael Anderson",
     "email": "nathan@master-technology.com"
   },
-  "license": {
-    "type": "MIT",
-    "url": "https://github.com/nathanaela/nativescript-sqlite/blob/master/LICENSE"
-  },
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/nathanaela/nativescript-sqlite/issues"
+    "url": "https://git.prolugins.org/proplugins/nativescript-sqlite/issues"
   },
-  "homepage": "https://github.com/nathanaela/nativescript-sqlite",
+  "homepage": "https://git.prolugins.org/proplugins/nativescript-sqlite",
   "readmeFilename": "README.md"
 }

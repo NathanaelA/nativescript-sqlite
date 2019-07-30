@@ -1,14 +1,12 @@
-const sqlite = require('nativescript-sqlite');
+const sqlite = require('@proplugins/nativescript-sqlite');
 const ObservableArray = require("tns-core-modules/data/observable-array").ObservableArray;
 
 
 //var Tracing = require('./tracing.js');
 //Tracing(sqlite, {ignore: ["close", "resultType", "valueType", "_toStringArray", "_getResultEngine"], disableAddedFunction: true});
 
-
 var dbname = 'name_db.sqlite';
 var db = null;
-var enc_db = null;
 var page = null;
 
 var data = new ObservableArray();
@@ -22,7 +20,7 @@ if (sqlite.HAS_COMMERCIAL) {
 
 if (sqlite.HAS_ENCRYPTION) {
 	console.log("Using Encryption");
-	//dbname = 'encrypted.sqlite';
+	dbname = 'encrypted.sqlite';
 	data.push({name:'Encryption Support', css:'one'});
 } else {
 	console.log("No Encryption");
@@ -456,6 +454,7 @@ function setupPreparedTests(callback) {
 	}
 
     console.log("!--------- Creating Prepared Tests Data");
+	/*
     db.execSQL(['drop table if exists preparetests;','create table preparetests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text)'], function (err) {
         if (err) {
             data.push({name: 'Failed to create tables and data...', css: 'one'});
@@ -464,9 +463,9 @@ function setupPreparedTests(callback) {
         }
         callback();
     });
+	*/
 
 
-    /*
 	db.execSQL('drop table if exists preparetests;', function (err) {
 		if (err) {
 			console.log("!---- Drop Err", err);
@@ -479,7 +478,7 @@ function setupPreparedTests(callback) {
 			}
 			callback();
 		});
-	}); */
+	});
 }
 
 function runPreparedTests(callback) {

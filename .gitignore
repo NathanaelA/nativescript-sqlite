@@ -3,3 +3,18 @@
 *.tar
 node_modules/
 demoos/
+*.zip
+package-lock.json
+
+demo/hooks/
+demo/platforms/
+
+demo-sync/
+old/
+graphics/
+encrypted/
+commercial/
+sync/
+
+# Commercial Only
+sqlite.d.ts
