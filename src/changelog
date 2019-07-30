@@ -29,3 +29,5 @@ v2.3.0  - Several minor issues fixed, Multi-threading added to Sqlite
 v2.3.1  - iOS SQLExec bind returns the wrong error value
 v2.3.2  - Added Promise tests, started ES6 updated.
 v2.3.3  - In some worker situations, the context cannot be retrieved, added additional method to get context.
+v2.4.0  - Adding Sync Support
+v2.5.0  - NS 6 Support, Webpack fixes, iOS Fix
