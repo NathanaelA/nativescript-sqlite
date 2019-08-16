@@ -844,16 +844,13 @@ Database.copyDatabase = function(name) {
 
     const fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
 
-    let path;
-    if (name.indexOf('/') === -1) {
-        path = fs.knownFolders.documents().path + '/';
-    } else {
-        path = name.substr(0, name.lastIndexOf('/') + 1);
-        name = name.substr(path.length);
+    let dbName = name;
+    if (dbName.indexOf('/') !== -1) {
+        dbName = dbName.substr(dbName.lastIndexOf('/') + 1);
     }
 
-    let source = fs.knownFolders.currentApp().path + '/' + name;
-    let destination = path + name;
+    const source = fs.knownFolders.currentApp().path + '/' + name;
+    const destination = fs.knownFolders.documents().path + '/' + dbName;
     fileManager.copyItemAtPathToPathError(source, destination, null);
 };
 
