@@ -1,5 +1,5 @@
 {
-  "name": "@proplugins/nativescript-sqlite",
+  "name": "nativescript-sqlite",
   "version": "2.5.0",
   "description": "A sqlite NativeScript module for Android and iOS",
   "main": "sqlite",

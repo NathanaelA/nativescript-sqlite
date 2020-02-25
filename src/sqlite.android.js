@@ -1044,8 +1044,7 @@ function _getContext() {
 
     //noinspection JSUnresolvedFunction,JSUnresolvedVariable
     ctx = java.lang.Class.forName("android.app.ActivityThread").getMethod("currentApplication", null).invoke(null, null);
-    if (ctx) return ctx;
-
+    
     return ctx;
 }
 

@@ -1,5 +1,5 @@
 const sqlite = require('@proplugins/nativescript-sqlite');
-const ObservableArray = require("tns-core-modules/data/observable-array").ObservableArray;
+const ObservableArray = require("@nativescript/core/data/observable-array").ObservableArray;
 
 
 //var Tracing = require('./tracing.js');
@@ -119,7 +119,7 @@ exports.addNewName = function() {
 };
 
 exports.openMT = function() {
-   const utils = require('tns-core-modules/utils/utils');
+   const utils = require('@nativescript/core/utils/utils');
    utils.openUrl("https://www.master-technology.com");
 };
 

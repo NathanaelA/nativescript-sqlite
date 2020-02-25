@@ -2,10 +2,10 @@
     "nativescript": {
         "id": "org.proplugins.demo.sqlite",
         "tns-ios": {
-            "version": "6.0.1"
+            "version": "6.2.0"
         },
         "tns-android": {
-            "version": "6.0.0"
+            "version": "6.3.1"
         }
     },
     "description": "SQLite Demo Application",
@@ -13,15 +13,12 @@
     "repository": "<fill-your-repository-here>",
     "dependencies": {
         "@proplugins/nativescript-sqlite": "file:../src",
-        "nativescript-sqlite": "file:../src",
-        "nativescript-sqlite-commercial": "../commercial",
-        "nativescript-sqlite-encrypted": "file:../encrypted",
-        "nativescript-sqlite-sync": "file:../sync",
+        "nativescript-sqlite-commercial": "file:../nativescript-sqlite-commercial-1.4.1.tgz",
         "nativescript-theme-core": "~1.0.4",
-        "tns-core-modules": "6.0.1"
+        "tns-core-modules": "~6.3.0"
     },
     "devDependencies": {
-        "nativescript-dev-webpack": "1.0.1",
+        "nativescript-dev-webpack": "~1.4.0",
         "nativescript-worker-loader": "^0.9.5"
     },
     "readme": "SQLite Demo Application"
