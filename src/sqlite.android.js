@@ -12,7 +12,7 @@
 
 "use strict";
 const appModule = require("application");
-const fsModule  = require("file-system");
+const fsModule = require("file-system");
 
 
 /*jshint undef: true */
@@ -34,7 +34,7 @@ function DBGetRowArrayNative(cursor) {
     //noinspection JSUnresolvedFunction
     let count = cursor.getColumnCount();
     let results = [];
-    for (let i=0;i<count;i++) {
+    for (let i = 0; i < count; i++) {
         const type = cursor.getType(i);
         switch (type) {
             case 0: // NULL
@@ -77,7 +77,7 @@ function DBGetRowArrayString(cursor) {
     //noinspection JSUnresolvedFunction
     let count = cursor.getColumnCount();
     let results = [];
-    for (let i=0;i<count;i++) {
+    for (let i = 0; i < count; i++) {
         const type = cursor.getType(i);
         switch (type) {
             case 0: // NULL
@@ -120,7 +120,7 @@ function DBGetRowObjectNative(cursor) {
     //noinspection JSUnresolvedFunction
     const count = cursor.getColumnCount();
     let results = {};
-    for (let i=0;i<count;i++) {
+    for (let i = 0; i < count; i++) {
         const type = cursor.getType(i);
         //noinspection JSUnresolvedFunction
         const name = cursor.getColumnName(i);
@@ -150,7 +150,7 @@ function DBGetRowObjectNative(cursor) {
                 break;
 
             default:
-                throw new Error('SQLITE - Unknown Field Type '+ type);
+                throw new Error('SQLITE - Unknown Field Type ' + type);
         }
     }
     return results;
@@ -165,7 +165,7 @@ function DBGetRowObjectString(cursor) {
     //noinspection JSUnresolvedFunction
     const count = cursor.getColumnCount();
     let results = {};
-    for (let i=0;i<count;i++) {
+    for (let i = 0; i < count; i++) {
         const type = cursor.getType(i);
         //noinspection JSUnresolvedFunction
         const name = cursor.getColumnName(i);
@@ -195,7 +195,7 @@ function DBGetRowObjectString(cursor) {
                 break;
 
             default:
-                throw new Error('SQLITE - Unknown Field Type '+ type);
+                throw new Error('SQLITE - Unknown Field Type ' + type);
         }
     }
     return results;
@@ -229,119 +229,119 @@ function setResultValueTypeEngine(resultType, valueType) {
  * @constructor
  */
 function Database(dbname, options, callback) {
-	if (!this instanceof Database) { // jshint ignore:line
-		//noinspection JSValidateTypes
-		return new Database(dbname, options, callback);
-	}
-	this._isOpen = false;
-	this._resultType = Database.RESULTSASARRAY;
-	this._valuesType = Database.VALUESARENATIVE;
+    if (!this instanceof Database) { // jshint ignore:line
+        //noinspection JSValidateTypes
+        return new Database(dbname, options, callback);
+    }
+    this._isOpen = false;
+    this._resultType = Database.RESULTSASARRAY;
+    this._valuesType = Database.VALUESARENATIVE;
 
 
-	if (typeof options === 'function') {
-		callback = options;
-		//noinspection JSUnusedAssignment
-		options = {};
-	} else {
-		//noinspection JSUnusedAssignment
-		options = options || {};
-	}
+    if (typeof options === 'function') {
+        callback = options;
+        //noinspection JSUnusedAssignment
+        options = {};
+    } else {
+        //noinspection JSUnusedAssignment
+        options = options || {};
+    }
 
     //noinspection JSUnresolvedVariable
     if (options && options.multithreading && typeof global.Worker === 'function') {
-	       // We don't want this passed into the worker; to try and start another worker (which would fail).
-	        delete options.multithreading;
-	        if (!Database.HAS_COMMERCIAL) {
-	            throw new Error("Commercial only feature; see http://nativescript.tools/product/10");
-            }
-            return new Database._multiSQL(dbname, options, callback);
+        // We don't want this passed into the worker; to try and start another worker (which would fail).
+        delete options.multithreading;
+        if (!Database.HAS_COMMERCIAL) {
+            throw new Error("Commercial only feature; see http://nativescript.tools/product/10");
+        }
+        return new Database._multiSQL(dbname, options, callback);
     }
 
 
-	// Check to see if it has a path, or if it is a relative dbname
-	// dbname = "" - Temporary Database
-	// dbname = ":memory:" = memory database
-	if (dbname !== "" && dbname !== ":memory:") {
-		//var pkgName = appModule.android.context.getPackageName();
-		//noinspection JSUnresolvedFunction
-		dbname = _getContext().getDatabasePath(dbname).getAbsolutePath().toString();
-		let path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
+    // Check to see if it has a path, or if it is a relative dbname
+    // dbname = "" - Temporary Database
+    // dbname = ":memory:" = memory database
+    if (dbname !== "" && dbname !== ":memory:") {
+        //var pkgName = appModule.android.context.getPackageName();
+        //noinspection JSUnresolvedFunction
+        dbname = _getContext().getDatabasePath(dbname).getAbsolutePath().toString();
+        let path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
 
-		// Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
-		// So we create it if it is missing
+        // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
+        // So we create it if it is missing
 
-		try {
+        try {
             //noinspection JSUnresolvedFunction,JSUnresolvedVariable
             let javaFile = new java.io.File(path);
-			if (!javaFile.exists()) {
-				//noinspection JSUnresolvedFunction
-				javaFile.mkdirs();
-				//noinspection JSUnresolvedFunction
-				javaFile.setReadable(true);
-				//noinspection JSUnresolvedFunction
-				javaFile.setWritable(true);
-			}
-		}
-		catch (err) {
-			console.info("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
-		}
-	}
-	const self = this;
+            if (!javaFile.exists()) {
+                //noinspection JSUnresolvedFunction
+                javaFile.mkdirs();
+                //noinspection JSUnresolvedFunction
+                javaFile.setReadable(true);
+                //noinspection JSUnresolvedFunction
+                javaFile.setWritable(true);
+            }
+        }
+        catch (err) {
+            console.info("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
+        }
+    }
+    const self = this;
 
-	return new Promise(function (resolve, reject) {
-		try {
-			let flags = 0;
-			if (typeof options.androidFlags !== 'undefined') {
-				flags = options.androidFlags;
-			}
-			self._db = self._openDatabase(dbname, flags, options, _getContext());
-		} catch (err) {
-			console.error("SQLITE.CONSTRUCTOR -  Open DB Error", err);
-			if (callback) {
-				callback(err, null);
-			}
-			reject(err);
-			return;
-		}
+    return new Promise(function (resolve, reject) {
+        try {
+            let flags = 0;
+            if (typeof options.androidFlags !== 'undefined') {
+                flags = options.androidFlags;
+            }
+            self._db = self._openDatabase(dbname, flags, options, _getContext());
+        } catch (err) {
+            console.error("SQLITE.CONSTRUCTOR -  Open DB Error", err);
+            if (callback) {
+                callback(err, null);
+            }
+            reject(err);
+            return;
+        }
 
-		self._isOpen = true;
+        self._isOpen = true;
 
-		let doneCnt = _DatabasePluginInits.length, doneHandled = 0;
-		const done = function (err) {
-			if (err) {
-				doneHandled = doneCnt;  // We don't want any more triggers after this
-				if (callback) {
-					callback(err, null);
-				}
-				reject(err);
-				return;
-			}
-			doneHandled++;
-			if (doneHandled === doneCnt) {
-				if (callback) {
-					callback(null, self);
-				}
-				resolve(self);
-			}
-		};
+        let doneCnt = _DatabasePluginInits.length, doneHandled = 0;
+        const done = function (err) {
+            if (err) {
+                doneHandled = doneCnt;  // We don't want any more triggers after this
+                if (callback) {
+                    callback(err, null);
+                }
+                reject(err);
+                return;
+            }
+            doneHandled++;
+            if (doneHandled === doneCnt) {
+                if (callback) {
+                    callback(null, self);
+                }
+                resolve(self);
+            }
+        };
 
-		if (doneCnt) {
-			try {
-				for (let i = 0; i < doneCnt; i++) {
-					_DatabasePluginInits[i].call(self, options, done);
-				}
-			}
-			catch (err) {
-				done(err);
-			}
-		} else {
-			if (callback) {
-				callback(null, self);
-			}
-			resolve(self);
-		}
+        if (doneCnt) {
+            try {
+                for (let i = 0; i < doneCnt; i++) {
+                    _DatabasePluginInits[i].call(self, options, done);
+                }
+            }
+            catch (err) {
+                done(err);
+            }
+        } else {
+            if (callback) {
+                callback(null, self);
+            }
+            resolve(self);
+        }
 
-	});
+    });
 }
 
 /**
@@ -350,14 +350,14 @@ function Database(dbname, options, callback) {
  * @param flags
  * @private
  */
-Database.prototype._openDatabase = function(dbName, flags) {
-	if (dbName === ":memory:") {
-		//noinspection JSUnresolvedVariable
-		return android.database.sqlite.SQLiteDatabase.create(flags);
-	} else {
-		//noinspection JSUnresolvedVariable,JSUnresolvedFunction
-		return android.database.sqlite.SQLiteDatabase.openDatabase(dbName, null, flags | 0x10000000);
-	}
+Database.prototype._openDatabase = function (dbName, flags) {
+    if (dbName === ":memory:") {
+        //noinspection JSUnresolvedVariable
+        return android.database.sqlite.SQLiteDatabase.create(flags);
+    } else {
+        //noinspection JSUnresolvedVariable,JSUnresolvedFunction
+        return android.database.sqlite.SQLiteDatabase.openDatabase(dbName, null, flags | 0x10000000);
+    }
 };
 
 /***
@@ -371,13 +371,13 @@ Database.prototype._isSqlite = true;
  * @param valueOrCallback to set or callback(err, version)
  * @returns Promise
  */
-Database.prototype.version = function(valueOrCallback) {
+Database.prototype.version = function (valueOrCallback) {
     if (typeof valueOrCallback === 'function') {
         return this.get('PRAGMA user_version', function (err, data) {
-            valueOrCallback(err, data && parseInt(data[0],10));
+            valueOrCallback(err, data && parseInt(data[0], 10));
         }, Database.RESULTSASARRAY);
-    } else if (!isNaN(valueOrCallback+0)) {
-        return this.execSQL('PRAGMA user_version='+(valueOrCallback+0).toString());
+    } else if (!isNaN(valueOrCallback + 0)) {
+        return this.execSQL('PRAGMA user_version=' + (valueOrCallback + 0).toString());
     } else {
         return this.get('PRAGMA user_version', undefined, undefined, Database.RESULTSASARRAY);
     }
@@ -387,7 +387,7 @@ Database.prototype.version = function(valueOrCallback) {
  * Is the database currently open
  * @returns {boolean} - true if the db is open
  */
-Database.prototype.isOpen = function() {
+Database.prototype.isOpen = function () {
     return this._isOpen;
 };
 
@@ -396,7 +396,7 @@ Database.prototype.isOpen = function() {
  * @param value - Database.RESULTSASARRAY or Database.RESULTSASOBJECT
  * @returns {number} - Database.RESULTSASARRAY or Database.RESULTSASOBJECT
  */
-Database.prototype.resultType = function(value) {
+Database.prototype.resultType = function (value) {
     if (value === Database.RESULTSASARRAY) {
         this._resultType = Database.RESULTSASARRAY;
         setResultValueTypeEngine(this._resultType, this._valuesType);
@@ -413,7 +413,7 @@ Database.prototype.resultType = function(value) {
  * @param value - Database.VALUESARENATIVE or Database.VALUESARESTRINGS
  * @returns {number} - Database.VALUESARENATIVE or Database.VALUESARESTRINGS
  */
-Database.prototype.valueType = function(value) {
+Database.prototype.valueType = function (value) {
     if (value === Database.VALUESARENATIVE) {
         this._valuesType = Database.VALUESARENATIVE;
         setResultValueTypeEngine(this._resultType, this._valuesType);
@@ -431,8 +431,8 @@ Database.prototype.valueType = function(value) {
  * @param callback
  * @returns {Promise}
  */
-Database.prototype.begin = function(callback) {
-  throw new Error("Transactions are a Commercial version feature.");
+Database.prototype.begin = function (callback) {
+    throw new Error("Transactions are a Commercial version feature.");
 };
 
 // noinspection JSUnusedLocalSymbols
@@ -441,8 +441,8 @@ Database.prototype.begin = function(callback) {
  * @param sql
  * @returns {*}
  */
-Database.prototype.prepare = function(sql) {
-	throw new Error("Prepared statements are a Commercial version feature.");
+Database.prototype.prepare = function (sql) {
+    throw new Error("Prepared statements are a Commercial version feature.");
 };
 
 
@@ -452,10 +452,10 @@ Database.prototype.prepare = function(sql) {
  * Closes this database, any queries after this will fail with an error
  * @param callback
  */
-Database.prototype.close = function(callback) {
+Database.prototype.close = function (callback) {
 
     const self = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (!self._isOpen) {
             if (callback) {
                 callback('SQLITE.CLOSE - Database is already closed');
@@ -480,14 +480,14 @@ Database.prototype.close = function(callback) {
  * @param callback - (err, result) - can be last_row_id for insert, and rows affected for update/delete
  * @returns Promise
  */
-Database.prototype.execSQL = function(sql, params, callback) {
+Database.prototype.execSQL = function (sql, params, callback) {
     if (typeof params === 'function') {
         callback = params;
         params = undefined;
     }
 
     const self = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let hasCallback = true;
         if (typeof callback !== 'function') {
             callback = reject;
@@ -567,7 +567,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
  * @param mode - allows you to manually override the results set to be a array or object
  * @returns Promise
  */
-Database.prototype.get = function(sql, params, callback, mode) {
+Database.prototype.get = function (sql, params, callback, mode) {
     if (typeof params === 'function') {
         mode = callback;
         callback = params;
@@ -575,7 +575,7 @@ Database.prototype.get = function(sql, params, callback, mode) {
     }
 
     const self = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let hasCallback = true;
         if (typeof callback !== 'function') {
             callback = reject;
@@ -630,14 +630,14 @@ Database.prototype.get = function(sql, params, callback, mode) {
     });
 };
 
-Database.prototype._getResultEngine = function(mode) {
+Database.prototype._getResultEngine = function (mode) {
     if (mode == null || mode === 0) return DBGetRowResults;
 
-    let resultType = (mode & Database.RESULTSASARRAY|Database.RESULTSASOBJECT);
+    let resultType = (mode & Database.RESULTSASARRAY | Database.RESULTSASOBJECT);
     if (resultType === 0) {
         resultType = this._resultType;
     }
-    let valueType = (mode & Database.VALUESARENATIVE|Database.VALUESARESTRINGS);
+    let valueType = (mode & Database.VALUESARENATIVE | Database.VALUESARESTRINGS);
     if (valueType === 0) {
         valueType = this._valuesType;
     }
@@ -665,14 +665,14 @@ Database.prototype._getResultEngine = function(mode) {
  * @param callback - (err, results)
  * @returns Promise
  */
-Database.prototype.all = function(sql, params, callback) {
+Database.prototype.all = function (sql, params, callback) {
     if (typeof params === 'function') {
         callback = params;
         params = undefined;
     }
 
     const self = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let hasCallback = true;
         if (typeof callback !== 'function') {
             callback = reject;
@@ -741,7 +741,7 @@ Database.prototype.all = function(sql, params, callback) {
  * @param complete - callback (err, recordCount)
  * @returns Promise
  */
-Database.prototype.each = function(sql, params, callback, complete) {
+Database.prototype.each = function (sql, params, callback, complete) {
     if (typeof params === 'function') {
         complete = callback;
         callback = params;
@@ -814,13 +814,17 @@ Database.prototype.each = function(sql, params, callback, complete) {
  * @returns {Array}
  * @private
  */
-Database.prototype._toStringArray = function(params) {
+Database.prototype._toStringArray = function (params) {
     let stringParams = [];
     if (Object.prototype.toString.apply(params) === '[object Array]') {
         const count = params.length;
-        for (let i=0; i<count; ++i) {
+        for (let i = 0; i < count; ++i) {
             if (params[i] == null) { // jshint ignore:line
                 stringParams.push(null);
+            }
+            // Check if it'a blob type
+            else if (params[i]["getClass"] && params[1].getClass().getSimpleName() == "ByteArrayOutputStream") {
+                stringParams.push(params[i].toByteArray());
             } else {
                 stringParams.push(params[i].toString());
             }
@@ -840,7 +844,7 @@ Database.prototype._toStringArray = function(params) {
  * @param obj - possible sqlite object to check
  * @returns {boolean}
  */
-Database.isSqlite = function(obj) {
+Database.isSqlite = function (obj) {
     return obj && obj._isSqlite;
 };
 
@@ -849,7 +853,7 @@ Database.isSqlite = function(obj) {
  * @param name
  * @returns {*}
  */
-Database.exists = function(name) {
+Database.exists = function (name) {
     //noinspection JSUnresolvedFunction
     const dbName = _getContext().getDatabasePath(name).getAbsolutePath();
     // noinspection JSUnresolvedFunction,JSUnresolvedVariable
@@ -862,7 +866,7 @@ Database.exists = function(name) {
  * Delete the database file if it exists
  * @param name
  */
-Database.deleteDatabase = function(name) {
+Database.deleteDatabase = function (name) {
     //noinspection JSUnresolvedFunction
     const dbName = _getContext().getDatabasePath(name).getAbsolutePath();
     // noinspection JSUnresolvedFunction,JSUnresolvedVariable
@@ -881,7 +885,7 @@ Database.deleteDatabase = function(name) {
  * Copy the database from the install location
  * @param name
  */
-Database.copyDatabase = function(name) {
+Database.copyDatabase = function (name) {
 
     //Open your local db as the input stream
     let myInput;
@@ -893,12 +897,12 @@ Database.copyDatabase = function(name) {
     catch (err) {
         // Use the Assets version
         // noinspection JSUnresolvedFunction
-        myInput = _getContext().getAssets().open("app/"+name);
+        myInput = _getContext().getAssets().open("app/" + name);
     }
 
-     
+
     if (name.indexOf('/')) {
-        name = name.substring(name.lastIndexOf('/')+1);
+        name = name.substring(name.lastIndexOf('/') + 1);
     }
 
     //noinspection JSUnresolvedFunction
@@ -956,7 +960,7 @@ Database.copyDatabase = function(name) {
 };
 
 // Literal Defines
-Database.RESULTSASARRAY  = 1;
+Database.RESULTSASARRAY = 1;
 Database.RESULTSASOBJECT = 2;
 Database.VALUESARENATIVE = 4;
 Database.VALUESARESTRINGS = 8;
@@ -996,37 +1000,37 @@ function _getContext() {
 
 /** Uses a SQLite Plugin **/
 function UsePlugin(loadedSrc, DBModule) {
-		if (loadedSrc.prototypes) {
-			for (let key in loadedSrc.prototypes) {
-			    if (!loadedSrc.prototypes.hasOwnProperty(key)) { continue; }
-				DBModule.prototype[key] = loadedSrc.prototypes[key];
-			}
-		}
-		if (loadedSrc.statics) {
-			for (let key in loadedSrc.statics) {
-                if (!loadedSrc.statics.hasOwnProperty(key)) { continue; }
-                DBModule[key] = loadedSrc.statics[key];
-			}
-		}
-		if (typeof loadedSrc.init === 'function') {
-			_DatabasePluginInits.push(loadedSrc.init);
-		}
+    if (loadedSrc.prototypes) {
+        for (let key in loadedSrc.prototypes) {
+            if (!loadedSrc.prototypes.hasOwnProperty(key)) { continue; }
+            DBModule.prototype[key] = loadedSrc.prototypes[key];
+        }
+    }
+    if (loadedSrc.statics) {
+        for (let key in loadedSrc.statics) {
+            if (!loadedSrc.statics.hasOwnProperty(key)) { continue; }
+            DBModule[key] = loadedSrc.statics[key];
+        }
+    }
+    if (typeof loadedSrc.init === 'function') {
+        _DatabasePluginInits.push(loadedSrc.init);
+    }
 }
 
 function TryLoadingCommercialPlugin() {
-	try {
-		const sqlCom = require('nativescript-sqlite-commercial');
-		UsePlugin(sqlCom, Database);
-	}
-	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
-	}
+    try {
+        const sqlCom = require('nativescript-sqlite-commercial');
+        UsePlugin(sqlCom, Database);
+    }
+    catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+    }
 }
 
 function TryLoadingEncryptionPlugin() {
-	try {
-		const sqlEnc = require('nativescript-sqlite-encrypted');
-		UsePlugin(sqlEnc, Database);
-	}
-	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
-	}
+    try {
+        const sqlEnc = require('nativescript-sqlite-encrypted');
+        UsePlugin(sqlEnc, Database);
+    }
+    catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+    }
 }
