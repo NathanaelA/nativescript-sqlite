@@ -857,6 +857,14 @@ Database.copyDatabase = function(name) {
     fileManager.copyItemAtPathToPathError(source, destination, null);
 };
 
+Database.copyDatabaseFromPath = function(source, dbName){
+    const fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
+
+    let destination = knownFolders.documents().path + '/' + dbName;
+
+    return fileManager.copyItemAtPathToPathError(source, destination, null);
+};
+
 function UsePlugin(loadedSrc, DBModule) {
 		if (loadedSrc.prototypes) {
 			for (let key in loadedSrc.prototypes) {

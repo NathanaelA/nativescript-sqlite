@@ -955,6 +955,77 @@ Database.copyDatabase = function(name) {
     return success;
 };
 
+Database.copyDatabaseFromPath = function(source, databaseName){
+    //Open your local db as the input stream
+    let myInput;
+    try {
+        // Attempt to use the local app directory version
+        // noinspection JSUnresolvedFunction,JSUnresolvedVariable
+        myInput = new java.io.FileInputStream(source);
+    }
+    catch (err) {
+        // Use the Assets version
+        // noinspection JSUnresolvedFunction
+        console.error(err);
+        return false;
+    }
+
+
+    //noinspection JSUnresolvedFunction
+    const dbName = _getContext().getDatabasePath(databaseName).getAbsolutePath();
+
+    const path = dbName.substr(0, dbName.lastIndexOf('/') + 1);
+
+    // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
+    // So we create it if it is missing
+
+    try {
+        // noinspection JSUnresolvedFunction,JSUnresolvedVariable
+        const javaFile = new java.io.File(path);
+        //noinspection JSUnresolvedFunction
+        if (!javaFile.exists()) {
+            //noinspection JSUnresolvedFunction
+            javaFile.mkdirs();
+            //noinspection JSUnresolvedFunction
+            javaFile.setReadable(true);
+            //noinspection JSUnresolvedFunction
+            javaFile.setWritable(true);
+        }
+    }
+    catch (err) {
+        console.info("SQLITE - COPYDATABASE - Creating DB Folder Error", err);
+    }
+
+    //Open the empty db as the output stream
+    // noinspection JSUnresolvedFunction,JSUnresolvedVariable
+    const myOutput = new java.io.FileOutputStream(dbName);
+
+
+    let success = true;
+    try {
+        //transfer bytes from the input file to the output file
+        //noinspection JSUnresolvedFunction,JSUnresolvedVariable
+        let buffer = java.lang.reflect.Array.newInstance(java.lang.Byte.class.getField("TYPE").get(null), 1024);
+        let length;
+        while ((length = myInput.read(buffer)) > 0) {
+            // noinspection JSUnresolvedFunction
+            myOutput.write(buffer, 0, length);
+        }
+    }
+    catch (err) {
+        success = false;
+    }
+
+
+    //Close the streams
+    // noinspection JSUnresolvedFunction
+    myOutput.flush();
+    // noinspection JSUnresolvedFunction
+    myOutput.close();
+    myInput.close();
+    return success;
+};
+
 // Literal Defines
 Database.RESULTSASARRAY  = 1;
 Database.RESULTSASOBJECT = 2;
