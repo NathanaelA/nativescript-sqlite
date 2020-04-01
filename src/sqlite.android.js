@@ -1,11 +1,11 @@
 /**************************************************************************************
- * (c) 2015-2019, Master Technology
+ * (c) 2015-2020, Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.5.0 - Android
+ * Version 2.6.0 - Android
  *************************************************************************************/
 
 /* global global, require, module */
@@ -838,6 +838,8 @@ Database.prototype._toStringArray = function(params) {
         for (let i=0; i<count; ++i) {
             if (params[i] == null) { // jshint ignore:line
                 stringParams.push(null);
+            } else if (params[i]["getClass"] && params[1].getClass().getSimpleName() == "ByteArrayOutputStream") {
+                stringParams.push(params[i].toByteArray());
             } else {
                 stringParams.push(params[i].toString());
             }
@@ -931,32 +933,48 @@ Database.manualBackup = function(name) {
     }
 
 };
+
 /**
  * Copy the database from the install location
  * @param name
+ * @param destName - Optional DB Destination Name
  */
-Database.copyDatabase = function(name) {
+Database.copyDatabase = function (name, destName) {
 
     //Open your local db as the input stream
     let myInput;
     try {
+
+        let sourcePath, tempName;
+        if (name.indexOf('/') === -1) {
+            sourcePath = fsModule.knownFolders.currentApp().path + '/';
+            tempName = name;
+        } else {
+            sourcePath = name.substr(0, name.lastIndexOf('/') + 1);
+            tempName = name.substr(sourcePath.length);
+        }
+
         // Attempt to use the local app directory version
         // noinspection JSUnresolvedFunction,JSUnresolvedVariable
-        myInput = new java.io.FileInputStream(fsModule.knownFolders.currentApp().path + '/' + name);
-    }
-    catch (err) {
+        myInput = new java.io.FileInputStream(sourcePath + tempName);
+    } catch (err) {
         // Use the Assets version
         // noinspection JSUnresolvedFunction
-        myInput = _getContext().getAssets().open("app/"+name);
+        myInput = _getContext().getAssets().open("app/" + name);
     }
 
-     
-    if (name.indexOf('/')) {
-        name = name.substring(name.lastIndexOf('/')+1);
+    if (name.indexOf('/') >= 0) {
+        name = name.substring(name.lastIndexOf('/') + 1);
+    }
+
+    // If we don't have a destName set; use Name
+    if (!destName) { destName = name; }
+    else if (destName.indexOf("/") >= 0) {
+        destName = destName.substring(destName.lastIndexOf('/') + 1);
     }
 
     //noinspection JSUnresolvedFunction
-    const dbName = _getContext().getDatabasePath(name).getAbsolutePath();
+    const dbName = _getContext().getDatabasePath(destName).getAbsolutePath();
     const path = dbName.substr(0, dbName.lastIndexOf('/') + 1);
 
     // Create "databases" folder if it is missing.  This causes issues on Emulators if it is missing
@@ -974,8 +992,7 @@ Database.copyDatabase = function(name) {
             //noinspection JSUnresolvedFunction
             javaFile.setWritable(true);
         }
-    }
-    catch (err) {
+    } catch (err) {
         console.info("SQLITE - COPYDATABASE - Creating DB Folder Error", err);
     }
 
@@ -994,8 +1011,7 @@ Database.copyDatabase = function(name) {
             // noinspection JSUnresolvedFunction
             myOutput.write(buffer, 0, length);
         }
-    }
-    catch (err) {
+    } catch (err) {
         success = false;
     }
 
@@ -1027,15 +1043,22 @@ module.exports = Database;
  * @private
  */
 function _getContext() {
-    if (appModule.android.context) {
-        return (appModule.android.context);
-    }
-    if (typeof appModule.getNativeApplication === 'function') {
-        let ctx = appModule.getNativeApplication();
-        if (ctx) {
-            return ctx;
+    try {
+        if (appModule.android.context) {
+            return (appModule.android.context);
         }
+        if (typeof appModule.getNativeApplication === 'function') {
+            let ctx = appModule.getNativeApplication();
+            if (ctx) {
+                return ctx;
+            }
+        }
+    } catch (err) {
+	console.log("Using Fallback");
+        /* In some cases Multidex has been the report */
+        /* the getNativeApplication calls .getInstance which fails */
     }
+
 
 
     //noinspection JSUnresolvedFunction,JSUnresolvedVariable
@@ -1044,7 +1067,7 @@ function _getContext() {
 
     //noinspection JSUnresolvedFunction,JSUnresolvedVariable
     ctx = java.lang.Class.forName("android.app.ActivityThread").getMethod("currentApplication", null).invoke(null, null);
-    
+
     return ctx;
 }
 

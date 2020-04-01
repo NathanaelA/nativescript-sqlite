@@ -1,6 +1,6 @@
 {
   "name": "nativescript-sqlite",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "A sqlite NativeScript module for Android and iOS",
   "main": "sqlite",
   "nativescript": {
@@ -22,13 +22,13 @@
   "typings": "sqlite.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://git.master.technology/proplugins/nativescript-sqlite.git"
+    "url": "https://github.com/nathanaela/nativescript-sqlite.git"
   },
   "keywords": [
     "NativeScript",
     "SQL",
     "SQLite",
-    "SQLCipher",
+    "SQLCipheOBr",
     "Encrypted",
     "Database",
     "DB",
@@ -44,8 +44,8 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://git.prolugins.org/proplugins/nativescript-sqlite/issues"
+    "url": "https://github.com/nathanaela/nativescript-sqlite/issues"
   },
-  "homepage": "https://git.prolugins.org/proplugins/nativescript-sqlite",
+  "homepage": "https://github.com/nathanaela/nativescript-sqlite",
   "readmeFilename": "README.md"
 }

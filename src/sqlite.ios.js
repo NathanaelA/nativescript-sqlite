@@ -1,11 +1,11 @@
 /************************************************************************************
- * (c) 2015-2019 Master Technology
+ * (c) 2015-2020 Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.5.0 - iOS
+ * Version 2.6.0 - iOS
  ***********************************************************************************/
 /* global global, require, module */
 
@@ -15,7 +15,7 @@ const fs = require('tns-core-modules/file-system');
 /* jshint undef: true, camelcase: false */
 /* global Promise, NSFileManager, NSBundle, NSString, interop, sqlite3_open_v2, sqlite3_close, sqlite3_prepare_v2, sqlite3_step,
  sqlite3_finalize, sqlite3_bind_null, sqlite3_bind_text, sqlite3_column_type, sqlite3_column_int64,
- sqlite3_column_double, sqlite3_column_text, sqlite3_column_count, sqlite3_column_name, sqlitehelper */
+ sqlite3_column_double, sqlite3_column_text, sqlite3_column_count, sqlite3_column_name, sqlite3_bind_blob */
 
 let _DatabasePluginInits = [];
 const TRANSIENT = new interop.Pointer(-1);
@@ -668,7 +668,10 @@ Database.prototype._bind = function(statement, params) {
         const count = params.length;
         for (let i=0; i<count; ++i) {
             if (params[i] == null) { // jshint ignore:line
-                res = sqlite3_bind_null(statement, i+1);
+                res = sqlite3_bind_null(statement, i + 1);
+            } else if (params[i].isKindOfClass && (params[i].isKindOfClass(NSData.class()))) {
+                const obj = params[i];
+                res = sqlite3_bind_blob(statement, i + 1, obj.bytes, obj.length, null)
             } else {
                 param = params[i].toString();
                 res = sqlite3_bind_text(statement, i+1, param, -1, TRANSIENT );
@@ -853,7 +856,7 @@ Database.deleteDatabase = function(name) {
     }
 };
 
-Database.copyDatabase = function(name) {
+Database.copyDatabase = function (name, destName) {
     //noinspection JSUnresolvedFunction
 
     const fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
@@ -867,7 +870,13 @@ Database.copyDatabase = function(name) {
     }
 
     let source = fs.knownFolders.currentApp().path + '/' + name;
-    let destination = path + name;
+
+    if (!destName) { destName = name; }
+    else if (destName.indexOf("/") >= 0) {
+        destName = destName.substring(destName.lastIndexOf('/') + 1);
+    }
+
+    let destination = path + destName;
     fileManager.copyItemAtPathToPathError(source, destination, null);
 };
 

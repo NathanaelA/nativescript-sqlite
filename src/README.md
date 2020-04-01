@@ -194,8 +194,9 @@ new Sqlite("test.db", function(err, db) {
 * RETURNS: Nothing
 
 
-#### Sqlite.copyDatabase(dbName)
+#### Sqlite.copyDatabase(dbName, destName)
 * dbName - database name to copy from your app folder to the proper database folder on the OS
+* destName - (OPTIONAL) - if you want the database destination name to be something different than the source
 * RETURNS: True if copy was successful
 * NOTES: This will only copy the file if it does not already exist at the destination.
 
@@ -205,6 +206,9 @@ if (DEBUGMODE && Sqlite.exists("mydatabase.sqlite")) {
   Sqlite.deleteDatabase("mydatabase.sqlite");
 }
 if (!Sqlite.exists("mydatabase.sqlite")) {
+  // Example: Copying a different name to mydatabase.sqlite
+  // Sqlite.copyDatabase("original.sqlite", "mydatabase.sqlite");
+  // OR copy mydatabase to where it belongs...
   Sqlite.copyDatabase("mydatabase.sqlite");
 }
 ```
