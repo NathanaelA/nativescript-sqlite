@@ -39,4 +39,19 @@ describe('Database', function () {
             });
         });
     });
+
+    describe('In-Memory Connection', function () {
+        var promise = new sqlite(":memory:");
+        it('Promise should not be null', function () {
+            assert.isNotNull(promise);
+        });
+        it('promise should work', function (done) {
+            promise.then(function (db) {
+                assert.isNotNull(db);
+                
+                db.close();
+                done();
+            });
+        });
+    });
 });

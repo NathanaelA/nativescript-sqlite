@@ -34,4 +34,17 @@ if (!sqlite.exists(dbName)) {
         });
 
     });
+
+    new sqlite(":memory:", function(err, db) {
+        describe('In-Memory Connection', function() {
+            it('Error should be null', function() { 
+                assert.isNull(err);
+            });
+            it('dbConnection should not be null', function() {
+                assert.isNotNull(db);
+            });
+
+            done();
+        });
+    });
 });
