@@ -5,15 +5,13 @@
  *
  * Any questions please feel free to put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.6.0 - Android
+ * Version 2.6.1 - Android
  *************************************************************************************/
-
 /* global global, require, module */
 
 "use strict";
 const appModule = require("tns-core-modules/application");
 const fsModule  = require("tns-core-modules/file-system");
-
 
 /*jshint undef: true */
 /*global java, android, Promise */

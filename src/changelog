@@ -32,3 +32,4 @@ v2.3.3  - In some worker situations, the context cannot be retrieved, added addi
 v2.4.0  - Adding Sync Support
 v2.5.0  - NS 6 Support, Webpack fixes, iOS Fix
 v2.6.0  - Blog fixes, Updated typings, context fix, copyDatabase fix & can have options destination name
+v2.6.1  - Fixed creating :memory: table on Android.  - Thanks Lars Hollenbach

@@ -20,10 +20,10 @@ The [commercial version](http://nativescript.tools/product/10) comes with the fo
 - **Multi-threading**
 
 ## Installation
-- tns plugin add @proplugins/nativescript-sqlite@latest
+- tns plugin add nativescript-sqlite@latest
 
 ### Installation of Encrypted Plugin (Provides encryption support)
-- tns plugin add nativescript-sqlite-encrypted-1.4.0.tgz
+- tns plugin add nativescript-sqlite-encrypted-1.5.0.tgz
 
 ### Installation of Commercial Plugin (Provides Transactions, Prepared statements, multiple queries)
-- tns plugin add nativescript-sqlite-commercial-1.3.2.tgz
+- tns plugin add nativescript-sqlite-commercial-1.4.2.tgz
