@@ -354,7 +354,7 @@ function Database(dbname, options, callback) {
 Database.prototype._openDatabase = function(dbName, flags) {
 	if (dbName === ":memory:") {
 		//noinspection JSUnresolvedVariable
-		return android.database.sqlite.SQLiteDatabase.create(flags);
+		return android.database.sqlite.SQLiteDatabase.create(null);
 	} else {
 		//noinspection JSUnresolvedVariable,JSUnresolvedFunction
 		return android.database.sqlite.SQLiteDatabase.openDatabase(dbName, null, flags | 0x10000000);
