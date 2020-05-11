@@ -5,7 +5,7 @@
  *
  * Any questions please feel free to put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.6.1 - Android
+ * Version 2.6.2 - Android
  *************************************************************************************/
 /* global global, require, module */
 
@@ -371,15 +371,22 @@ Database.prototype._isSqlite = true;
  * @returns Promise
  */
 Database.prototype.version = function(valueOrCallback) {
-    if (typeof valueOrCallback === 'function') {
-        return this.get('PRAGMA user_version', function (err, data) {
-            valueOrCallback(err, data && parseInt(data[0],10));
-        }, Database.RESULTSASARRAY);
-    } else if (!isNaN(valueOrCallback+0)) {
-        return this.execSQL('PRAGMA user_version='+(valueOrCallback+0).toString());
-    } else {
-        return this.get('PRAGMA user_version', undefined, undefined, Database.RESULTSASARRAY);
-    }
+    return new Promise((resolve, reject) => {
+        if (typeof valueOrCallback === 'function') {
+            this.get('PRAGMA user_version', function (err, data) {
+                const value = data && parseInt(data[0], 10);
+                valueOrCallback(err, value);
+                if (err) { reject(err); }
+                else resolve(value);
+            }, Database.RESULTSASARRAY);
+        } else if (!isNaN(valueOrCallback + 0)) {
+            this.execSQL('PRAGMA user_version=' + (valueOrCallback + 0).toString()).then(resolve, reject);
+        } else {
+            this.get('PRAGMA user_version', undefined, undefined, Database.RESULTSASARRAY).then((data) => {
+                resolve(data && parseInt(data[0], 10))
+            }).catch(reject);
+        }
+    });
 };
 
 /***

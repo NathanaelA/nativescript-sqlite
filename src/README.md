@@ -1,13 +1,6 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg) ![License](https://img.shields.io/badge/platform-ios%20%7C%20android-lightgrey.svg) ![Proplugins](https://img.shields.io/badge/Pro%20plugins-Release-green.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wcQFCgSC/acTQAAAzxJREFUOMt91W+IVGUUBvDfnZldM90pm63cXWVaWzcMKU2WESIrCKRMUOwP5RZFwTrgtyDKov/0wTJBiimIILWwZEnqgxElGYk7qEGZabmhU+qWzZjMVGruzvTlnbgsWy9ceN/znvuc59zznHMjsZXO51QLRel8LsJkTA/PPLTiGL5CqVooji2483Ut9amQCvdnExOAXYQH8DF+xBu4D+uxNdiWwb6tq2AqnsX7uCwxDqwbd2E1bgixMvgrlshPuH7OyqeicF6PNViC3lQMbCZ2YArKOIFPA8ODgclsnI4aye8OvvNcY+GKzQ9hWgA+gANRYHgBtmExzuIlvFctFA/4j9W3/N0liaj+dhTZjXN4eWiwfygRCrAUVwXfo9g0EVit3AF2fH5z540Lvh6YfcWxcr0RzcOHQ4P9QwtXbJYI1bkW3+MkVlYLxcPpfG5CZrVyR2vf3EOvvbD6rUUPL9u+c3Q0uW1osH9jXCpd6Xyukc7njqbzuXzTXsn2iO+b7GrljjW1ckejVu5o/P7rjA/GB0zh6rDPhkI0V1sl23Mx6pnS8HHt1Mod9+MSjOFoKjn24JSBXJRMaEELMgnMiIEciu3XYQh7KtNm31T7e3qflOexIOjx1rb2kdPJhGnYgAHckcIo9obq1mKAh9EJpjQ2jA5M3uWUWmrj2VnO297WPnI4+LUGMHgsgW+RDCnPGcfwRYxJOlH/LLm0vicZ+dOrbe0ja2N+PXHRJ/Ab5mMmVsUu65nS8BPhrlekS4vWU51XroNHN/8buzcIH/YlUMEnwbAonc9dB923ZVSyPTKl4f3oD120OOvL+t3L51vbf1A6n+vF2tDfr6AUBb2txCOYFD74lmqhGC+QSrZncqY0fKaR6RZVjkjnc9nQXfOCOh7HpmbrTcU9eCb05s+4t1oo7ptI3Ol8bk7orqdxIXZiabVQrEWx4dCFLzArvHcKT6IU5PQHukNFb8cvuBTncUu1UPwhnc+Jxo2vLryJufgmVLA3BNgdRlnzvD/4flQtFI80MZJwbu/xJmhtUt+MwTAg6lgey/REYNOJXWGsbakWiiNNMIj+5xfQgstxTZDUWGB1MqR7plooNuJg8A+UzC22+9VP+QAAAABJRU5ErkJggg==) ![NativeScriptCore](https://img.shields.io/badge/Core-demo-darkblue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wcQFQ4vkYI5TwAAAlhJREFUOMullU1IVFEUx3/nzvPNOBh92CAYBn1ALlyFUZRj2dDGwISIhLFttXEnIRGJmOGipSUF0SoposVAQi3EQiLEIAjSVUJhfpRULhp1xt5p8Xo+n/OGCTpweZxzz/m/e/7nnHsFoKHdMaIcROkCmoBySosAWWAU4ZZlMz76wKg0tDtGHK4Cvfyf9I0NmWuSTDv1KBOeVdVdIu4Kk2I+IrRZQJdnqIhDS0pIVMKPJXg8rKzmgmC5PJxrhn01wtxXJTMCv7IusCqdFkqT99eWlHC5zQ9ObBd6BpSKuG9bW4PGeuFQnUtjdRXcHFSiNgC1xiuAKiQqg6c5k4ILrUJ+LViK346v7q4O6LYJklPIV0c71NeFboXGmBJ4WBHo7hAvpVJ4PqCjEIv6G99/sl6Qndvg9nVBtRAhagcrbTz+Th0TTh72N95+gMFHfvSBPdB1UQpaae8uaD4ORjYBTk1r4IRlFjx9Dg+f+aCnT0DqqOu/MbP5Rfe7DmgMzMzC8MtN/Flw/wm8m/JtPR1CYoevf56DifchHBoDq/lCxvN5uHFHya74nO2v8V2WV93Y0CqHTZoIzH+DS91a9IbYXGXZGBwmkQh8/AT99zTAH4CYQjXrgS0sKsXArQgMv4IXr4P22QW/wkDOAkaBsyKQGYHqKnecpme0oGkF6B1Qtm4R4jH4sgD9dwPdMSnJtHME5Y3XPrm8O5tWBOyycAqWV9z+NhIcBqDVWDbjQJ+XZtSGeKw4GEB5zPUJgAlXxoZMZj37xrRzXpVOoBaw//EJyAGTf2/rTDLtyB9FfcLlI/KGaQAAAABJRU5ErkJggg==) [![Twitter Follow](https://img.shields.io/twitter/follow/congocart.svg?style=social&label=Follow%20me)](https://twitter.com/congocart)
 
 # NativeScript sqlite
-<table><tr><td>
-<a href="https://proplugins.org"><img src="https://proplugins.org/logos/logo.png" width="200"/></a>
-</td><td>
-<div>Sponsored By:<br>
-<a href="https://master.technology"><img src="https://proplugins.org/logos/mt-banner.png" width="200"/></a></div>
-</td></tr></table>
-
 
 A NativeScript module providing sqlite actions for Android and iOS. (with multi-threading)
 
@@ -45,7 +38,7 @@ This file is REQUIRED for normal un-encrypted sqlite; but it can conflict with e
 
 ## Example Application
 
-An example application can be downloaded form npm.proplugins.org or cloned from git.proplugins.org, in the demo folder.
+An example application can be downloaded or cloned from https://github.com/NathanaelA/nativescript-sqlite 
 To use you need to do:
 * `npm i`
 * `tns run`
@@ -60,7 +53,7 @@ Then run the app the normal way you would.
 
 ## Installation
 
-Run `tns plugin add @proplugins/nativescript-sqlite` in your ROOT directory of your project.
+Run `tns plugin add nativescript-sqlite` in your ROOT directory of your project.
 
 ***optional***
 * `tns plugin add ./plugins/nativescript-sqlite-commercial-???.tgz`
@@ -101,12 +94,12 @@ so that it ignores those during webpacking, right below the line that says
 To use the sqlite module you must first `require()` it:
 
 ```js
-const Sqlite = require( "@proplugins/nativescript-sqlite" );
+const Sqlite = require( "nativescript-sqlite" );
 ```
 
 (or with TypeScript, if using the commercial version)
 ```ts
-import {Sqlite} from "@proplugins/nativescript-sqlite";
+import Sqlite from "nativescript-sqlite";
 ```
 
 After you have a reference to the module you can then call the available methods.
@@ -138,6 +131,7 @@ If you are planning on shipping a database with the application; drop the file i
 
 ### Methods
 #### new Sqlite(dbname, options, callback)
+#### promise = Sqlite(dbname, options, callback)
 ##### Parameters
 * dbname: your database name.   This can be ":memory:" for a memory Database. This can be "" for a Temporary Database.
 * options 
@@ -151,25 +145,28 @@ If you are planning on shipping a database with the application; drop the file i
  You should choose either to use a promise or a callback; you can use whichever you are most comfortable with -- however, as with this example, you CAN use both if you want; but side effects WILL occur with some functions.
 
 ```js
-// my-page.js
-const Sqlite = require( "/path/to/node_modules/nativescript-sqlite" );
-const db_promise = new Sqlite("MyTable", function(err, db) {
+// Promise based example
+const Sqlite = require( "nativescript-sqlite" );
+
+const db = await Sqlite("MyTable");
+console.log("Are we open yet (Promise based)? ", db.isOpen() ? "Yes" : "No"); // Yes
+```
+
+or
+
+```js
+// Callback based example
+const Sqlite = require( "nativescript-sqlite" );
+new Sqlite("MyTable", function(err, db) {
     if (err) {
       console.error("We failed to open database", err);
     } else {
       // This should ALWAYS be true, db object is open in the "Callback" if no errors occurred
-      console.log("Are we open yet (Inside Callback)? ", db.isOpen() ? "Yes" : "No"); // Yes
+      console.log("Are we open yet (Callback based)? ", db.isOpen() ? "Yes" : "No"); // Yes
     }
 });
-
-db_promise.then(function(db) {
-    // This should ALWAYS be true, db object is open in the "then"
-      console.log("Are we open yet (Inside Promise)? ", db.isOpen() ? "Yes" : "No"); // Yes
-      db.close();
-   }, function(err) {
-     console.error("We failed to open database", err);
-   });
 ```
+
 
 #### Sqlite.isSqlite()
 ##### Parameters
