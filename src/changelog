@@ -34,3 +34,5 @@ v2.5.0  - NS 6 Support, Webpack fixes, iOS Fix
 v2.6.0  - Blog fixes, Updated typings, context fix, copyDatabase fix & can have options destination name
 v2.6.1  - Fixed creating :memory: table on Android.  - Thanks Lars Hollenbach
 v2.6.2  - Doc fixes, version not returning a number when on promise based path, sqlexec eating errors on ios - Thanks Eugine Mirotin & jscti
+v2.6.3  - Issue with using w/o constructor fixed
+v2.6.4  - Fixes in Blob handling on android, now directly supports byte[] arrays on android.

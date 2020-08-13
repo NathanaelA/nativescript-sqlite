@@ -10,8 +10,8 @@
 /* global global, require, module */
 
 "use strict";
-const appModule = require("tns-core-modules/application");
-const fsModule  = require("tns-core-modules/file-system");
+const appModule = require("@nativescript/core/application");
+const fsModule  = require("@nativescript/core/file-system");
 
 /*jshint undef: true */
 /*global java, android, Promise */
@@ -836,27 +836,36 @@ Database.prototype.each = function(sql, params, callback, complete) {
  * @returns {Array}
  * @private
  */
-Database.prototype._toStringArray = function(params) {
-    let stringParams = [];
-    if (Object.prototype.toString.apply(params) === '[object Array]') {
-        const count = params.length;
-        for (let i=0; i<count; ++i) {
-            if (params[i] == null) { // jshint ignore:line
-                stringParams.push(null);
-            } else if (params[i]["getClass"] && params[1].getClass().getSimpleName() == "ByteArrayOutputStream") {
-                stringParams.push(params[i].toByteArray());
-            } else {
-                stringParams.push(params[i].toString());
-            }
-        }
-    } else {
-        if (params == null) { // jshint ignore:line
-            stringParams.push(null);
-        } else {
-            stringParams.push(params.toString());
-        }
-    }
-    return stringParams;
+Database.prototype._toStringArray = function(paramsIn) {
+	let stringParams = [], params;
+	if (Object.prototype.toString.apply(paramsIn) !== '[object Array]') {
+		params = [paramsIn];
+	} else {
+		params = paramsIn;
+	}
+
+	const count = params.length;
+	for (let i = 0; i < count; ++i) {
+		if (params[i] == null) { // jshint ignore:line
+			stringParams.push(null);
+		} else if (params[i].getClass) {
+			switch (params[i].getClass().getSimpleName()) {
+				case "ByteArrayOutputStream":
+					stringParams.push(params[i].toByteArray());
+					break;
+				case "byte[]":
+					stringParams.push(params[i]);
+					break;
+				default:
+					console.warn("Unknown Java class:", params[i].getClass().getSimpleName(), "Converting to string");
+					stringParams.push(params[i].toString());
+			}
+		} else {
+			stringParams.push(params[i].toString());
+		}
+	}
+
+	return stringParams;
 };
 
 /***

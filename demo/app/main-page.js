@@ -1,15 +1,16 @@
-const sqlite = require('@proplugins/nativescript-sqlite');
+const sqlite = require('nativescript-sqlite');
 const ObservableArray = require("@nativescript/core/data/observable-array").ObservableArray;
+const FileSystemAccess = require("@nativescript/core/file-system/file-system-access").FileSystemAccess;
 
 
 //var Tracing = require('./tracing.js');
 //Tracing(sqlite, {ignore: ["close", "resultType", "valueType", "_toStringArray", "_getResultEngine"], disableAddedFunction: true});
 
-var dbname = 'name_db.sqlite';
-var db = null;
-var page = null;
+let dbname = 'name_db.sqlite';
+let db = null;
+let page = null;
 
-var data = new ObservableArray();
+const data = new ObservableArray();
 
 if (sqlite.HAS_COMMERCIAL) {
 	console.log("Using Commercial");
@@ -36,34 +37,40 @@ if (sqlite.HAS_SYNC) {
 }
 
 
-exports.pageLoaded = function(args) {
+exports.pageLoaded = async function (args) {
 	page = args.object;
 	page.bindingContext = {names: data};
 
 	if (!sqlite.exists(dbname)) {
 		sqlite.copyDatabase(dbname);
 	}
-	new sqlite(dbname, {key: 'testing', multithreading: !!sqlite.HAS_COMMERCIAL, migrate: true}, function(err, dbConnection) {
-		if (err) {
-			console.log(err, err.stack);
-		}
-		db = dbConnection;
-		db.resultType(sqlite.RESULTSASOBJECT);
+	try {
+		let myDb = await sqlite(dbname, {key: 'testing', multithreading: !!sqlite.HAS_COMMERCIAL , migrate: true},
+		);
 
-		db.version().then(function (results) {
-			console.log("User Version: ", results, typeof results, Number.isNumber(results)); //, String.isString(results));
-		});
+		let b = function (err, dbConnection) {
+			if (err) {
+				console.log(err, err.stack);
+			}
+			db = dbConnection;
+			db.resultType(sqlite.RESULTSASOBJECT);
 
-		if (sqlite.HAS_ENCRYPTION) {
-			db.get("PRAGMA cipher_version;").then(function(results) {
-				console.log("Cipher version", results['cipher_version']);
+			db.version().then(function (results) {
+				console.log("User Version: ", results, typeof results, Number.isNumber(results)); //, String.isString(results));
 			});
-		}
 
-		reloadData();
-	}).catch(function(val) {
-		console.log("sqlite error", val);
-	});
+			if (sqlite.HAS_ENCRYPTION) {
+				db.get("PRAGMA cipher_version;").then(function (results) {
+					console.log("Cipher version", results['cipher_version']);
+				});
+			}
+
+			reloadData();
+		};
+		b(null, myDb);
+	} catch(err) {
+		console.log("sqlite error", err, err.stack);
+	}
 };
 
 exports.addNewName = function() {
@@ -144,7 +151,19 @@ function reloadData() {
 	});
 }
 
+// So we only keep one copy in memory; we cache this...
+let blob;
+function loadBlob() {
+	if (blob != null) { return; }
+	let fsa = new FileSystemAccess();
+	blob = fsa.readSync(fsa.getCurrentAppPath()+"/icon.sqlite", (err) => {
+		console.error("Error", err);
+	});
+}
+
+
 function setupTests(callback) {
+	loadBlob();
 	data.push({name: 'Creating tables and data...', css: 'one'});
 	db.execSQL('drop table if exists tests;', function(err) {
 		if (err) { console.log("!---- Drop Err", err); }
@@ -177,21 +196,36 @@ function setupTests(callback) {
 
 function checkRowOfData(inData, validData) {
 	if (Array.isArray(inData)) {
-		for (var i = 0; i < inData.length; i++) {
+		for (let i = 0; i < inData.length; i++) {
 			if (typeof inData[i] === "number") {
 				if (inData[i] !== validData[i]) {
-					if (inData[i]-0.1 > validData[i] || inData[i]+0.1 < validData[i]) {
+					if (inData[i] - 0.1 > validData[i] || inData[i] + 0.1 < validData[i]) {
 						return ({status: false, field: i});
 					}
 				}
 			} else {
 				if (inData[i] !== validData[i]) {
-					return ({status: false, field: i});
+					if (inData[i].count && inData[i].count === validData[i].count) {
+						for (let j = 0; j < inData[i].count; j++) {
+							if (inData[i][j] !== validData[i][j]) {
+								return ({status: false, field: i});
+							}
+						}
+						if (inData[i].length && inData[i].length === validData[i].length) {
+							for (let j = 0; j < inData[i].length; j++) {
+								if (inData[i][j] !== validData[i][j]) {
+									return ({status: false, field: i});
+								}
+							}
+						} else {
+							return ({status: false, field: i});
+						}
+					}
 				}
 			}
 		}
 	} else {
-		for (var key in inData) {
+		for (let key in inData) {
 			if (inData.hasOwnProperty(key)) {
 				if (typeof inData[key] === "number") {
 					if (inData[key] !== validData[key]) {
@@ -215,9 +249,9 @@ function runATest(options, callback) {
 	//console.log("!--------------  Starting Test", options.name);
 
 	//data.push({name: "Starting test"+options.name});
-	var checkResults = function(err, inData) {
+	const checkResults = function(err, inData) {
 		//console.log("!--------------  Checking Results", options.name, "Error: ", err, "Data:", inData);
-		var passed = true;
+		let passed = true;
 		if (err) {
 			console.log("!------------ Error", err.toString());
 			data.push({name: options.name + " test failed with: ", css: 'one'});
@@ -236,8 +270,8 @@ function runATest(options, callback) {
 			return callback(passed);
 		}
 		//console.log("!------------ Data Returned", inData.length, inData);
-		for (var i=0;i<inData.length;i++) {
-			var result = checkRowOfData(inData[i], options.results[i]);
+		for (let i=0;i<inData.length;i++) {
+			let result = checkRowOfData(inData[i], options.results[i]);
 			if (!result.status) {
 				passed = false;
 				data.push({name: options.name + " test failed on row: "+i+", field: "+result.field, css: 'one'});
@@ -248,9 +282,9 @@ function runATest(options, callback) {
 		callback(passed);
 	};
 
-	var checkRow = 0;
-	var checksPassed = true;
-	var checkEachResults = function(err, inData) {
+	let checkRow = 0;
+	let checksPassed = true;
+	const checkEachResults = function(err, inData) {
 		if (!checksPassed) return;
 		if (err) {
 			data.push({name: options.name + " test failed with "+err.toString(), css: 'one'});
@@ -258,7 +292,7 @@ function runATest(options, callback) {
 			checksPassed = false;
 			return;
 		}
-		var result = checkRowOfData(inData, options.results[checkRow]);
+		const result = checkRowOfData(inData, options.results[checkRow]);
 		if (!result.status) {
 			checksPassed = false;
 			data.push({name: options.name + " test failed on row: "+checkRow+", field: "+result.field, css: 'one'});
@@ -470,7 +504,7 @@ function setupPreparedTests(callback) {
 		if (err) {
 			console.log("!---- Drop Err", err);
 		}
-		db.execSQL('create table preparetests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text)', function (err) {
+		db.execSQL('create table preparetests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text, `blob_field` blob)', function (err) {
 			if (err) {
 				data.push({name: 'Failed to create tables and data...', css: 'one'});
 				console.log("!---- Create Table err", err);
@@ -509,9 +543,9 @@ function runPreparedTests(callback) {
 					},
 						{
 							name: 'Commit/Prepare All', sql: 'select * from preparetests order by int_field', results: [
-								[1, 1.2, 2.4, 'Text1'],
-								[2, 2.4, 3.6, 'Text2'],
-								[3, 3.6, 4.8, 'Text3']
+								[1, 1.2, 2.4, 'Text1', blob],
+								[2, 2.4, 3.6, 'Text2', blob],
+								[3, 3.6, 4.8, 'Text3', blob]
 							], use: 1
 						}];
 					runTestGroup(tests, callback);
@@ -528,18 +562,18 @@ function createPreparedData(rollback, callback) {
 	}
 	try {
 		console.log("!------------- Create Prepared Tests");
-		var prepared = db.prepare("insert into preparetests (int_field, num_field, real_field, text_field) values (?,?,?,?);");
+		var prepared = db.prepare("insert into preparetests (int_field, num_field, real_field, text_field, blob_field) values (?,?,?,?,?);");
 	} catch(err) {
 		console.log("Error creating prepare data", err);
 	}
 	db.begin();
-	prepared.execute([1,1.2,2.4,"Text1"], function(err) {
+	prepared.execute([1,1.2,2.4,"Text1", blob], function(err) {
 		if (err) {
 			data.push({name: 'Failed to insert data...', 'css': 'one'});
 			console.log("!---- Insert err", err, err.stack);
 			return;
 		}
-		prepared.execute([[2,2.4,3.6,"Text2"], [3,3.6,4.8,"Text3"]], function(err2) {
+		prepared.execute([[2,2.4,3.6,"Text2", blob], [3,3.6,4.8,"Text3", blob]], function(err2) {
 			if (err2) {
 				data.push({name: 'Failed to create tables and data...', css: 'one'});
 				console.log("!---- Insert err", err, err && err.stack);
@@ -570,6 +604,8 @@ function runTests() {
 							runPreparedTests(function () {
 								data.push({name: "-----------------------------", css: 'two'});
 								data.push({name: 'Tests completed...', css: 'two'});
+								console.log("-----------------------------");
+								console.log("Tests completed!");
 							});
 						});
 					});

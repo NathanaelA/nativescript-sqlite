@@ -1,6 +1,6 @@
 {
   "name": "nativescript-sqlite",
-  "version": "2.6.3",
+  "version": "2.6.4",
   "description": "A sqlite NativeScript module for Android and iOS",
   "main": "sqlite",
   "nativescript": {
