@@ -69,7 +69,7 @@ function CursorStatement(statement, resultType, valuesType) {
  * @constructor
  */
 function Database(dbname, options, callback) {
-    if (!this instanceof Database) { // jshint ignore:line
+    if (!(this instanceof Database)) { // jshint ignore:line
         //noinspection JSValidateTypes
         return new Database(dbname, options, callback);
     }
