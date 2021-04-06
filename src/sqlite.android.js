@@ -5,7 +5,7 @@
  *
  * Any questions please feel free to put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.6.2 - Android
+ * Version 2.7.0 - Android
  *************************************************************************************/
 /* global global, require, module */
 

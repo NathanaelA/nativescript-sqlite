@@ -5,7 +5,7 @@
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.6.6 - iOS
+ * Version 2.7.0 - iOS
  ***********************************************************************************/
 /* global global, require, module */
 
