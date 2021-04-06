@@ -1,2 +1,32 @@
-test.sqlite
-test2.sqlite
+# NativeScript
+hooks/
+node_modules/
+platforms/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+.idea
+.cloud
+.project
+tmp/
+typings/
+
+app/test.sqlite
+app/test2.sqlite
+beta-250/
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

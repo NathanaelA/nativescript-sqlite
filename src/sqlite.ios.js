@@ -1,16 +1,16 @@
 /************************************************************************************
- * (c) 2015-2020 Master Technology
+ * (c) 2015-2021 Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to email me or put a issue up on github
  * Nathan@master-technology.com                           http://nativescript.tools
- * Version 2.6.2 - iOS
+ * Version 2.6.6 - iOS
  ***********************************************************************************/
 /* global global, require, module */
 
 "use strict";
-const fs = require('tns-core-modules/file-system');
+const fs = require('@nativescript/core/file-system');
 
 /* jshint undef: true, camelcase: false */
 /* global Promise, NSFileManager, NSBundle, NSString, interop, sqlite3_open_v2, sqlite3_close, sqlite3_prepare_v2, sqlite3_step,
@@ -89,7 +89,11 @@ function Database(dbname, options, callback) {
         if (!Database.HAS_COMMERCIAL) {
             throw new Error("Commercial only feature; see http://nativescript.tools/product/10");
         }
-        return new Database._multiSQL(dbname, options, callback);
+        if (global.TNS_WEBPACK && global.TNS_WEBPACK >= 5 ) {
+            console.warn("SQLite: Multithreading temporarily disabled on NS 8 because of bug in Webpack")
+        } else {
+            return new Database._multiSQL(dbname, options, callback);
+        }
     }
     this._options = options;
 

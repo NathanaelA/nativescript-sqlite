@@ -37,3 +37,5 @@ v2.6.2  - Doc fixes, version not returning a number when on promise based path, 
 v2.6.3  - Issue with using w/o constructor fixed
 v2.6.4  - Fixes in Blob handling on android, now directly supports byte[] arrays on android.
 v2.6.5  - Issue with using w/o "new" on iOS fixed
+v2.6.6  - Missed a tns-core-modules reference in
+v2.6.7  - Add NS 8 Webpack support

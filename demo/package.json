@@ -1,26 +1,46 @@
 {
-    "nativescript": {
-        "id": "org.proplugins.demo.sqlite",
-        "tns-ios": {
-            "version": "6.5.0"
-        },
-        "tns-android": {
-            "version": "6.5.0"
-        }
-    },
-    "description": "SQLite Demo Application",
-    "license": "MIT",
-    "repository": "<fill-your-repository-here>",
-    "dependencies": {
-        "nativescript-sqlite": "file:../src",
-        "nativescript-sqlite-commercial": "file:../nativescript-sqlite-commercial-1.4.2.tgz",
-        "nativescript-sqlite-sync": "file:../nativescript-sqlite-sync-1.4.0.tgz",
-        "nativescript-theme-core": "~1.0.4",
-        "tns-core-modules": "latest"
-    },
-    "devDependencies": {
-        "nativescript-dev-webpack": "latest",
-        "nativescript-worker-loader": "latest"
-    },
-    "readme": "SQLite Demo Application"
+  "name": "@nativescript/template-hello-world",
+  "main": "app/app.js",
+  "version": "8.0.3",
+  "author": "NativeScript Team <oss@nativescript.org>",
+  "description": "NativeScript Application",
+  "license": "SEE LICENSE IN <your-license-filename>",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "app",
+    "App_Resources",
+    "hooks",
+    "tools",
+    "!tools/assets",
+    ".editorconfig",
+    "jsconfig.json"
+  ],
+  "keywords": [
+    "nstudio",
+    "nativescript",
+    "mobile",
+    "{N}",
+    "tns",
+    "template"
+  ],
+  "repository": "<fill-your-repository-here>",
+  "bugs": {
+    "url": "https://github.com/NativeScript/NativeScript/issues"
+  },
+  "homepage": "https://github.com/NativeScript/nativescript-app-templates",
+  "dependencies": {
+    "@nativescript/core": "~8.0.0",
+    "@nativescript/theme": "~3.0.1",
+    "nativescript-sqlite": "file:../src",
+    "nativescript-sqlite-commercial": "file:../nativescript-sqlite-commercial-1.4.3.tgz",
+    "nativescript-sqlite-encrypted": "file:../nativescript-sqlite-encrypted-1.5.0.tgz"
+  },
+  "devDependencies": {
+    "@nativescript/android": "8.0.0",
+    "@nativescript/webpack": "5.0.0-beta.4"
+  },
+  "private": "true",
+  "readme": "NativeScript Application"
 }

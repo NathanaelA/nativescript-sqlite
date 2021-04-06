@@ -13,7 +13,7 @@
         <GridLayout row="1" rows="*,auto" columns="*,auto" class="border" >
             <TextField id="entry" hint="Type a new name" text=""/>
             <Button id="go" col="1" text="Add" tap="addNewName"/>
-            <Label row="1" colSpan="2"  text="(c) 2015-2020, Master Technology" class="copyright" android:tap="openMT"/>
+            <Label row="1" colSpan="2"  text="(c) 2015-2021, Master Technology" class="copyright" android:tap="openMT"/>
         </GridLayout>
     </GridLayout>
 </Page>

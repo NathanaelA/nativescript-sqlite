@@ -1,5 +1,5 @@
 /**************************************************************************************
- * (c) 2015-2020, Master Technology
+ * (c) 2015-2021, Master Technology
  * Licensed under the MIT license or contact me for a support, changes, enhancements,
  * and/or if you require a commercial licensing
  *
@@ -245,6 +245,7 @@ function Database(dbname, options, callback) {
 		options = options || {};
 	}
 
+
     //noinspection JSUnresolvedVariable
     if (options && options.multithreading && typeof global.Worker === 'function') {
 	       // We don't want this passed into the worker; to try and start another worker (which would fail).
@@ -252,7 +253,11 @@ function Database(dbname, options, callback) {
 	        if (!Database.HAS_COMMERCIAL) {
 	            throw new Error("Commercial only feature; see http://nativescript.tools/product/10");
             }
-            return new Database._multiSQL(dbname, options, callback);
+	        if (global.TNS_WEBPACK && global.TNS_WEBPACK >= 5 ) {
+	            console.warn("SQLite: Multithreading temporarily disabled on NS 8 because of bug in Webpack")
+            } else {
+                return new Database._multiSQL(dbname, options, callback);
+            }
     }
     this._options = options;
 

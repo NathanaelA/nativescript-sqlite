@@ -34,7 +34,6 @@ The [commercial version](http://nativescript.tools/product/10) comes with the fo
 Note: On iOS when installing the encryption, you **might** have to delete the following file:
 `node_modules/nativescript-sqlite/platforms/ios/module.modulemap`.  And then run a `tns platform clean ios`
 This file is REQUIRED for normal un-encrypted sqlite; but it can conflict with encryption on some versions of XCode.  When you run the app; if you get a console line about encryption not being linked in; then this is the cause.
- 
 
 ## Example Application
 
@@ -60,9 +59,12 @@ Run `tns plugin add nativescript-sqlite` in your ROOT directory of your project.
 * `tns plugin add ./plugins/nativescript-sqlite-encrypted-???.tgz`
 * `tns plugin add ./plugins/nativescript-sqlite-sync-???.tgz`
 
+## Webpacking (NativeScript 8 / Webpack 5)
+
+You don't have to do anything!   It will automatically add all *.sqlite files in your project.
 
 
-## Webpacking
+## Webpacking (NativeScript 5, 6 & 7 / Webpack 4) 
 
 If you are including your own sqlite database embedded in your app; and you are webpacking then around line 100 of the `webpack.config.js` is
 a section that looks like so:
@@ -79,7 +81,7 @@ a section that looks like so:
 
 Add a new line `{ from: { glob: "**/*.sqlite" } },` so that it will pick up your sqlite file while bundling the application.
 
-In addition if you are not using the Sync, Commercial or Encrypted plugin; you would need to add to the webpack.config.js file any you are not using:
+In addition, if you are not using the Sync, Commercial or Encrypted plugin; you would need to add to the webpack.config.js file any you are not using:
 
 ```
         externals.push('nativescript-sqlite-commercial');
