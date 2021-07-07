@@ -10,8 +10,13 @@
 /* global global, require, module */
 
 "use strict";
+
 const appModule = require("@nativescript/core/application");
 const fsModule  = require("@nativescript/core/file-system");
+
+
+//import * as appModule from '@nativescript/core/application';
+//import * as fsModule from '@nativescript/core/file-system';
 
 /*jshint undef: true */
 /*global java, android, Promise */
@@ -245,28 +250,13 @@ function Database(dbname, options, callback) {
 		options = options || {};
 	}
 
-
-    //noinspection JSUnresolvedVariable
-    if (options && options.multithreading && typeof global.Worker === 'function') {
-	       // We don't want this passed into the worker; to try and start another worker (which would fail).
-	        delete options.multithreading;
-	        if (!Database.HAS_COMMERCIAL) {
-	            throw new Error("Commercial only feature; see http://nativescript.tools/product/10");
-            }
-	        if (global.TNS_WEBPACK && global.TNS_WEBPACK >= 5 ) {
-	            console.warn("SQLite: Multithreading temporarily disabled on NS 8 because of bug in Webpack")
-            } else {
-                return new Database._multiSQL(dbname, options, callback);
-            }
-    }
-    this._options = options;
+	this._options = options;
 
 
 	// Check to see if it has a path, or if it is a relative dbname
 	// dbname = "" - Temporary Database
 	// dbname = ":memory:" = memory database
 	if (dbname !== "" && dbname !== ":memory:") {
-		//var pkgName = appModule.android.context.getPackageName();
 		//noinspection JSUnresolvedFunction
 		dbname = _getContext().getDatabasePath(dbname).getAbsolutePath().toString();
 		let path = dbname.substr(0, dbname.lastIndexOf('/') + 1);
@@ -837,7 +827,7 @@ Database.prototype.each = function(sql, params, callback, complete) {
 
 /***
  * Converts a Mixed Array to a String Array
- * @param params
+ * @param paramsIn
  * @returns {Array}
  * @private
  */
@@ -940,7 +930,6 @@ Database.manualBackup = function(name) {
          catch (err) {
              success = false;
          }
-
 
          //Close the streams
          // noinspection JSUnresolvedFunction
@@ -1073,12 +1062,10 @@ function _getContext() {
             }
         }
     } catch (err) {
-	console.log("Using Fallback");
-        /* In some cases Multidex has been the report */
-        /* the getNativeApplication calls .getInstance which fails */
+	    console.log("SQLITE: Using Fallback");
+        // In some cases Multidex has been the report
+        // the getNativeApplication calls .getInstance which fails
     }
-
-
 
     //noinspection JSUnresolvedFunction,JSUnresolvedVariable
     let ctx = java.lang.Class.forName("android.app.AppGlobals").getMethod("getInitialApplication", null).invoke(null, null);
@@ -1114,8 +1101,8 @@ function UsePlugin(loadedSrc, DBModule) {
 
 function TryLoadingCommercialPlugin() {
 	try {
-		const sqlCom = require('nativescript-sqlite-commercial');
-		UsePlugin(sqlCom, Database);
+        const sqlCom = require('nativescript-sqlite-commercial');
+        UsePlugin(sqlCom, Database);
 	}
 	catch (e) {
 	    /* Do Nothing if it doesn't exist as it is an optional plugin */
@@ -1124,19 +1111,21 @@ function TryLoadingCommercialPlugin() {
 
 function TryLoadingEncryptionPlugin() {
 	try {
-		const sqlEnc = require('nativescript-sqlite-encrypted');
-		UsePlugin(sqlEnc, Database);
+        const sqlEnc = require('nativescript-sqlite-encrypted');
+        UsePlugin(sqlEnc, Database);
 	}
-	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+	catch (e) {
+	    /* Do Nothing if it doesn't exist as it is an optional plugin */
 	}
 }
 
 function TryLoadingSyncPlugin() {
     try {
-        const sqlSync = require('nativescript-sqlite-sync');
-        UsePlugin(sqlSync, Database);
+       const sqlSync = require('nativescript-sqlite-sync');
+       UsePlugin(sqlSync, Database);
     }
-    catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+    catch (e) {
+        /* Do Nothing if it doesn't exist as it is an optional plugin */
     }
 }
 

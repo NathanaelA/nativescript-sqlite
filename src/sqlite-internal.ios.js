@@ -84,17 +84,6 @@ function Database(dbname, options, callback) {
         options = options || {};
     }
 
-    if (options && options.multithreading && typeof global.Worker === 'function') {
-        delete options.multithreading;
-        if (!Database.HAS_COMMERCIAL) {
-            throw new Error("Commercial only feature; see http://nativescript.tools/product/10");
-        }
-        if (global.TNS_WEBPACK && global.TNS_WEBPACK >= 5 ) {
-            console.warn("SQLite: Multithreading temporarily disabled on NS 8 because of bug in Webpack")
-        } else {
-            return new Database._multiSQL(dbname, options, callback);
-        }
-    }
     this._options = options;
 
     // Check to see if it has a path, or if it is a relative dbname
