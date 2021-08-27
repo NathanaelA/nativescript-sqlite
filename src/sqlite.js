@@ -25,9 +25,9 @@ function Database(dbname, options, callback) {
     if (options && options.multithreading && typeof global.Worker === 'function') {
         // We don't want this passed into the worker; to try and start another worker (which would fail).
         delete options.multithreading;
-        /* if (!DBInternal.HAS_COMMERCIAL) {
-            throw new Error("Commercial only feature; see http://nativescript.tools/product/10");
-        } */
+        if (!DBInternal.HAS_COMMERCIAL) {
+            throw new Error("Commercial only feature; see https://nativescript.tools/product/10");
+        }
         const multiSQL = require("nativescript-sqlite-commercial/commercial-multi");
         return new multiSQL(dbname, options, callback);
     }

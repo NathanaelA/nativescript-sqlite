@@ -34,12 +34,12 @@
     "@nativescript/core": "~8.0.0",
     "@nativescript/theme": "~3.0.1",
     "nativescript-sqlite": "file:../src",
-    "nativescript-sqlite-commercial": "file:../nativescript-sqlite-commercial-1.4.3.tgz",
-    "nativescript-sqlite-encrypted": "file:../nativescript-sqlite-encrypted-1.5.0.tgz"
+    "nativescript-sqlite-commercial": "file:../commercial",
+    "nativescript-sqlite-encrypted": "file:../encrypted"
   },
   "devDependencies": {
     "@nativescript/android": "8.0.0",
-    "@nativescript/webpack": "5.0.0-beta.4"
+    "@nativescript/webpack": "^5.0.0-beta.16"
   },
   "private": "true",
   "readme": "NativeScript Application"

@@ -36,7 +36,9 @@ const TRANSIENT = new interop.Pointer(-1);
  */
 function toCharPtr(str) {
     const objcStr = NSString.stringWithString(str);
-    const bufferSize = strlen(objcStr.UTF8String) + 1;
+    // UTF8 strings can be encoded in 4 byte representing each character
+    // We are wasting a few bytes of memory, just to make sure we have enough room to copy it...
+    const bufferSize = ((str.length) * 4) + 1;
     const buffer = interop.alloc(bufferSize);
 
     objcStr.getCStringMaxLengthEncoding(buffer, bufferSize, NSUTF8StringEncoding);
@@ -73,6 +75,7 @@ function Database(dbname, options, callback) {
         //noinspection JSValidateTypes
         return new Database(dbname, options, callback);
     }
+    this._messageHandlers = [];
     this._isOpen = false;
     this._resultType = Database.RESULTSASARRAY;
     this._valuesType = Database.VALUESARENATIVE;
@@ -297,6 +300,10 @@ Database.prototype.close = function(callback) {
         sqlite3_close(self._db);
         self._db = null;
         self._isOpen = false;
+        if (self._dbnamePtr != null) {
+            interop.free(self._dbnamePtr);
+            self._dbnamePtr = null;
+        }
         if (callback) {
             callback(null, null);
         }
@@ -798,6 +805,61 @@ Database.prototype._getResults = function(cursorStatement, mode) {
             }
         }
         return data;
+    }
+};
+
+Database.prototype.notify = function(type, message) {
+    if (typeof global.postMessage === 'function') {
+        postMessage({id: -2, type: type, message: message});
+    } else {
+        console.error("SQLite: Not in a thread");
+
+        // Local Notify
+        this._notify(type, message);
+    }
+};
+
+Database.prototype._notify = function(type, message) {
+    if (type == null || typeof this._messageHandlers[type] === "undefined") {
+        return;
+    }
+    let handlers = this._messageHandlers[type];
+    try {
+        for (let i = 0; i < handlers; i++) {
+            handlers[i](message, type, this);
+        }
+    } catch (err) {
+        console.error("SQLite: Error in user code ", err, err.stack);
+    }
+}
+
+Database.prototype.addMessageHandler = function(type, callback) {
+    if (typeof this._messageHandlers[type] === 'undefined') {
+        this._messageHandlers[type] = [];
+    }
+    this._messageHandlers[type].push(callback);
+};
+
+Database.prototype.removeMessageHandler = function(type, callback) {
+    if (type != null && typeof this._messageHandlers[type] === "undefined") {
+        console.error("SQLite: This message handler " + type + " does not exist.");
+        return;
+    }
+
+    if (callback) {
+        // Remove all message handles that match this callback & this db...
+        for (let i = 0; i < this._messageHandlers[type].length; i++) {
+            if (this._messageHandlers[type][i].callback === callback) {
+                this._messageHandlers[type].splice(i, 1);
+                i--;
+            }
+        }
+    } else if (type != null) {
+        // Remove all message handlers for this type
+        this._messageHandlers[type] = [];
+    } else {
+        // Remove all message handlers for this database
+        this._messageHandlers = [];
     }
 };
 

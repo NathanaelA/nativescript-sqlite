@@ -42,8 +42,8 @@ module.exports = webpack => {
         } else {
             hasEnc = true;
         }
-        if (!fs.existsSync(dirname+"/nativescript-sqlite-keystore")) {
-            console.warn("NativeScript-SQLite KeyStore not detected, disabling support!");
+        if (!fs.existsSync(dirname+"/nativescript-sqlite-nosql")) {
+            console.warn("NativeScript-SQLite NoSQL not detected, disabling support!");
             externals.push('nativescript-sqlite-keystore');
         } else {
             hasKey = true;
