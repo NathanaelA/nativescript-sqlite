@@ -33,6 +33,7 @@ module.exports = webpack => {
         if (!fs.existsSync(dirname+"/nativescript-sqlite-commercial")) {
             console.warn("NativeScript-SQLite Commercial not detected, disabling support!");
             externals.push('nativescript-sqlite-commercial');
+            externals.push('nativescript-sqlite-commercial/commercial-multi');
         } else {
             hasCom = true;
         }

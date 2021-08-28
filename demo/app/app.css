@@ -24,6 +24,7 @@ The following CSS rule changes the font size of all Buttons that have the
 
 Page {
   background-color: lightgrey;
+  color: black;
 }
 button {
   font-size: 20;
@@ -31,11 +32,18 @@ button {
 }
 
 .one {
-  background-color: greenyellow;
+  background-color: black;
+  color: white;
 }
 
 .two {
-  background-color: cyan;
+  background-color: lightgrey;
+  color: black;
+}
+
+.entry {
+  background-color: lightgrey;
+  color: black;
 }
 
 .copyright {

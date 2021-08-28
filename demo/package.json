@@ -1,10 +1,10 @@
 {
-  "name": "@nativescript/template-hello-world",
+  "name": "nativescript-sqlite-demo",
   "main": "app/app.js",
-  "version": "8.0.3",
-  "author": "NativeScript Team <oss@nativescript.org>",
-  "description": "NativeScript Application",
-  "license": "SEE LICENSE IN <your-license-filename>",
+  "version": "8.0.0",
+  "author": "Nathan Anderson <nathan@master.technology",
+  "description": "SQLite Demo App",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
@@ -18,29 +18,17 @@
     "jsconfig.json"
   ],
   "keywords": [
-    "nstudio",
     "nativescript",
-    "mobile",
-    "{N}",
-    "tns",
-    "template"
+    "SQLite",
+    "Master Technology"
   ],
-  "repository": "<fill-your-repository-here>",
-  "bugs": {
-    "url": "https://github.com/NativeScript/NativeScript/issues"
-  },
-  "homepage": "https://github.com/NativeScript/nativescript-app-templates",
   "dependencies": {
     "@nativescript/core": "~8.0.0",
     "@nativescript/theme": "~3.0.1",
-    "nativescript-sqlite": "file:../src",
-    "nativescript-sqlite-commercial": "file:../commercial",
-    "nativescript-sqlite-encrypted": "file:../encrypted"
+    "nativescript-sqlite": "file:../src"
   },
   "devDependencies": {
     "@nativescript/android": "8.0.0",
     "@nativescript/webpack": "^5.0.0-beta.16"
-  },
-  "private": "true",
-  "readme": "NativeScript Application"
+  }
 }
