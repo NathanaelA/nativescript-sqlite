@@ -23,13 +23,18 @@ function Database(dbname, options, callback) {
     }
 
     if (options && options.multithreading && typeof global.Worker === 'function') {
-        // We don't want this passed into the worker; to try and start another worker (which would fail).
+        // We don't want this value passed into the worker; to try and start another worker (which would fail).
         delete options.multithreading;
         if (!DBInternal.HAS_COMMERCIAL) {
-            throw new Error("Commercial only feature; see https://nativescript.tools/product/10");
+            throw new Error("Multithreading is a commercial only feature; see https://nativescript.tools/product/10");
         }
-        const multiSQL = require("nativescript-sqlite-commercial/commercial-multi");
-        return new multiSQL(dbname, options, callback);
+        // We have to wrap this in a try/catch because of Webpack 4
+        try {
+            const multiSQL = require("nativescript-sqlite-commercial/commercial-multi");
+            return new multiSQL(dbname, options, callback);
+        } catch (err) {
+            console.warn("Multithreading is a commercial only feature; see https://nativescript.tools/product/10");
+        }
     }
     return new DBInternal(dbname, options, callback);
 }

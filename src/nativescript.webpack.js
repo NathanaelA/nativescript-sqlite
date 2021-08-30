@@ -4,7 +4,7 @@
  * and/or if you require a commercial licensing
  *
  * Any questions please feel free to put a issue up on github
- * Nathan@master-technology.com                           http://nativescript.tools
+ * Nathan@master.technology                                  http://nativescript.tools
  *************************************************************************************/
 
 /* global require, module */
@@ -17,9 +17,8 @@ module.exports = webpack => {
     webpack.Utils.addCopyRule('**/*.sqlite');
     webpack.Utils.addCopyRule('**/*.db');
 
-    // Used to update any existing configurations with more rules...
     webpack.chainWebpack((config, env) => {
-        // Update Externals to eliminate any warnings during building
+        // Update Externals to eliminate any warnings/errors during building
         const externals = config.get('externals');
         let hasSync = false, hasCom = false, hasEnc = false, hasKey = false;
 
@@ -44,10 +43,16 @@ module.exports = webpack => {
             hasEnc = true;
         }
         if (!fs.existsSync(dirname+"/nativescript-sqlite-nosql")) {
-            console.warn("NativeScript-SQLite NoSQL not detected, disabling support!");
+            console.warn("NativeScript-SQLite NoSQL/Keystore not detected, disabling support!");
             externals.push('nativescript-sqlite-keystore');
         } else {
             hasKey = true;
+        }
+
+        if (!hasCom && !hasSync && !hasEnc) {
+            // Are you really that self centered to delete this code
+            // after using our hard work for free in your project?
+            advertise();
         }
 
         config.set('externals', externals);
@@ -63,4 +68,25 @@ module.exports = webpack => {
             return args;
         });
     });
+}
+
+// Time is money, We have spent a huge amount of time developing and testing this plugin.
+// This time is time you did not have to spend.
+// If you can't support us, financially at this point.
+// At least let our advertisements live so that maybe in the future when you get rich,
+// you will remember upon what foundations you built your empire.  ;-)
+function advertise() {
+    console.log("\r\n\r\n");
+    console.log("***********************************************************************************");
+    console.log("* Please support the developer of this open source plugins you are using.         *");
+    console.log("*                                                                                 *");
+    console.log("*                          NativeScript-Sqlite                                    *");
+    console.log("*                                                                                 *");
+    console.log("* You can purchase a commercial version (which also removes this message) at:     *")
+    console.log("*                        https://nativescript.tools                               *");
+    console.log("***********************************************************************************");
+    console.log("\r\n\r\n");
+
+    // Are you really going to be so selfish, to delete any of our ad code now?
+    for (let time = Date.now() + 5000; Date.now() < time; );
 }

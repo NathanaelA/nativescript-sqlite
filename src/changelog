@@ -43,3 +43,5 @@ v2.8.0  - Fixes for Webpack / Webworkers
 v2.8.1  - More fixes for WebWorker/Webpacking issues
 v2.8.2  - Fixes for iOS 14.5+ issues on opening database
 v2.8.3  - Add missing Commercial feature exclusion to Webpack 5
+v2.8.4  - Webpack 4 (Older NS support)
+
