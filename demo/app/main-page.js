@@ -525,6 +525,66 @@ function setupPreparedTests(callback) {
   });
 }
 
+function runExtraTests(callback) {
+  console.log("!--------- Extra Tests");
+  data.push({name: "-----------------------------", css: 'two'});
+
+  db.execSQL('drop table if exists extratests;', function (err) {
+    if (err) {
+      console.log("!---- Drop Err", err);
+    }
+    db.execSQL('create table extratests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text, `blob_field` blob)', function (err) {
+      if (err) {
+        data.push({name: 'Failed to create tables and data...', css: 'one'});
+        console.log("!---- Create Table err", err);
+        return;
+      }
+
+      // Add value
+      db.execSQL('insert into extratests values (1, 2, 3, "4", "5")')
+        .then( () => {
+          // Verify Value
+          return db.get('select * from extratests').then((val) => {
+            if (val.int_field === 1 && val.num_field === 2) {
+              return Promise.resolve();
+            } else {
+              return Promise.reject("Data doesn't match");
+            }
+          });
+        })
+        // Update Value to null
+        .then( () => { return db.execSQL("update extratests set num_field=null where int_field=1"); })
+        .then( () => {
+          // Verify Value
+          return db.get('select * from extratests').then((val) => {
+            if (val.int_field === 1 && val.num_field !== null) {
+              return Promise.reject("Failed direct null")
+            }
+          });
+        })
+        .then( () => { return db.execSQL("update extratests set real_field=? where int_field=1", [null]); })
+        .then( () => {
+          // Verify Value
+          return db.get('select * from extratests').then((val) => {
+            if (val.int_field === 1 && val.real_field !== null) {
+              return Promise.reject("Failed param as null")
+            }
+            data.push({name: 'Passed: Extra Tests...', 'css': 'two'});
+            callback()
+          });
+        })
+        .catch((err) => {
+          data.push({name: 'Failed: Extra Tests...'+err, 'css': 'one'});
+          console.log("!---------- Extra err", err, err.stack);
+          callback();
+        })
+
+    });
+  });
+
+
+}
+
 function runPreparedTests(callback) {
   if (!sqlite.HAS_COMMERCIAL) {
     callback();
@@ -612,10 +672,12 @@ function runTests() {
           runStringArrayTest(function () {
             runStringObjectTest(function () {
               runPreparedTests(function () {
-                data.push({name: "-----------------------------", css: 'two'});
-                data.push({name: 'Tests completed...', css: 'two'});
-                console.log("-----------------------------");
-                console.log("Tests completed!");
+                runExtraTests( function() {
+                  data.push({name: "-----------------------------", css: 'two'});
+                  data.push({name: 'Tests completed...', css: 'two'});
+                  console.log("-----------------------------");
+                  console.log("Tests completed!");
+                })
               });
             });
           });
