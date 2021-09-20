@@ -179,10 +179,10 @@ async function setupTests() {
   data.push({name: 'Creating tables and data...', css: 'one'});
   try {
     await db.execSQL('drop table if exists tests;');
-    await db.execSQL('create table tests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text)');
-    await db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (1,1.2,2.4,"Text1")');
-    await db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (2,4.8,5.6,"Text2")');
-    await db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (3,null,null,null)');
+    await db.execSQL('create table tests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text, `blob_field` blob)');
+    await db.execSQL('insert into tests (int_field, num_field, real_field, text_field, blob_field) values (1,1.2,2.4,"Text1",?)',[blob]);
+    await db.execSQL('insert into tests (int_field, num_field, real_field, text_field, blob_field) values (2,4.8,5.6,"Text2",?)',[blob]);
+    await db.execSQL('insert into tests (int_field, num_field, real_field, text_field, blob_field) values (3,null,null,null,null)');
   } catch (err) {
     console.log("Error", err);
     data.push({name: 'Error setting up tests...'+err.toString(), css: 'two'});
@@ -195,29 +195,45 @@ function checkRowOfData(inData, validData) {
     for (let i = 0; i < inData.length; i++) {
       if (typeof inData[i] === "number") {
         if (inData[i] !== validData[i]) {
-          if (inData[i] - 0.1 > validData[i] || inData[i] + 0.1 < validData[i]) {
+          if ((inData[i] - 0.1) > validData[i] || (inData[i] + 0.1) < validData[i]) {
+            console.log("Failed", inData[i], validData[i])
             return ({status: false, field: i});
           }
         }
       } else {
         if (inData[i] !== validData[i]) {
-          if (inData[i].count && inData[i].count === validData[i].count) {
+          // console.log("Check:", inData[i], validData[i], typeof inData[i], typeof validData[i]);
+          if (inData[i] === null || validData[i] === null) {
+             return ({status: false, field: i});
+          }
+          // Do we have a ".count" property, if so check it
+          if (inData[i].count > 0 && inData[i].count === validData[i].count) {
             for (let j = 0; j < inData[i].count; j++) {
               if (inData[i][j] !== validData[i][j]) {
                 return ({status: false, field: i});
               }
             }
-            if (inData[i].length && inData[i].length === validData[i].length) {
-              for (let j = 0; j < inData[i].length; j++) {
-                if (inData[i][j] !== validData[i][j]) {
-                  return ({status: false, field: i});
-                }
+            return ({status: true});
+          }
+          // Do we have a ".length" property, if so check it
+          else if (inData[i].length > 0 && inData[i].length === validData[i].length) {
+            for (let j = 0; j < inData[i].length; j++) {
+              if (inData[i][j] !== validData[i][j]) {
+                return ({status: false, field: i});
               }
-            } else {
-              return ({status: false, field: i});
             }
+            return ({status: true});
+          } else {
+            console.log("Failed:", inData[i].length, validData[i].length, typeof inData[i], typeof validData[i]);
+            return ({status: false, field: i});
           }
         }
+      }
+    }
+  } else if (typeof inData === 'number') {
+    if (inData !== validData) {
+      if ((inData - 0.1) > validData || (inData + 0.1) < validData) {
+        return ({status: false, field: 0});
       }
     }
   } else {
@@ -225,13 +241,35 @@ function checkRowOfData(inData, validData) {
       if (inData.hasOwnProperty(key)) {
         if (typeof inData[key] === "number") {
           if (inData[key] !== validData[key]) {
-            if (inData[key]-0.1 > validData[key] || inData[key]+0.1 < validData[key]) {
+            if ((inData[key]-0.1) > validData[key] || (inData[key]+0.1) < validData[key]) {
               return ({status: false, field: key});
             }
           }
         } else {
           if (inData[key] !== validData[key]) {
-            return ({status: false, field: key});
+            if (inData[key] === null || validData[key] === null) {
+              return ({status: false, field: key});
+            }
+            // Do we have a ".count" property, if so check it
+            if (inData[key].count > 0 && inData[key].count === validData[key].count) {
+              for (let j = 0; j < inData[key].count; j++) {
+                if (inData[key][j] !== validData[key][j]) {
+                  return ({status: false, field: key});
+                }
+              }
+              return ({status: true});
+            }
+            // Do we have a ".length" property, if so check it
+            else if (inData[key].length > 0 && inData[key].length === validData[key].length) {
+              for (let j = 0; j < inData[key].length; j++) {
+                if (inData[key][j] !== validData[key][j]) {
+                  return ({status: false, field: key});
+                }
+              }
+              return ({status: true});
+            } else {
+              return ({status: false, field: key});
+            }
           }
         }
       }
@@ -255,7 +293,6 @@ function runATest(options, callback) {
       return callback(false);
     }
     if (!inData || inData.length !== options.results.length) {
-
       console.dir(inData);
       console.log("!----------- No Data");
       data.push({name: options.name + " test failed with different results length", css: 'one'});
@@ -265,13 +302,20 @@ function runATest(options, callback) {
       console.log("!-------- No Data Returned");
       return callback(passed);
     }
-    //console.log("!------------ Data Returned", inData.length, inData);
+//    console.log("!------------ Data Returned", inData.length, inData);
     for (let i=0;i<inData.length;i++) {
-      let result = checkRowOfData(inData[i], options.results[i]);
+      let result;
+      try {
+         result = checkRowOfData(inData[i], options.results[i]);
+      } catch (err) {
+        console.log(err);
+        result = { status: false, field: err};
+      }
       if (!result.status) {
         passed = false;
         data.push({name: options.name + " test failed on row: "+i+", field: "+result.field, css: 'one'});
         console.log("$$$$$ Failure:", inData[i], options.results[i], typeof inData[i][result.field], typeof options.results[i][result.field]);
+        console.log(options.name,"test failed on row: ",i,", field: ",result.field);
         break;
       }
     }
@@ -383,7 +427,7 @@ async function runTestGroup(tests) {
     let runningTest = -1;
     const runTest = function (status) {
       if (!status) {
-        return reject("Failed: " + tests[runningTest]);
+        return reject("Failed: " + tests[runningTest].name);
       } else if (runningTest > -1) {
         data.push({name: "Passed: " + tests[runningTest].name, 'css': 'two'});
       }
@@ -391,7 +435,12 @@ async function runTestGroup(tests) {
       if (runningTest >= tests.length) {
         return resolve(status);
       }
-      runATest(tests[runningTest], runTest);
+      try {
+        runATest(tests[runningTest], runTest);
+      } catch(err) {
+        console.error("Failed Test", tests[runningTest].name)
+        return reject(err);
+      }
     };
 
     data.push({name: "-----------------------------", css: 'two'});
@@ -406,16 +455,16 @@ async function runNativeArrayTest() {
 
   const tests = [
     // Callback
-    {name: 'NativeArray Check', sql: 'select count(*) from tests', results: [2], use: 0},
-    {name: 'NativeArray Get', sql: 'select * from tests where int_field=?', values: [2], results: [2,4.8,5.6,'Text2'], use: 0},
-    {name: 'NativeArray All',    sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2'],[3,null,null,null]], use: 1},
-    {name: 'NativeArray Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2'],[3,null,null,null]], use: 2},
+    {name: 'NativeArray Check', sql: 'select count(*) from tests', results: [3], use: 0},
+    {name: 'NativeArray Get', sql: 'select * from tests where int_field=?', values: [2], results: [2,4.8,5.6,'Text2', blob], use: 0},
+    {name: 'NativeArray All',    sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1",blob],[2,4.8,5.6,'Text2',blob],[3,null,null,null,null]], use: 1},
+    {name: 'NativeArray Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1",blob],[2,4.8,5.6,'Text2',blob],[3,null,null,null,null]], use: 2},
 
     // Promise
-    {name: 'NativeArray Promise Check', sql: 'select count(*) from tests', results: [2], use: 3},
-    {name: 'NativeArray Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: [2,4.8,5.6,'Text2'], use: 3},
-    {name: 'NativeArray Promise All',    sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2'],[3,null,null,null]], use: 4},
-    {name: 'NativeArray Promise Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2'],[3,null,null,null]], use: 5}
+    {name: 'NativeArray Promise Check', sql: 'select count(*) from tests', results: [3], use: 3},
+    {name: 'NativeArray Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: [2,4.8,5.6,'Text2',blob], use: 3},
+    {name: 'NativeArray Promise All',    sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1",blob],[2,4.8,5.6,'Text2',blob],[3,null,null,null,null]], use: 4},
+    {name: 'NativeArray Promise Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1",blob],[2,4.8,5.6,'Text2',blob],[3,null,null,null,null]], use: 5}
 
   ];
   await runTestGroup(tests);
@@ -427,14 +476,14 @@ async function runStringArrayTest() {
   db.valueType(sqlite.VALUESARESTRINGS);
   const tests = [
     // Callback Version
-    {name: 'StringArray Get', sql: 'select * from tests where int_field=?', values: [2], results: ["2","4.8","5.6",'Text2'], use: 0},
-    {name: 'StringArray All', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2'], ["3",null,null,null]], use: 1},
-    {name: 'StringArray Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2'], ["3",null,null,null]], use: 2},
+    {name: 'StringArray Get', sql: 'select * from tests where int_field=?', values: [2], results: ["2","4.8","5.6",'Text2',blob], use: 0},
+    {name: 'StringArray All', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1",blob],["2","4.8","5.6",'Text2',blob], ["3",null,null,null,null]], use: 1},
+    {name: 'StringArray Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1",blob],["2","4.8","5.6",'Text2',blob], ["3",null,null,null,null]], use: 2},
 
     // Promise Version
-    {name: 'StringArray Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: ["2","4.8","5.6",'Text2'], use: 3},
-    {name: 'StringArray Promise All', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2'],["3",null,null,null]], use: 4},
-    {name: 'StringArray Promise Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2'],["3",null,null,null]], use: 5}
+    {name: 'StringArray Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: ["2","4.8","5.6",'Text2',blob], use: 3},
+    {name: 'StringArray Promise All', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1",blob],["2","4.8","5.6",'Text2',blob],["3",null,null,null,null]], use: 4},
+    {name: 'StringArray Promise Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1",blob],["2","4.8","5.6",'Text2',blob],["3",null,null,null,null]], use: 5}
   ];
   await runTestGroup(tests);
 }
@@ -446,14 +495,14 @@ async function runNativeObjectTest() {
 
   const tests = [
     // Callback
-    {name: 'NativeObject Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}, use: 0},
-    {name: 'NativeObject All', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 1},
-    {name: 'NativeObject Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 2},
+    {name: 'NativeObject Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2', blob_field: blob}, use: 0},
+    {name: 'NativeObject All', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1', blob_field: blob},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2', blob_field: blob},{int_field: 3, num_field: null, real_field: null, text_field: null, blob_field: null}], use: 1},
+    {name: 'NativeObject Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1', blob_field: blob},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2', blob_field: blob},{int_field: 3, num_field: null, real_field: null, text_field: null, blob_field: null}], use: 2},
 
     // Promise
-    {name: 'NativeObject Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}, use: 3},
-    {name: 'NativeObject Promise All', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 4},
-    {name: 'NativeObject Promise Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 5}
+    {name: 'NativeObject Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2', blob_field: blob}, use: 3},
+    {name: 'NativeObject Promise All', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1', blob_field: blob},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2', blob_field: blob},{int_field: 3, num_field: null, real_field: null, text_field: null, blob_field: null}], use: 4},
+    {name: 'NativeObject Promise Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1', blob_field: blob},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2', blob_field: blob},{int_field: 3, num_field: null, real_field: null, text_field: null, blob_field: null}], use: 5}
 
   ];
   await runTestGroup(tests);
@@ -466,14 +515,14 @@ async function runStringObjectTest() {
 
   const tests = [
     // Callback
-    {name: 'StringObject Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}, use: 0},
-    {name: 'StringObject All', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 1},
-    {name: 'StringObject Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 2},
+    {name: 'StringObject Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2', blob_field: blob}, use: 0},
+    {name: 'StringObject All', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1', blob_field: blob},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2', blob_field: blob},{int_field: 3, num_field: null, real_field: null, text_field: null, blob_field: null}], use: 1},
+    {name: 'StringObject Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1', blob_field: blob},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2', blob_field: blob},{int_field: 3, num_field: null, real_field: null, text_field: null, blob_field: null}], use: 2},
 
     // Promise
-    {name: 'StringObject Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}, use: 3},
-    {name: 'StringObject Promise All', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 4},
-    {name: 'StringObject Promise Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 5}
+    {name: 'StringObject Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2', blob_field: blob}, use: 3},
+    {name: 'StringObject Promise All', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1', blob_field: blob},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2', blob_field: blob},{int_field: 3, num_field: null, real_field: null, text_field: null, blob_field: null}], use: 4},
+    {name: 'StringObject Promise Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1', blob_field: blob},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2', blob_field: blob},{int_field: 3, num_field: null, real_field: null, text_field: null, blob_field: null}], use: 5}
 
   ];
   await runTestGroup(tests);
@@ -484,7 +533,7 @@ async function setupPreparedTests() {
     return;
   }
 
-  console.log("!--------- Creating Prepared Tests Data");
+  console.log("!--------------  Creating Prepared Tests Data");
   try {
     await db.execSQL('drop table if exists preparetests;');
     await db.execSQL('create table preparetests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text, `blob_field` blob)');
@@ -496,7 +545,7 @@ async function setupPreparedTests() {
 }
 
 async function runExtraTests() {
-  console.log("!--------- Extra Tests");
+  console.log("!--------------  Extra Tests");
   data.push({name: "-----------------------------", css: 'two'});
   db.resultType(sqlite.RESULTSASOBJECT);
   db.valueType(sqlite.VALUESARENATIVE);
@@ -529,7 +578,7 @@ async function runExtraTests() {
     }
   } catch (err) {
     console.log("Failed: Extra Tests", err)
-    data.push({name: 'Failed: Extra Tests...'+err, 'css': 'two'});
+    data.push({name: 'Failed: Extra Tests...'+err, 'css': 'one'});
     throw err;
   }
   data.push({name: 'Passed: Extra Tests...', 'css': 'two'});
@@ -572,7 +621,7 @@ async function runPreparedTests(callback) {
       }];
     await runTestGroup(tests);
   } catch (err) {
-    data.push({name: 'Failed: Prepared Tests...', 'css': 'two'});
+    data.push({name: 'Failed: Prepared Tests...', 'css': 'one'});
     throw err;
   }
   data.push({name: 'Passed: Prepared Tests...', 'css': 'two'});
@@ -586,7 +635,7 @@ async function createPreparedData(rollback) {
 
   let prepared;
   try {
-    console.log("!------------- Create Prepared Tests");
+    console.log("!------------------ Create Prepared Tests");
     prepared = db.prepare("insert into preparetests (int_field, num_field, real_field, text_field, blob_field) values (?,?,?,?,?);");
   } catch(err) {
     console.log("Error creating prepare data", err);
@@ -626,19 +675,24 @@ async function runTests() {
     data.push({name: 'Created tables & data...', css: 'one'});
 //    for (let i=0;i<20;i++) {
 //      data.length = 0;
-      await runNativeArrayTest();
-      await runNativeObjectTest();
-      await runStringArrayTest();
-      await runStringObjectTest();
+    await runNativeArrayTest();
+    await delay(10);
+    await runNativeObjectTest();
+    await delay(10);
+    await runStringArrayTest();
+    await delay(10);
+    await runStringObjectTest();
+    await delay(10);
 //    }
     await runPreparedTests();
+    await delay(10);
     await runExtraTests();
     data.push({name: "-----------------------------", css: 'two'});
     data.push({name: 'Tests completed...', css: 'two'});
   } catch (err) {
     data.push({name: "-----------------------------", css: 'two'});
-    data.push({name: 'Tests failed...', css: 'two'});
-    data.push({name: err, css: 'two'});
+    data.push({name: 'Tests failed...', css: 'one'});
+    data.push({name: err, css: 'one'});
   }
   console.log("-----------------------------");
   console.log("Tests completed!");

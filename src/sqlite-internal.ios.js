@@ -676,7 +676,7 @@ Database.prototype._bind = function(statement, params) {
                 res = sqlite3_bind_null(statement, i + 1);
             } else if (params[i].isKindOfClass && (params[i].isKindOfClass(NSData.class()))) {
                 const obj = params[i];
-                res = sqlite3_bind_blob(statement, i + 1, obj.bytes, obj.length, null)
+                res = sqlite3_bind_blob(statement, i + 1, obj.bytes, obj.length, TRANSIENT);
             } else {
                 param = params[i].toString();
                 res = sqlite3_bind_text(statement, i+1, param, -1, TRANSIENT );
@@ -689,6 +689,9 @@ Database.prototype._bind = function(statement, params) {
     } else {
         if (params == null) { // jshint ignore:line
             res = sqlite3_bind_null(statement, 1);
+        } else if (params.isKindOfClass && (params.isKindOfClass(NSData.class()))) {
+            const obj = params;
+            res = sqlite3_bind_blob(statement, 1, obj.bytes, obj.length, TRANSIENT);
         } else {
             param = params.toString();
 			res = sqlite3_bind_text(statement, 1, param, -1, TRANSIENT );
