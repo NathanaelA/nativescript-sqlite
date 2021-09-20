@@ -21,6 +21,8 @@ let page = null;
 
 const data = new ObservableArray();
 
+console.log("NativeScript Runtime Version", global.__runtimeVersion);
+
 if (sqlite.HAS_COMMERCIAL) {
   console.log("Using Commercial");
   data.push({name:'Commercial Support', css:'one'});
@@ -55,7 +57,7 @@ exports.pageLoaded = async function (args) {
     sqlite.copyDatabase(dbname);
   }
   try {
-    let myDb = await sqlite(dbname, {key: 'testing', multithreading: !!sqlite.HAS_COMMERCIAL , migrate: true},
+    let myDb = await sqlite(dbname, {key: 'testing', multithreading: false, /*!!sqlite.HAS_COMMERCIAL ,*/ migrate: true},
     );
 
     let b = function (err, dbConnection) {
@@ -149,7 +151,7 @@ function reloadData() {
     if (err) {
       console.log(err);
     } else {
-      for (var i=0;i<loadedData.length;i++) {
+      for (let i=0;i<loadedData.length;i++) {
         if (i % 2 === 0) {
           loadedData[i].css = "one";
         } else {
@@ -172,36 +174,20 @@ function loadBlob() {
 }
 
 
-function setupTests(callback) {
+async function setupTests() {
   loadBlob();
   data.push({name: 'Creating tables and data...', css: 'one'});
-  db.execSQL('drop table if exists tests;', function(err) {
-    if (err) { console.log("!---- Drop Err", err); }
-    db.execSQL('create table tests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text)', function(err) {
-      if (err) {
-        data.push({name: 'Failed to create tables and data...', css: 'one'});
-        console.log("!---- Create Table err", err);
-        return;
-      }
-      db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (1,1.2,2.4,"Text1")', function (err) {
-        if (err) {
-          data.push({name: 'Failed to create tables and data...', css: 'one'});
-          console.log("!---- Insert err", err);
-          return;
-        }
-        db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (2,4.8,5.6,"Text2")').then(() => {
-          callback();
-        }).catch((err) => {
-          if (err) {
-            data.push({name: 'Failed to insert data into tests', css: 'one'});
-            console.log("!---- Insert err2:", err);
-            return;
-          }
-          callback(err);
-        });
-      });
-    });
-  });
+  try {
+    await db.execSQL('drop table if exists tests;');
+    await db.execSQL('create table tests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text)');
+    await db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (1,1.2,2.4,"Text1")');
+    await db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (2,4.8,5.6,"Text2")');
+    await db.execSQL('insert into tests (int_field, num_field, real_field, text_field) values (3,null,null,null)');
+  } catch (err) {
+    console.log("Error", err);
+    data.push({name: 'Error setting up tests...'+err.toString(), css: 'two'});
+    throw err;
+  }
 }
 
 function checkRowOfData(inData, validData) {
@@ -392,26 +378,28 @@ function runATest(options, callback) {
   }
 }
 
-function runTestGroup(tests, callback) {
-  let runningTest = -1;
-  const runTest = function(status) {
-    if (!status) {
-      return callback(false);
-    } else if (runningTest > -1) {
-      data.push({name: "Passed: " + tests[runningTest].name, 'css':'two'});
-    }
-    runningTest++;
-    if (runningTest >= tests.length) {
-      return callback(status);
-    }
-    runATest(tests[runningTest], runTest);
-  };
+async function runTestGroup(tests) {
+  return new Promise((resolve, reject)  => {
+    let runningTest = -1;
+    const runTest = function (status) {
+      if (!status) {
+        return reject("Failed: " + tests[runningTest]);
+      } else if (runningTest > -1) {
+        data.push({name: "Passed: " + tests[runningTest].name, 'css': 'two'});
+      }
+      runningTest++;
+      if (runningTest >= tests.length) {
+        return resolve(status);
+      }
+      runATest(tests[runningTest], runTest);
+    };
 
-  data.push({name: "-----------------------------", css: 'two'});
-  runTest(true);
+    data.push({name: "-----------------------------", css: 'two'});
+    runTest(true);
+  });
 }
 
-function runNativeArrayTest(callback) {
+async function runNativeArrayTest() {
   console.log("!--------------  Starting RNA Test");
   db.resultType(sqlite.RESULTSASARRAY);
   db.valueType(sqlite.VALUESARENATIVE);
@@ -420,38 +408,38 @@ function runNativeArrayTest(callback) {
     // Callback
     {name: 'NativeArray Check', sql: 'select count(*) from tests', results: [2], use: 0},
     {name: 'NativeArray Get', sql: 'select * from tests where int_field=?', values: [2], results: [2,4.8,5.6,'Text2'], use: 0},
-    {name: 'NativeArray All',    sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2']], use: 1},
-    {name: 'NativeArray Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2']], use: 2},
+    {name: 'NativeArray All',    sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2'],[3,null,null,null]], use: 1},
+    {name: 'NativeArray Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2'],[3,null,null,null]], use: 2},
 
     // Promise
     {name: 'NativeArray Promise Check', sql: 'select count(*) from tests', results: [2], use: 3},
     {name: 'NativeArray Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: [2,4.8,5.6,'Text2'], use: 3},
-    {name: 'NativeArray Promise All',    sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2']], use: 4},
-    {name: 'NativeArray Promise Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2']], use: 5}
+    {name: 'NativeArray Promise All',    sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2'],[3,null,null,null]], use: 4},
+    {name: 'NativeArray Promise Each', sql: 'select * from tests order by int_field', results: [[1,1.2,2.4,"Text1"],[2,4.8,5.6,'Text2'],[3,null,null,null]], use: 5}
 
   ];
-  runTestGroup(tests, callback);
+  await runTestGroup(tests);
 }
 
-function runStringArrayTest(callback) {
+async function runStringArrayTest() {
   console.log("!--------------  Starting RSA Test");
   db.resultType(sqlite.RESULTSASARRAY);
   db.valueType(sqlite.VALUESARESTRINGS);
   const tests = [
     // Callback Version
     {name: 'StringArray Get', sql: 'select * from tests where int_field=?', values: [2], results: ["2","4.8","5.6",'Text2'], use: 0},
-    {name: 'StringArray All', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2']], use: 1},
-    {name: 'StringArray Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2']], use: 2},
+    {name: 'StringArray All', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2'], ["3",null,null,null]], use: 1},
+    {name: 'StringArray Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2'], ["3",null,null,null]], use: 2},
 
     // Promise Version
     {name: 'StringArray Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: ["2","4.8","5.6",'Text2'], use: 3},
-    {name: 'StringArray Promise All', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2']], use: 4},
-    {name: 'StringArray Promise Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2']], use: 5}
+    {name: 'StringArray Promise All', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2'],["3",null,null,null]], use: 4},
+    {name: 'StringArray Promise Each', sql: 'select * from tests order by int_field', results: [["1","1.2","2.4","Text1"],["2","4.8","5.6",'Text2'],["3",null,null,null]], use: 5}
   ];
-  runTestGroup(tests, callback);
+  await runTestGroup(tests);
 }
 
-function runNativeObjectTest(callback) {
+async function runNativeObjectTest() {
   console.log("!--------------  Starting RNO Test");
   db.resultType(sqlite.RESULTSASOBJECT);
   db.valueType(sqlite.VALUESARENATIVE);
@@ -459,19 +447,19 @@ function runNativeObjectTest(callback) {
   const tests = [
     // Callback
     {name: 'NativeObject Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}, use: 0},
-    {name: 'NativeObject All', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}], use: 1},
-    {name: 'NativeObject Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}], use: 2},
+    {name: 'NativeObject All', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 1},
+    {name: 'NativeObject Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 2},
 
     // Promise
     {name: 'NativeObject Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}, use: 3},
-    {name: 'NativeObject Promise All', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}], use: 4},
-    {name: 'NativeObject Promise Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'}], use: 5}
+    {name: 'NativeObject Promise All', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 4},
+    {name: 'NativeObject Promise Each', sql: 'select * from tests order by int_field', results: [{int_field: 1, num_field: 1.2, real_field: 2.4, text_field: 'Text1'},{int_field: 2, num_field: 4.8, real_field: 5.6, text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 5}
 
   ];
-  runTestGroup(tests, callback);
+  await runTestGroup(tests);
 }
 
-function runStringObjectTest(callback) {
+async function runStringObjectTest() {
   console.log("!--------------  Starting RSO Test");
   db.resultType(sqlite.RESULTSASOBJECT);
   db.valueType(sqlite.VALUESARENATIVE);
@@ -479,211 +467,180 @@ function runStringObjectTest(callback) {
   const tests = [
     // Callback
     {name: 'StringObject Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}, use: 0},
-    {name: 'StringObject All', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}], use: 1},
-    {name: 'StringObject Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}], use: 2},
+    {name: 'StringObject All', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 1},
+    {name: 'StringObject Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 2},
 
     // Promise
     {name: 'StringObject Promise Get', sql: 'select * from tests where int_field=?', values: [2], results: {int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}, use: 3},
-    {name: 'StringObject Promise All', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}], use: 4},
-    {name: 'StringObject Promise Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'}], use: 5}
+    {name: 'StringObject Promise All', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 4},
+    {name: 'StringObject Promise Each', sql: 'select * from tests order by int_field', results: [{int_field: "1", num_field: "1.2", real_field: "2.4", text_field: 'Text1'},{int_field: "2", num_field: "4.8", real_field: "5.6", text_field: 'Text2'},{int_field: 3, num_field: null, real_field: null, text_field: null}], use: 5}
 
   ];
-  runTestGroup(tests, callback);
+  await runTestGroup(tests);
 }
 
-function setupPreparedTests(callback) {
+async function setupPreparedTests() {
   if (!sqlite.HAS_COMMERCIAL) {
-    callback();
     return;
   }
 
   console.log("!--------- Creating Prepared Tests Data");
-  /*
-    db.execSQL(['drop table if exists preparetests;','create table preparetests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text)'], function (err) {
-        if (err) {
-            data.push({name: 'Failed to create tables and data...', css: 'one'});
-            console.log("!---- Create Table err", err);
-            return;
-        }
-        callback();
-    });
-  */
-
-
-  db.execSQL('drop table if exists preparetests;', function (err) {
-    if (err) {
-      console.log("!---- Drop Err", err);
-    }
-    db.execSQL('create table preparetests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text, `blob_field` blob)', function (err) {
-      if (err) {
-        data.push({name: 'Failed to create tables and data...', css: 'one'});
-        console.log("!---- Create Table err", err);
-        return;
-      }
-      callback();
-    });
-  });
+  try {
+    await db.execSQL('drop table if exists preparetests;');
+    await db.execSQL('create table preparetests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text, `blob_field` blob)');
+  } catch (err) {
+    data.push({name: 'Failed to create tables and data...', css: 'one'});
+    console.log("!---- Create Table err", err);
+    throw err;
+  }
 }
 
-function runExtraTests(callback) {
+async function runExtraTests() {
   console.log("!--------- Extra Tests");
   data.push({name: "-----------------------------", css: 'two'});
+  db.resultType(sqlite.RESULTSASOBJECT);
+  db.valueType(sqlite.VALUESARENATIVE);
 
-  db.execSQL('drop table if exists extratests;', function (err) {
-    if (err) {
-      console.log("!---- Drop Err", err);
+  try {
+    await db.execSQL('drop table if exists extratests;');
+    await db.execSQL('create table extratests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text, `blob_field` blob, `int2field` integer)');
+    await db.execSQL('insert into extratests values (1, 2, 3, "4", "5", 6)');
+    let val = await db.get('select * from extratests');
+    if (!(val.int_field === 1 && val.num_field === 2 && val.int2field === 6)) {
+      throw new Error("ExtraTest data does not match");
     }
-    db.execSQL('create table extratests (`int_field` integer, `num_field` numeric, `real_field` real, `text_field` text, `blob_field` blob)', function (err) {
-      if (err) {
-        data.push({name: 'Failed to create tables and data...', css: 'one'});
-        console.log("!---- Create Table err", err);
-        return;
-      }
 
-      // Add value
-      db.execSQL('insert into extratests values (1, 2, 3, "4", "5")')
-        .then( () => {
-          // Verify Value
-          return db.get('select * from extratests').then((val) => {
-            if (val.int_field === 1 && val.num_field === 2) {
-              return Promise.resolve();
-            } else {
-              return Promise.reject("Data doesn't match");
-            }
-          });
-        })
-        // Update Value to null
-        .then( () => { return db.execSQL("update extratests set num_field=null where int_field=1"); })
-        .then( () => {
-          // Verify Value
-          return db.get('select * from extratests').then((val) => {
-            if (val.int_field === 1 && val.num_field !== null) {
-              return Promise.reject("Failed direct null")
-            }
-          });
-        })
-        .then( () => { return db.execSQL("update extratests set real_field=? where int_field=1", [null]); })
-        .then( () => {
-          // Verify Value
-          return db.get('select * from extratests').then((val) => {
-            if (val.int_field === 1 && val.real_field !== null) {
-              return Promise.reject("Failed param as null")
-            }
-            data.push({name: 'Passed: Extra Tests...', 'css': 'two'});
-            callback()
-          });
-        })
-        .catch((err) => {
-          data.push({name: 'Failed: Extra Tests...'+err, 'css': 'one'});
-          console.log("!---------- Extra err", err, err.stack);
-          callback();
-        })
+    await db.execSQL("update extratests set num_field=null where int_field=1");
+    val = await db.get('select * from extratests');
+    if (val.int_field !== 1 || val.num_field !== null) {
+      throw new Error("Failed ExtraTest direct null");
+    }
 
-    });
-  });
+    await db.execSQL("update extratests set int2field=null where int_field=1");
+    val = await db.get('select * from extratests');
+    if (val.int_field !== 1 || val.int2field !== null) {
+      throw new Error("Failed ExtraTest int is null");
+    }
 
-
+    await db.execSQL("update extratests set real_field=? where int_field=1", [null]);
+    val = await db.get('select * from extratests');
+    if (val.int_field !== 1 || val.real_field !== null) {
+      throw new Error("Failed ExtraTest param as null")
+    }
+  } catch (err) {
+    console.log("Failed: Extra Tests", err)
+    data.push({name: 'Failed: Extra Tests...'+err, 'css': 'two'});
+    throw err;
+  }
+  data.push({name: 'Passed: Extra Tests...', 'css': 'two'});
 }
 
-function runPreparedTests(callback) {
+async function runPreparedTests(callback) {
   if (!sqlite.HAS_COMMERCIAL) {
-    callback();
     return;
   }
   db.resultType(sqlite.RESULTSASARRAY);
   db.valueType(sqlite.VALUESARENATIVE);
 
-  setupPreparedTests(function() {
-    createPreparedData(true, function () {
+  try {
+    // Test to make sure Rollbacks work
+    await setupPreparedTests();
+    await createPreparedData(true);
+    let tests = [{
+      name: 'Verify Rollback Check',
+      sql: 'select count(*) from preparetests',
+      results: [0],
+      use: 0
+    }];
+    await runTestGroup(tests);
 
-      let tests = [{
-        name: 'Verify Rollback Check',
-        sql: 'select count(*) from preparetests',
-        results: [0],
-        use: 0
+
+    // Test to make sure Commits work
+    await createPreparedData(false);
+    tests = [{
+      name: 'Verify Commit Check',
+      sql: 'select count(*) from preparetests',
+      results: [3],
+      use: 0
+    },
+      {
+        name: 'Commit/Prepare All', sql: 'select * from preparetests order by int_field', results: [
+          [1, 1.2, 2.4, 'Text1', blob],
+          [2, 2.4, 3.6, 'Text2', blob],
+          [3, 3.6, 4.8, 'Text3', blob]
+        ], use: 1
       }];
-      runTestGroup(tests, function () {
-        createPreparedData(false, function () {
+    await runTestGroup(tests);
+  } catch (err) {
+    data.push({name: 'Failed: Prepared Tests...', 'css': 'two'});
+    throw err;
+  }
+  data.push({name: 'Passed: Prepared Tests...', 'css': 'two'});
 
-          tests = [{
-            name: 'Verify Commit Check',
-            sql: 'select count(*) from preparetests',
-            results: [3],
-            use: 0
-          },
-            {
-              name: 'Commit/Prepare All', sql: 'select * from preparetests order by int_field', results: [
-                [1, 1.2, 2.4, 'Text1', blob],
-                [2, 2.4, 3.6, 'Text2', blob],
-                [3, 3.6, 4.8, 'Text3', blob]
-              ], use: 1
-            }];
-          runTestGroup(tests, callback);
-        });
-      });
-    });
-  });
 }
 
-function createPreparedData(rollback, callback) {
+async function createPreparedData(rollback) {
   if (!sqlite.HAS_COMMERCIAL) {
-    callback();
     return;
   }
+
+  let prepared;
   try {
     console.log("!------------- Create Prepared Tests");
-    var prepared = db.prepare("insert into preparetests (int_field, num_field, real_field, text_field, blob_field) values (?,?,?,?,?);");
+    prepared = db.prepare("insert into preparetests (int_field, num_field, real_field, text_field, blob_field) values (?,?,?,?,?);");
   } catch(err) {
     console.log("Error creating prepare data", err);
+    throw err;
   }
-  db.begin();
-  prepared.execute([1,1.2,2.4,"Text1", blob], function(err) {
-    if (err) {
-      data.push({name: 'Failed to insert data...', 'css': 'one'});
-      console.log("!---- Insert err", err, err.stack);
-      return;
+
+  try {
+    await db.begin();
+    await prepared.execute([1, 1.2, 2.4, "Text1", blob]);
+    await prepared.execute([[2, 2.4, 3.6, "Text2", blob], [3, 3.6, 4.8, "Text3", blob]]);
+    if (rollback) {
+      await db.rollback();
+    } else {
+      await db.commit();
     }
-    prepared.execute([[2,2.4,3.6,"Text2", blob], [3,3.6,4.8,"Text3", blob]], function(err2) {
-      if (err2) {
-        data.push({name: 'Failed to create tables and data...', css: 'one'});
-        console.log("!---- Insert err", err, err && err.stack);
-        return;
-      }
-      if (rollback) {
-        db.rollback();
-      } else {
-        db.commit();
-      }
-      prepared.finished();
-      callback();
-    });
+    prepared.finished();
+  } catch (err) {
+    data.push({name: 'Failed Prepared Tests...', css: 'one'});
+    console.log(err);
+    throw err;
+  }
+}
+
+async function delay(time) {
+  return new Promise((resolve) => {
+    setTimeout(() => { resolve(); }, time);
   });
 }
 
-
-function runTests() {
+async function runTests() {
   data.length = 0;
   data.push({name: 'Running SQLite tests...', css: 'one'});
-  setupTests(function() {
-    setTimeout( function() {
-      data.push({name: 'Created tables & data...', css: 'one'});
-      runNativeArrayTest(function () {
-        runNativeObjectTest(function () {
-          runStringArrayTest(function () {
-            runStringObjectTest(function () {
-              runPreparedTests(function () {
-                runExtraTests( function() {
-                  data.push({name: "-----------------------------", css: 'two'});
-                  data.push({name: 'Tests completed...', css: 'two'});
-                  console.log("-----------------------------");
-                  console.log("Tests completed!");
-                })
-              });
-            });
-          });
-        });
-      });
-    },10);
-  });
+
+  try {
+    await setupTests();
+    await delay(10);
+    data.push({name: 'Created tables & data...', css: 'one'});
+//    for (let i=0;i<20;i++) {
+//      data.length = 0;
+      await runNativeArrayTest();
+      await runNativeObjectTest();
+      await runStringArrayTest();
+      await runStringObjectTest();
+//    }
+    await runPreparedTests();
+    await runExtraTests();
+    data.push({name: "-----------------------------", css: 'two'});
+    data.push({name: 'Tests completed...', css: 'two'});
+  } catch (err) {
+    data.push({name: "-----------------------------", css: 'two'});
+    data.push({name: 'Tests failed...', css: 'two'});
+    data.push({name: err, css: 'two'});
+  }
+  console.log("-----------------------------");
+  console.log("Tests completed!");
 }
 
