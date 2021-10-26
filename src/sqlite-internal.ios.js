@@ -115,8 +115,7 @@ function Database(dbname, options, callback) {
                     console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error");
                 }
             }
-        }
-        catch (err) {
+        } catch (err) {
             console.warn("SQLITE.CONSTRUCTOR - Creating DB Folder Error", err);
         }
     }
@@ -126,10 +125,10 @@ function Database(dbname, options, callback) {
     return new Promise(function (resolve, reject) {
         let error;
         try {
-        	let flags = 0;
-        	if (typeof options.iosFlags !== 'undefined') {
-        		flags = options.iosFlags;
-			}
+            let flags = 0;
+            if (typeof options.iosFlags !== 'undefined') {
+                flags = options.iosFlags;
+            }
 
             self._db = new interop.Reference();
             if (options && options.readOnly) {
@@ -141,12 +140,16 @@ function Database(dbname, options, callback) {
             }
             self._db = self._db.value;
         } catch (err) {
-            if (callback) { callback(err, null); }
+            if (callback) {
+                callback(err, null);
+            }
             reject(err);
             return;
         }
         if (error) {
-            if (callback) { callback(error, null); }
+            if (callback) {
+                callback(error, null);
+            }
             reject(error);
             return;
         }
@@ -154,32 +157,38 @@ function Database(dbname, options, callback) {
         self._isOpen = true;
 
         let doneCnt = _DatabasePluginInits.length, doneHandled = 0;
-        const done = function(err) {
-        	if (err) {
-        		doneHandled = doneCnt;  // We don't want any more triggers after this
-				if (callback) { callback(err, null); }
-				reject(err);
-        		return;
-			}
-			doneHandled++;
-        	if (doneHandled === doneCnt) {
-				if (callback) { callback(null, self); }
-				resolve(self);
-			}
-		};
+        const done = function (err) {
+            if (err) {
+                doneHandled = doneCnt;  // We don't want any more triggers after this
+                if (callback) {
+                    callback(err, null);
+                }
+                reject(err);
+                return;
+            }
+            doneHandled++;
+            if (doneHandled === doneCnt) {
+                if (callback) {
+                    callback(null, self);
+                }
+                resolve(self);
+            }
+        };
 
         if (doneCnt) {
-        	try {
-				for (let i = 0; i < doneCnt; i++) {
-					_DatabasePluginInits[i].call(self, options, done);
-				}
-			} catch (err) {
-        		done(err);
-			}
-		} else {
-			if (callback) { callback(null, self); }
-			resolve(self);
-		}
+            try {
+                for (let i = 0; i < doneCnt; i++) {
+                    _DatabasePluginInits[i].call(self, options, done);
+                }
+            } catch (err) {
+                done(err);
+            }
+        } else {
+            if (callback) {
+                callback(null, self);
+            }
+            resolve(self);
+        }
 
     });
 }
@@ -195,20 +204,21 @@ Database.prototype._isSqlite = true;
  * @param valueOrCallback to set or callback(err, version)
  * @returns Promise
  */
-Database.prototype.version = function(valueOrCallback) {
+Database.prototype.version = function (valueOrCallback) {
     return new Promise((resolve, reject) => {
         if (typeof valueOrCallback === 'function') {
             this.get('PRAGMA user_version', function (err, data) {
                 const value = data && parseInt(data[0], 10);
                 valueOrCallback(err, value);
-                if (err) { reject(err); }
-                else resolve(value);
+                if (err) {
+                    reject(err);
+                } else resolve(value);
             }, Database.RESULTSASARRAY);
         } else if (!isNaN(valueOrCallback + 0)) {
             this.execSQL('PRAGMA user_version=' + (valueOrCallback + 0).toString()).then(resolve, reject);
         } else {
             this.get('PRAGMA user_version', undefined, undefined, Database.RESULTSASARRAY).then((data) => {
-                    resolve(data && parseInt(data[0], 10))
+                resolve(data && parseInt(data[0], 10))
             }).catch(reject);
         }
     });
@@ -218,7 +228,7 @@ Database.prototype.version = function(valueOrCallback) {
  * Is the database currently open
  * @returns {boolean} - true if the db is open
  */
-Database.prototype.isOpen = function() {
+Database.prototype.isOpen = function () {
     return this._isOpen;
 };
 
@@ -227,7 +237,7 @@ Database.prototype.isOpen = function() {
  * @param value - Database.RESULTSASARRAY or Database.RESULTSASOBJECT
  * @returns {number} - Database.RESULTSASARRAY or Database.RESULTSASOBJECT
  */
-Database.prototype.resultType = function(value) {
+Database.prototype.resultType = function (value) {
     if (value === Database.RESULTSASARRAY) {
         this._resultType = Database.RESULTSASARRAY;
     } else if (value === Database.RESULTSASOBJECT) {
@@ -241,7 +251,7 @@ Database.prototype.resultType = function(value) {
  * @param value - Database.VALUESARENATIVE or Database.VALUESARESTRINGS
  * @returns {number} - Database.VALUESARENATIVE or Database.VALUESARESTRINGS
  */
-Database.prototype.valueType = function(value) {
+Database.prototype.valueType = function (value) {
     if (value === Database.VALUESARENATIVE) {
         this._valuesType = Database.VALUESARENATIVE;
     } else if (value === Database.VALUESARESTRINGS) {
@@ -255,7 +265,7 @@ Database.prototype.valueType = function(value) {
  * @param callback
  * @returns {Promise<T>}
  */
-Database.prototype.begin = function(callback) {
+Database.prototype.begin = function (callback) {
     throw new Error("Transactions are a Commercial version feature.");
 };
 
@@ -264,8 +274,8 @@ Database.prototype.begin = function(callback) {
  * @param sql
  * @returns {*}
  */
-Database.prototype.prepare = function(sql) {
-	throw new Error("Prepared statements are a Commercial version feature.");
+Database.prototype.prepare = function (sql) {
+    throw new Error("Prepared statements are a Commercial version feature.");
 };
 
 // noinspection JSUnusedLocalSymbols
@@ -273,10 +283,9 @@ Database.prototype.prepare = function(sql) {
  * Dummy sync enable tracking function for public version
  * @returns {*}
  */
-Database.prototype.enableTracking = function(tables, options, callback) {
+Database.prototype.enableTracking = function (tables, options, callback) {
     throw new Error("Table sync is a Commercial version feature.");
 };
-
 
 
 /***
@@ -284,10 +293,10 @@ Database.prototype.enableTracking = function(tables, options, callback) {
  * @param callback
  * @returns Promise
  */
-Database.prototype.close = function(callback) {
+Database.prototype.close = function (callback) {
 
     const self = this;
-    return new Promise( function (resolve, reject) {
+    return new Promise(function (resolve, reject) {
         if (!self._isOpen) {
             if (callback) {
                 callback('SQLITE.CLOSE - Database is already closed');
@@ -301,7 +310,19 @@ Database.prototype.close = function(callback) {
         self._db = null;
         self._isOpen = false;
         if (self._dbnamePtr != null) {
-            interop.free(self._dbnamePtr);
+
+            /*
+             * On the daily app, this one throws Adopted Pointer Error
+             *
+             * Using this workaround till we update the dependencies
+             *
+             * self_dbNamePtr is only a database name buffer whose will be freed by GC after null
+             */
+            try {
+                interop.free(self._dbnamePtr);
+            } catch (e) {
+                console.error("ignore", e);
+            }
             self._dbnamePtr = null;
         }
         if (callback) {
@@ -318,14 +339,14 @@ Database.prototype.close = function(callback) {
  * @param callback - (err, result) - can be last_row_id for insert, and rows affected for update/delete
  * @returns Promise
  */
-Database.prototype.execSQL = function(sql, params, callback) {
+Database.prototype.execSQL = function (sql, params, callback) {
     if (typeof params === 'function') {
         callback = params;
         params = undefined;
     }
 
     const self = this;
-    return new Promise( function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
 
         let hasCallback = true;
         if (typeof callback !== 'function') {
@@ -428,7 +449,7 @@ Database.prototype.execSQL = function(sql, params, callback) {
  * @param mode - allows you to manually override the results set to be a array or object
  * @returns Promise
  */
-Database.prototype.get = function(sql, params, callback, mode) {
+Database.prototype.get = function (sql, params, callback, mode) {
     if (typeof params === 'function') {
         mode = callback;
         callback = params;
@@ -437,7 +458,7 @@ Database.prototype.get = function(sql, params, callback, mode) {
 
 
     const self = this;
-    return new Promise( function (resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let hasCallback = true;
 
         if (typeof callback !== 'function') {
@@ -507,14 +528,14 @@ Database.prototype.get = function(sql, params, callback, mode) {
  * @param mode - set a specific return mode
  * @returns Promise
  */
-Database.prototype.all = function(sql, params, callback, mode) {
+Database.prototype.all = function (sql, params, callback, mode) {
     if (typeof params === 'function') {
         callback = params;
         params = undefined;
     }
 
     const self = this;
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
 
         let hasCallback = true;
         if (typeof callback !== 'function') {
@@ -591,7 +612,7 @@ Database.prototype.all = function(sql, params, callback, mode) {
  * @param complete - callback (err, recordCount)
  * @returns {Promise}
  */
-Database.prototype.each = function(sql, params, callback, complete) {
+Database.prototype.each = function (sql, params, callback, complete) {
     if (typeof params === 'function') {
         complete = callback;
         callback = params;
@@ -604,7 +625,7 @@ Database.prototype.each = function(sql, params, callback, complete) {
     }
 
     const self = this;
-    return new Promise (function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
 
         // Set the error Callback
         let errorCB = complete || callback;
@@ -666,12 +687,12 @@ Database.prototype.each = function(sql, params, callback, complete) {
  * @param params
  * @private
  */
-Database.prototype._bind = function(statement, params) {
+Database.prototype._bind = function (statement, params) {
     let param, res;
 
-	if (Array.isArray(params)) {
+    if (Array.isArray(params)) {
         const count = params.length;
-        for (let i=0; i<count; ++i) {
+        for (let i = 0; i < count; ++i) {
             if (params[i] == null) { // jshint ignore:line
                 res = sqlite3_bind_null(statement, i + 1);
             } else if (params[i].isKindOfClass && (params[i].isKindOfClass(NSData.class()))) {
@@ -679,7 +700,7 @@ Database.prototype._bind = function(statement, params) {
                 res = sqlite3_bind_blob(statement, i + 1, obj.bytes, obj.length, TRANSIENT);
             } else {
                 param = params[i].toString();
-                res = sqlite3_bind_text(statement, i+1, param, -1, TRANSIENT );
+                res = sqlite3_bind_text(statement, i + 1, param, -1, TRANSIENT);
             }
             if (res) {
                 console.error("SQLITE.Binding Error ", res);
@@ -694,7 +715,7 @@ Database.prototype._bind = function(statement, params) {
             res = sqlite3_bind_blob(statement, 1, obj.bytes, obj.length, TRANSIENT);
         } else {
             param = params.toString();
-			res = sqlite3_bind_text(statement, 1, param, -1, TRANSIENT );
+            res = sqlite3_bind_text(statement, 1, param, -1, TRANSIENT);
         }
         if (res) {
             console.error("SQLITE.Binding Error ", res);
@@ -704,7 +725,7 @@ Database.prototype._bind = function(statement, params) {
     return true;
 };
 
-Database.prototype._getNativeResult = function(statement, column) {
+Database.prototype._getNativeResult = function (statement, column) {
     const resultType = sqlite3_column_type(statement, column);
     switch (resultType) {
         case 1: // Int
@@ -724,7 +745,7 @@ Database.prototype._getNativeResult = function(statement, column) {
     }
 };
 
-Database.prototype._getStringResult = function(statement, column) {
+Database.prototype._getStringResult = function (statement, column) {
     const resultType = sqlite3_column_type(statement, column);
     switch (resultType) {
         case 1: // Int
@@ -746,7 +767,7 @@ Database.prototype._getStringResult = function(statement, column) {
     }
 };
 
-Database.prototype._getResults = function(cursorStatement, mode) {
+Database.prototype._getResults = function (cursorStatement, mode) {
     let resultType, valueType;
     let statement = cursorStatement.statement;
     let i;
@@ -769,20 +790,22 @@ Database.prototype._getResults = function(cursorStatement, mode) {
     if (!cursorStatement.built) {
         cursorStatement.count = sqlite3_column_count(statement);
         if (resultType === Database.RESULTSASOBJECT) {
-            for (i=0;i<cursorStatement.count;i++) {
+            for (i = 0; i < cursorStatement.count; i++) {
                 //noinspection JSUnresolvedFunction
-                let cn =  NSString.stringWithUTF8String(sqlite3_column_name(statement, i)).toString();
+                let cn = NSString.stringWithUTF8String(sqlite3_column_name(statement, i)).toString();
                 if (!cn || cursorStatement.columns.indexOf(cn) >= 0) {
-                    cn = "column"+i;
+                    cn = "column" + i;
                 }
                 cursorStatement.columns.push(cn);
             }
         }
-        cursorStatement.built=true;
+        cursorStatement.built = true;
     }
 
     let cnt = cursorStatement.count, data;
-    if (cnt === 0) { return null; }
+    if (cnt === 0) {
+        return null;
+    }
     if (resultType === Database.RESULTSASARRAY) {
         data = [];
         if (valueType === Database.VALUESARESTRINGS) {
@@ -811,7 +834,7 @@ Database.prototype._getResults = function(cursorStatement, mode) {
     }
 };
 
-Database.prototype.notify = function(type, message) {
+Database.prototype.notify = function (type, message) {
     if (typeof global.postMessage === 'function') {
         postMessage({id: -2, type: type, message: message});
     } else {
@@ -822,7 +845,7 @@ Database.prototype.notify = function(type, message) {
     }
 };
 
-Database.prototype._notify = function(type, message) {
+Database.prototype._notify = function (type, message) {
     if (type == null || typeof this._messageHandlers[type] === "undefined") {
         return;
     }
@@ -836,14 +859,14 @@ Database.prototype._notify = function(type, message) {
     }
 }
 
-Database.prototype.addMessageHandler = function(type, callback) {
+Database.prototype.addMessageHandler = function (type, callback) {
     if (typeof this._messageHandlers[type] === 'undefined') {
         this._messageHandlers[type] = [];
     }
     this._messageHandlers[type].push(callback);
 };
 
-Database.prototype.removeMessageHandler = function(type, callback) {
+Database.prototype.removeMessageHandler = function (type, callback) {
     if (type != null && typeof this._messageHandlers[type] === "undefined") {
         console.error("SQLite: This message handler " + type + " does not exist.");
         return;
@@ -871,11 +894,11 @@ Database.prototype.removeMessageHandler = function(type, callback) {
  * @param obj - possible sqlite object to check
  * @returns {boolean}
  */
-Database.isSqlite = function(obj) {
+Database.isSqlite = function (obj) {
     return obj && obj._isSqlite;
 };
 
-Database.exists = function(name) {
+Database.exists = function (name) {
     if (name.indexOf('/') === -1) {
         name = fs.knownFolders.documents().path + '/' + name;
     }
@@ -886,7 +909,7 @@ Database.exists = function(name) {
     return fileManager.fileExistsAtPath(name);
 };
 
-Database.deleteDatabase = function(name) {
+Database.deleteDatabase = function (name) {
     //noinspection JSUnresolvedFunction
     const fileManager = iosProperty(NSFileManager, NSFileManager.defaultManager);
 
@@ -898,12 +921,14 @@ Database.deleteDatabase = function(name) {
         name = name.substr(path.length);
     }
 
-    if (!fileManager.fileExistsAtPath(path + name)) { return; }
+    if (!fileManager.fileExistsAtPath(path + name)) {
+        return;
+    }
 
     // Need to remove the trailing .sqlite
     let idx = name.lastIndexOf('.');
     if (idx) {
-        name = name.substr(0,idx);
+        name = name.substr(0, idx);
     }
 
     let files = fileManager.contentsOfDirectoryAtPathError(path, null);
@@ -934,8 +959,9 @@ Database.copyDatabase = function (name, destName) {
 
     let source = fs.knownFolders.currentApp().path + '/' + name;
 
-    if (!destName) { destName = name; }
-    else if (destName.indexOf("/") >= 0) {
+    if (!destName) {
+        destName = name;
+    } else if (destName.indexOf("/") >= 0) {
         destName = destName.substring(destName.lastIndexOf('/') + 1);
     }
 
@@ -944,24 +970,28 @@ Database.copyDatabase = function (name, destName) {
 };
 
 function UsePlugin(loadedSrc, DBModule) {
-		if (loadedSrc.prototypes) {
-			for (let key in loadedSrc.prototypes) {
-                if (!loadedSrc.prototypes.hasOwnProperty(key)) { continue; }
-                if (DBModule.prototype[key]) {
-                    DBModule.prototype["_"+key] = DBModule.prototype[key];
-                }
-                DBModule.prototype[key] = loadedSrc.prototypes[key];
-			}
-		}
-		if (loadedSrc.statics) {
-			for (let key in loadedSrc.statics) {
-                if (!loadedSrc.statics.hasOwnProperty(key)) { continue; }
-				DBModule[key] = loadedSrc.statics[key];
-			}
-		}
-		if (typeof loadedSrc.init === 'function') {
-			_DatabasePluginInits.push(loadedSrc.init);
-		}
+    if (loadedSrc.prototypes) {
+        for (let key in loadedSrc.prototypes) {
+            if (!loadedSrc.prototypes.hasOwnProperty(key)) {
+                continue;
+            }
+            if (DBModule.prototype[key]) {
+                DBModule.prototype["_" + key] = DBModule.prototype[key];
+            }
+            DBModule.prototype[key] = loadedSrc.prototypes[key];
+        }
+    }
+    if (loadedSrc.statics) {
+        for (let key in loadedSrc.statics) {
+            if (!loadedSrc.statics.hasOwnProperty(key)) {
+                continue;
+            }
+            DBModule[key] = loadedSrc.statics[key];
+        }
+    }
+    if (typeof loadedSrc.init === 'function') {
+        _DatabasePluginInits.push(loadedSrc.init);
+    }
 }
 
 function iosProperty(_this, property) {
@@ -975,11 +1005,10 @@ function iosProperty(_this, property) {
 }
 
 // Literal Defines
-Database.prototype.RESULTSASARRAY   = Database.RESULTSASARRAY   = 1;
-Database.prototype.RESULTSASOBJECT  = Database.RESULTSASOBJECT  = 2;
-Database.prototype.VALUESARENATIVE  = Database.VALUESARENATIVE  = 4;
+Database.prototype.RESULTSASARRAY = Database.RESULTSASARRAY = 1;
+Database.prototype.RESULTSASOBJECT = Database.RESULTSASOBJECT = 2;
+Database.prototype.VALUESARENATIVE = Database.VALUESARENATIVE = 4;
 Database.prototype.VALUESARESTRINGS = Database.VALUESARESTRINGS = 8;
-
 
 
 /** These are optional plugins, must have a static require statement for webpack **/
@@ -988,29 +1017,26 @@ TryLoadingEncryptionPlugin();
 TryLoadingSyncPlugin();
 
 function TryLoadingCommercialPlugin() {
-	try {
-		const sqlCom = require('nativescript-sqlite-commercial');
-		UsePlugin(sqlCom, Database);
-	}
-	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
-	}
+    try {
+        const sqlCom = require('nativescript-sqlite-commercial');
+        UsePlugin(sqlCom, Database);
+    } catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+    }
 }
 
 function TryLoadingEncryptionPlugin() {
-	try {
-		const sqlEnc = require('nativescript-sqlite-encrypted');
-		UsePlugin(sqlEnc, Database);
-	}
-	catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
-	}
+    try {
+        const sqlEnc = require('nativescript-sqlite-encrypted');
+        UsePlugin(sqlEnc, Database);
+    } catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+    }
 }
 
 function TryLoadingSyncPlugin() {
     try {
         const sqlSync = require('nativescript-sqlite-sync');
         UsePlugin(sqlSync, Database);
-    }
-    catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
+    } catch (e) { /* Do Nothing if it doesn't exist as it is an optional plugin */
     }
 }
 
