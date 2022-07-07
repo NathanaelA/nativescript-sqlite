@@ -1,4 +1,11 @@
-# NativeScript-sqlite
+# Archived Public Repo
+See: https://fluentreports.com/blog/?p=1434  
+If you want any support, you can purchase it here: https://nativescript.tools/product/10
+If you are already a paid customer please post any issues here: https://git.master-technology.com/nativescript-sqlite/nativescript-sqlite
+
+
+
+## NativeScript-sqlite
 
 <p align="center"><img src="https://proplugins.org/logos/logo.png" width="400"  /></p>
 
@@ -10,7 +17,7 @@ The [documentation](src/README.md) for the plugin is located in the [src folder]
 
 
 ## Commercial Options
-The [commercial version](http://nativescript.tools/product/10) comes with the following enhancements:
+The [commercial version](https://nativescript.tools/product/10) comes with the following enhancements:
 - TypeScript definitions
 - Totally backwards compatible with the free version
 - Prepared statements
