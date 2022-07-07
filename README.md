@@ -1,7 +1,7 @@
 # Archived Public Repo
 See: https://fluentreports.com/blog/?p=1434  
-If you want any support, you can purchase it here: https://nativescript.tools/product/10
-If you are already a paid customer please post any issues here: https://git.master-technology.com/nativescript-sqlite/nativescript-sqlite
+- If you want any support, you can purchase it here: https://nativescript.tools/product/10
+- If you are already a paid customer please post any issues here: https://git.master-technology.com/nativescript-sqlite/nativescript-sqlite
 
 
 
